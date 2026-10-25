@@ -1024,3 +1024,9 @@ main { max-width: 1180px; margin: 0 auto; padding: 0 16px; }
 .booster.real .booster-body { border-radius: 6px; z-index: 2; }
 .booster.real .booster-shine { opacity: .22; mix-blend-mode: soft-light; }
 .admin-badge{padding:.3rem .7rem;border-radius:999px;background:linear-gradient(90deg,#ff3d6e,#ffb347);color:#fff;font-weight:800;font-size:.78rem}
+.hero-emblem { display: flex; justify-content: center; margin-bottom: .6rem; }
+.hero-emblem .emblem { filter: drop-shadow(0 10px 24px rgba(0,0,0,.5)); animation: emblem-float 5s ease-in-out infinite; }
+@keyframes emblem-float { 50% { transform: translateY(-6px) rotate(-2deg); } }
+.univ-pill svg { flex: none; }
+.uv-side .emblem { width: clamp(84px, 10vw, 130px); height: auto; }
+.uv-side.pokemon .emblem { color: inherit; }

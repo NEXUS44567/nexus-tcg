@@ -289,18 +289,83 @@ export function Logo() {
   );
 }
 
-// Emblème pirate original de NEXUS (tête de mort et os croisés, motif traditionnel)
+// ---- Emblèmes originaux de NEXUS (aucun logo officiel) ----
+// One Piece : médaillon pirate (tête de mort et os croisés, motif traditionnel), cordage et bandeau rouge
 export function PirateEmblem({ size = 44, className = 'emblem' }) {
+  const id = React.useId().replace(/:/g, '');
+  const g = (n) => `${n}-${id}`;
   return (
-    <svg viewBox="0 0 120 120" width={size} height={size} className={className} aria-hidden="true">
-      <g fill="#fff" stroke="#111" strokeWidth="3" strokeLinejoin="round">
-        <g transform="rotate(35 60 64)"><rect x="12" y="58" width="96" height="12" rx="6" /><circle cx="12" cy="58" r="7" /><circle cx="12" cy="70" r="7" /><circle cx="108" cy="58" r="7" /><circle cx="108" cy="70" r="7" /></g>
-        <g transform="rotate(-35 60 64)"><rect x="12" y="58" width="96" height="12" rx="6" /><circle cx="12" cy="58" r="7" /><circle cx="12" cy="70" r="7" /><circle cx="108" cy="58" r="7" /><circle cx="108" cy="70" r="7" /></g>
-        <path d="M60 22c-20 0-33 13-33 30 0 10 5 17 11 21v10c0 4 3 6 6 6h32c3 0 6-2 6-6V73c6-4 11-11 11-21 0-17-13-30-33-30z" />
+    <svg viewBox="0 0 200 200" width={size} height={size} className={className} aria-hidden="true">
+      <defs>
+        <radialGradient id={g('bg')} cx="50%" cy="38%" r="65%"><stop offset="0" stopColor="#3a2a22" /><stop offset=".6" stopColor="#1a1110" /><stop offset="1" stopColor="#0a0605" /></radialGradient>
+        <linearGradient id={g('rim')} x1="0" y1="0" x2="0" y2="1"><stop offset="0" stopColor="#f7e2a1" /><stop offset=".35" stopColor="#c9952f" /><stop offset=".6" stopColor="#8a5a14" /><stop offset="1" stopColor="#e9c46a" /></linearGradient>
+        <radialGradient id={g('bone')} cx="40%" cy="30%" r="80%"><stop offset="0" stopColor="#fffdf4" /><stop offset=".55" stopColor="#ece2c6" /><stop offset="1" stopColor="#b8a77e" /></radialGradient>
+        <radialGradient id={g('skull')} cx="42%" cy="30%" r="75%"><stop offset="0" stopColor="#ffffff" /><stop offset=".5" stopColor="#f1e9d2" /><stop offset="1" stopColor="#b9a882" /></radialGradient>
+        <linearGradient id={g('band')} x1="0" y1="0" x2="0" y2="1"><stop offset="0" stopColor="#ff5a4a" /><stop offset=".5" stopColor="#d6211b" /><stop offset="1" stopColor="#7d0d0b" /></linearGradient>
+        <pattern id={g('rope')} width="10" height="10" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect width="10" height="10" fill="#b98a4c" /><rect width="4" height="10" fill="#7a5426" /></pattern>
+        <filter id={g('sh')} x="-20%" y="-20%" width="140%" height="140%"><feDropShadow dx="0" dy="3" stdDeviation="2.5" floodColor="#000" floodOpacity=".55" /></filter>
+      </defs>
+      <circle cx="100" cy="100" r="96" fill={`url(#${g('rim')})`} />
+      <circle cx="100" cy="100" r="88" fill="none" stroke={`url(#${g('rope')})`} strokeWidth="9" />
+      <circle cx="100" cy="100" r="82" fill={`url(#${g('bg')})`} stroke="#000" strokeOpacity=".5" strokeWidth="2" />
+      <circle cx="100" cy="100" r="82" fill="none" stroke="#fff" strokeOpacity=".07" strokeWidth="10" strokeDasharray="2 7" />
+      <g filter={`url(#${g('sh')})`}>
+        {[-38, 38].map((a) => (
+          <g key={a} transform={`rotate(${a} 100 112)`}>
+            <rect x="38" y="105" width="124" height="14" rx="7" fill={`url(#${g('bone')})`} stroke="#6b5a3a" strokeWidth="1.5" />
+            {[[38, 104], [38, 120], [162, 104], [162, 120]].map(([x, y], k) => <circle key={k} cx={x} cy={y} r="9.5" fill={`url(#${g('bone')})`} stroke="#6b5a3a" strokeWidth="1.5" />)}
+          </g>
+        ))}
+        <path d="M100 42c-29 0-47 18-47 42 0 14 7 24 16 30v13c0 6 4 9 9 9h44c5 0 9-3 9-9v-13c9-6 16-16 16-30 0-24-18-42-47-42z" fill={`url(#${g('skull')})`} stroke="#5b4a2e" strokeWidth="2" />
+        <path d="M58 70c8-22 76-22 84 0l2 8c-26-12-62-12-88 0z" fill={`url(#${g('band')})`} stroke="#4a0606" strokeWidth="1.5" />
+        <path d="M140 72c10-2 20 2 24 9-6 1-12 0-17-3 3 6 3 12 0 18-4-7-6-14-7-24z" fill={`url(#${g('band')})`} stroke="#4a0606" strokeWidth="1.5" />
+        <ellipse cx="83" cy="92" rx="12" ry="13" fill="#140b08" />
+        <ellipse cx="117" cy="92" rx="12" ry="13" fill="#140b08" />
+        <ellipse cx="80" cy="88" rx="3" ry="2.5" fill="#fff" opacity=".18" />
+        <ellipse cx="114" cy="88" rx="3" ry="2.5" fill="#fff" opacity=".18" />
+        <path d="M100 103l-7 11h14z" fill="#140b08" />
+        <path d="M80 124h40M86 120v14M93 120v14M100 120v14M107 120v14M114 120v14" stroke="#5b4a2e" strokeWidth="2.2" strokeLinecap="round" />
+        <path d="M70 60c10-10 26-14 42-12" fill="none" stroke="#fff" strokeOpacity=".55" strokeWidth="3" strokeLinecap="round" />
       </g>
-      <g fill="#111"><ellipse cx="47" cy="52" rx="8" ry="9" /><ellipse cx="73" cy="52" rx="8" ry="9" /><path d="M60 62l-5 8h10z" /></g>
-      <g stroke="#111" strokeWidth="2.5"><path d="M46 80v9M53 80v9M60 80v9M67 80v9M74 80v9" /></g>
-      <path d="M28 40c10-14 54-14 64 0" fill="none" stroke="#e2433a" strokeWidth="7" strokeLinecap="round" />
+      <path d="M30 70a78 78 0 0 1 140 0" fill="none" stroke="#fff" strokeOpacity=".35" strokeWidth="3" strokeLinecap="round" />
+    </svg>
+  );
+}
+
+// Pokémon : blason émaillé, éclair doré et trois orbes d'énergie (feu, eau, plante)
+export function EnergyEmblem({ size = 44, className = 'emblem' }) {
+  const id = React.useId().replace(/:/g, '');
+  const g = (n) => `${n}-${id}`;
+  const shield = 'M100 8 178 38v58c0 50-34 82-78 96C56 178 22 146 22 96V38z';
+  return (
+    <svg viewBox="0 0 200 200" width={size} height={size} className={className} aria-hidden="true">
+      <defs>
+        <linearGradient id={g('rim')} x1="0" y1="0" x2="1" y2="1"><stop offset="0" stopColor="#fff6c8" /><stop offset=".3" stopColor="#f2c230" /><stop offset=".6" stopColor="#a8700b" /><stop offset="1" stopColor="#ffe27a" /></linearGradient>
+        <radialGradient id={g('enamel')} cx="50%" cy="30%" r="80%"><stop offset="0" stopColor="#3f7cff" /><stop offset=".55" stopColor="#1c3fa8" /><stop offset="1" stopColor="#0a1747" /></radialGradient>
+        <linearGradient id={g('bolt')} x1="0" y1="0" x2="0" y2="1"><stop offset="0" stopColor="#fffbe0" /><stop offset=".35" stopColor="#ffe14d" /><stop offset=".75" stopColor="#f5a400" /><stop offset="1" stopColor="#c46f00" /></linearGradient>
+        <radialGradient id={g('fire')} cx="35%" cy="30%"><stop offset="0" stopColor="#ffe0a0" /><stop offset=".5" stopColor="#ff6a2a" /><stop offset="1" stopColor="#a8200a" /></radialGradient>
+        <radialGradient id={g('water')} cx="35%" cy="30%"><stop offset="0" stopColor="#d8f2ff" /><stop offset=".5" stopColor="#3aa8ff" /><stop offset="1" stopColor="#0b4aa8" /></radialGradient>
+        <radialGradient id={g('leaf')} cx="35%" cy="30%"><stop offset="0" stopColor="#e6ffcc" /><stop offset=".5" stopColor="#4cc94c" /><stop offset="1" stopColor="#14701e" /></radialGradient>
+        <filter id={g('glow')} x="-40%" y="-40%" width="180%" height="180%"><feGaussianBlur stdDeviation="5" result="b" /><feMerge><feMergeNode in="b" /><feMergeNode in="SourceGraphic" /></feMerge></filter>
+        <filter id={g('sh')} x="-20%" y="-20%" width="140%" height="140%"><feDropShadow dx="0" dy="3" stdDeviation="2.5" floodColor="#000" floodOpacity=".5" /></filter>
+        <clipPath id={g('clip')}><path d={shield} transform="translate(100 100) scale(.86) translate(-100 -100)" /></clipPath>
+      </defs>
+      <path d={shield} fill={`url(#${g('rim')})`} stroke="#6b4300" strokeWidth="2" />
+      <path d={shield} transform="translate(100 100) scale(.86) translate(-100 -100)" fill={`url(#${g('enamel')})`} stroke="#4a2e00" strokeWidth="2" />
+      <g clipPath={`url(#${g('clip')})`}>
+        {Array.from({ length: 12 }, (_, i) => <path key={i} d="M100 92 L96 -40 L104 -40 Z" fill="#fff" opacity=".06" transform={`rotate(${i * 30} 100 92)`} />)}
+        <ellipse cx="80" cy="40" rx="70" ry="26" fill="#fff" opacity=".12" />
+      </g>
+      <g filter={`url(#${g('glow')})`}>
+        <path d="M112 28 62 106h32l-14 66 62-92h-34l16-52z" fill={`url(#${g('bolt')})`} stroke="#7a4300" strokeWidth="3" strokeLinejoin="round" />
+        <path d="M108 38 72 100" stroke="#fff" strokeOpacity=".7" strokeWidth="3" strokeLinecap="round" />
+      </g>
+      <g filter={`url(#${g('sh')})`}>
+        <circle cx="52" cy="124" r="11" fill={`url(#${g('fire')})`} stroke="#5a1200" strokeWidth="1.5" />
+        <circle cx="148" cy="124" r="11" fill={`url(#${g('water')})`} stroke="#062a66" strokeWidth="1.5" />
+        <circle cx="100" cy="172" r="9" fill={`url(#${g('leaf')})`} stroke="#0b4012" strokeWidth="1.5" />
+      </g>
+      <path d="M34 44 100 18l66 26" fill="none" stroke="#fff" strokeOpacity=".55" strokeWidth="3" strokeLinecap="round" />
     </svg>
   );
 }

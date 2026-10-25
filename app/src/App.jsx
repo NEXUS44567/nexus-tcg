@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useRoute, useData, href, cardHref, UNIV_HOME } from './lib/hooks.js';
 import { useStore, update, useUniverse, tryAdmin } from './lib/store.js';
 import { fmtEur, GAMES } from './lib/data.js';
-import { Icon, SearchBox, Logo } from './components.jsx';
+import { Icon, SearchBox, Logo, PirateEmblem, EnergyEmblem } from './components.jsx';
 import Home from './pages/Home.jsx';
 import CardPage from './pages/Card.jsx';
 import CollectionPage from './pages/Collection.jsx';
@@ -64,7 +64,7 @@ export default function App() {
       <a className="skip" href="#contenu">Aller au contenu</a>
       <header className="topbar">
         <a className="logo" href={href('/')} aria-label="NEXUS TCG, changer d’univers"><Logo /><span>NEXUS<small>TCG</small></span></a>
-        <a className={'univ-pill ' + universe} href={href(UNIV_HOME[universe])}>{universe === 'onepiece' ? '☸' : 'ϟ'} {GAMES[universe].label}</a>
+        <a className={'univ-pill ' + universe} href={href(UNIV_HOME[universe])}>{universe === 'onepiece' ? <PirateEmblem size={20} className="" /> : <EnergyEmblem size={20} className="" />} {GAMES[universe].label}</a>
         <nav className="topnav" aria-label="Navigation principale">
           {nav.slice(1).map(([to, l, i]) => <a key={to} href={href(to)} className={active(to) ? 'on' : ''}><Icon name={i} size={18} />{l}</a>)}
           <a href={href('/comparateur')} className={active('/comparateur') ? 'on' : ''}><Icon name="compare" size={18} />Comparer{compare > 0 && <span className="badge">{compare}</span>}</a>

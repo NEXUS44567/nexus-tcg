@@ -2,7 +2,7 @@ import React, { useMemo, useState } from 'react';
 import { useData, href, cardHref } from '../lib/hooks.js';
 import { useStore } from '../lib/store.js';
 import { fmtEur, fmtDate, fmtNum, eurOf, GAMES, img } from '../lib/data.js';
-import { SearchBox, CardImage, Delta, Section, Seg, Icon, GameTag, Price, Loading, CardTile, SourceNote } from '../components.jsx';
+import { SearchBox, CardImage, Delta, Section, Seg, Icon, GameTag, Price, Loading, CardTile, SourceNote, PirateEmblem, EnergyEmblem } from '../components.jsx';
 import { collectionValue } from './Collection.jsx';
 
 export function Podium({ game, limit = 10 }) {
@@ -183,6 +183,7 @@ function Hero({ game, stats }) {
     <section className={'hero ' + game}>
       <div className="hero-glow" aria-hidden="true" />
       <div className="hero-inner">
+        <div className="hero-emblem">{game === 'onepiece' ? <PirateEmblem size={84} /> : <EnergyEmblem size={84} />}</div>
         <div className="kicker">{U.kicker}</div>
         <h1>{U.title}</h1>
         <p className="lead">{U.lead}</p>
