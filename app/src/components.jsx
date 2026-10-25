@@ -9,7 +9,7 @@ export function Icon({ name, size = 20 }) {
     home: <><path d="M3 11 12 4l9 7" /><path d="M5 10v10h14V10" /></>,
     scan: <><path d="M4 8V5a1 1 0 0 1 1-1h3M16 4h3a1 1 0 0 1 1 1v3M20 16v3a1 1 0 0 1-1 1h-3M8 20H5a1 1 0 0 1-1-1v-3" /><rect x="8" y="7" width="8" height="10" rx="1" /></>,
     pack: <><path d="M6 3h12l-1 3H7z" /><rect x="5" y="6" width="14" height="15" rx="2" /><path d="M9 11h6M9 15h4" /></>,
-    album: <><rect x="3" y="4" width="18" height="16" rx="2" /><path d="M9 4v16M15 4v16M3 12h18" /></>,
+    album: <><rect x="5" y="3" width="15" height="18" rx="2" /><path d="M3 7.5h4M3 12h4M3 16.5h4" /><rect x="9" y="6" width="3.6" height="5" rx=".6" /><rect x="14" y="6" width="3.6" height="5" rx=".6" /><rect x="9" y="13" width="3.6" height="5" rx=".6" /><rect x="14" y="13" width="3.6" height="5" rx=".6" /></>,
     chart: <><path d="M4 19V5M4 19h16" /><path d="m7 15 4-4 3 3 5-6" /></>,
     eye: <><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z" /><circle cx="12" cy="12" r="3" /></>,
     bell: <><path d="M6 16V11a6 6 0 1 1 12 0v5l2 2H4z" /><path d="M10 20a2 2 0 0 0 4 0" /></>,
@@ -30,8 +30,8 @@ export function Icon({ name, size = 20 }) {
     grid: <><rect x="4" y="4" width="7" height="7" rx="1" /><rect x="13" y="4" width="7" height="7" rx="1" /><rect x="4" y="13" width="7" height="7" rx="1" /><rect x="13" y="13" width="7" height="7" rx="1" /></>,
     list: <path d="M8 6h12M8 12h12M8 18h12M4 6h.01M4 12h.01M4 18h.01" />,
     refresh: <><path d="M20 11a8 8 0 1 0-2.3 5.7" /><path d="M20 5v6h-6" /></>,
-    crew: <><circle cx="12" cy="12" r="5" /><circle cx="12" cy="12" r="1.5" /><path d="M12 2v5M12 17v5M2 12h5M17 12h5M4.9 4.9l3.5 3.5M15.6 15.6l3.5 3.5M4.9 19.1l3.5-3.5M15.6 8.4l3.5-3.5" /></>,
-    dex: <><circle cx="12" cy="12" r="9" /><path d="M3 12h6M15 12h6" /><circle cx="12" cy="12" r="3" /></>,
+    crew: <><path d="M3 15h18l-2.4 4.2a2 2 0 0 1-1.7 1H7.1a2 2 0 0 1-1.7-1z" /><path d="M12 3v12" /><path d="M13 5.5c3.2 1.2 5 3.6 5 7h-5z" /><path d="M11 7.5c-2.4 1-3.8 2.8-3.8 5H11z" /><path d="M12 3h3.5l-1 1.2 1 1.3H12" /></>,
+    dex: <><rect x="4" y="2" width="16" height="20" rx="2.5" /><circle cx="8.5" cy="6" r="2" /><path d="M13 5.5h.01M15.5 5.5h.01M4 9h16" /><rect x="7" y="11.5" width="10" height="6" rx="1" /><path d="M8 20h.01M13 20h3" /></>,
     swap: <><path d="M7 4 3 8l4 4" /><path d="M3 8h13a4 4 0 0 1 4 4" /><path d="m17 20 4-4-4-4" /><path d="M21 16H8a4 4 0 0 1-4-4" /></>,
   }[name];
   return <svg className="icon" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">{p}</svg>;
