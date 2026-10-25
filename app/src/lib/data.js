@@ -135,3 +135,11 @@ export const fmtUsd = (n) => (n == null ? '—' : n.toLocaleString('fr-FR', { st
 export const fmtPct = (n) => (n == null ? '—' : (n > 0 ? '+' : '') + n.toLocaleString('fr-FR', { maximumFractionDigits: 1 }) + ' %');
 export const fmtDate = (d, opts = { day: 'numeric', month: 'long', year: 'numeric' }) => { if (!d) return '—'; const x = new Date(d); return isNaN(x) ? String(d) : x.toLocaleDateString('fr-FR', opts); };
 export const fmtNum = (n) => (n ?? 0).toLocaleString('fr-FR');
+
+// ---- Pokédex et Équipage ----
+export const pokedexList = () => load('pokedex/list.json');
+export const pokedexChunk = (id) => load('pokedex/d-' + Math.floor((id - 1) / 100) + '.json');
+export const equipageData = () => load('equipage.json');
+export const artwork = (id, shiny) => id ? `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/${shiny ? 'shiny/' : ''}${id}.png` : '';
+export const TYPE_COLORS = { 1: '#a8a77a', 2: '#c22e28', 3: '#a98ff3', 4: '#a33ea1', 5: '#e2bf65', 6: '#b6a136', 7: '#a6b91a', 8: '#735797', 9: '#b7b7ce', 10: '#ee8130', 11: '#6390f0', 12: '#7ac74c', 13: '#f7d02c', 14: '#f95587', 15: '#96d9d6', 16: '#6f35fc', 17: '#705746', 18: '#d685ad' };
+export const OP_COLORS = { Red: ['Rouge', '#e2433a'], Green: ['Vert', '#2fa56a'], Blue: ['Bleu', '#2f7fe0'], Purple: ['Violet', '#8e4ad8'], Black: ['Noir', '#3b3f4a'], Yellow: ['Jaune', '#e8c43a'] };

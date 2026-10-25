@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { useData, href, cardHref, useNow } from '../lib/hooks.js';
-import { useStore, update, energyNow, spendEnergy, ENERGY_MAX, getState } from '../lib/store.js';
+import { useStore, update, energyNow, spendEnergy, ENERGY_MAX, getState, useUniverse } from '../lib/store.js';
 import { eurOf, fmtEur, fmtNum, img, GAMES } from '../lib/data.js';
 import { buildProducts, openPack, TIER_STYLE } from '../lib/packs.js';
 import { CardImage, Icon, Loading, Seg, Modal, GameTag, Empty, Section } from '../components.jsx';
@@ -50,21 +50,21 @@ export default function BoostersPage() {
   const packs = useStore((s) => s.packs);
   const muted = useStore((s) => !!s.muted);
   const now = useNow(1000);
-  const [game, setGame] = useState('all');
+  const game = useUniverse();
   const [current, setCurrent] = useState(null);
   const [odds, setOdds] = useState(null);
   const products = useMemo(() => (d.ready ? buildProducts(d.cats, d.P, d.fx) : []), [d.ready]);
   if (!d.ready) return <div className="page"><Loading /></div>;
   const en = energyNow(packs, now);
-  const list = products.filter((p) => game === 'all' || p.game === game);
-  const virtualValue = Object.entries(packs.virtual).reduce((s, [k]) => { const [g, ...r] = k.split(':'); const c = d.cats[g]?.byId.get(r.join(':')); return s + ((c && eurOf(c, d.P, d.fx)) || 0); }, 0);
+  const list = products.filter((p) => p.game === game);
+  const virtualValue = Object.entries(packs.virtual).filter(([k]) => k.startsWith(game + ':')).reduce((s, [k]) => { const [g, ...r] = k.split(':'); const c = d.cats[g]?.byId.get(r.join(':')); return s + ((c && eurOf(c, d.P, d.fx)) || 0); }, 0);
   const mm = en.next ? Math.max(0, Math.ceil((en.next - now) / 1000)) : 0;
 
   if (current) return <Opening prod={current} onClose={() => setCurrent(null)} onAgain={() => { if (spendForPack(current)) setCurrent({ ...current, nonce: Math.random() }); }} />;
 
   return (
     <div className="page boosters-page">
-      <h1 className="page-title">Boosters virtuels</h1>
+      <h1 className="page-title">{game === 'onepiece' ? 'Boosters One Piece' : 'Boosters Pokémon'}</h1>
       <p className="lead">Déchire, retourne, collectionne. Des cartes virtuelles, mais la valeur affichée est bien celle du marché aujourd’hui.</p>
       <div className="energy-bar">
         <div className="energy"><Icon name="bolt" size={20} /><b>{en.energy}</b>/{ENERGY_MAX} énergie</div>
@@ -74,12 +74,11 @@ export default function BoostersPage() {
       </div>
       <div className="pack-stats">
         <div><span>Boosters ouverts</span><b>{fmtNum(packs.opened)}</b></div>
-        <div><span>Cartes virtuelles</span><b>{fmtNum(Object.keys(packs.virtual).length)}</b></div>
+        <div><span>Cartes virtuelles</span><b>{fmtNum(Object.keys(packs.virtual).filter((k) => k.startsWith(game + ':')).length)}</b></div>
         <div><span>Valeur de la collection virtuelle</span><b>{fmtEur(virtualValue)}</b></div>
         {packs.best && <div><span>Meilleur tirage</span><b>{packs.best.name} · {fmtEur(packs.best.eur)}</b></div>}
         <a className="btn ghost" href={href('/boosters/collection')}><Icon name="album" size={18} />Collection virtuelle</a>
       </div>
-      <div className="toolbar"><Seg value={game} onChange={setGame} label="Jeu" options={[['all', 'Tous'], ['onepiece', 'One Piece'], ['pokemon', 'Pokémon']]} /></div>
       <div className="pack-shelf">
         {list.map((p) => (
           <div className="shelf-item" key={p.id}>
@@ -259,7 +258,7 @@ function FlipCard({ pull, flipped, tier, isNew, eur }) {
 export function VirtualCollection() {
   const d = useData();
   const virtual = useStore((s) => s.packs.virtual);
-  const [game, setGame] = useState('onepiece');
+  const game = useUniverse();
   const [setCode, setSetCode] = useState(null);
   const [filter, setFilter] = useState('all');
   const products = useMemo(() => (d.ready ? buildProducts(d.cats, d.P, d.fx) : []), [d.ready]);
@@ -275,7 +274,6 @@ export function VirtualCollection() {
       <nav className="crumbs"><a href={href('/boosters')}>Boosters</a></nav>
       <h1 className="page-title">Collection virtuelle</h1>
       <div className="toolbar">
-        <Seg value={game} onChange={(g) => { setGame(g); setSetCode(null); }} label="Jeu" options={[['onepiece', 'One Piece'], ['pokemon', 'Pokémon']]} />
         <select value={code || ''} onChange={(e) => setSetCode(e.target.value)} aria-label="Extension">{sets.map((s) => <option key={s.code} value={s.code}>{s.name} ({s.code})</option>)}</select>
         <Seg value={filter} onChange={setFilter} label="Filtre" options={[['all', 'Toutes'], ['have', 'Obtenues'], ['missing', 'À découvrir']]} />
       </div>

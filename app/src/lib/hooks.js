@@ -11,6 +11,17 @@ function parse() {
 let route = parse();
 const rsubs = new Set();
 window.addEventListener('hashchange', () => { route = parse(); rsubs.forEach((f) => f()); window.scrollTo({ top: 0, behavior: 'instant' }); });
+// Univers courant : One Piece ou Pokémon, d'après l'adresse, sinon le dernier visité
+const UNIV_ROUTES = { op: 'onepiece', equipage: 'onepiece', pk: 'pokemon', pokedex: 'pokemon' };
+export function universeOf(r, last) {
+  const p = r.parts;
+  if (UNIV_ROUTES[p[0]]) return UNIV_ROUTES[p[0]];
+  if (p[0] === 'carte' && p[1]) { const g = p[1].split(':')[0]; if (g === 'onepiece' || g === 'pokemon') return g; }
+  if ((p[0] === 'extensions' || p[0] === 'extension') && (p[1] === 'onepiece' || p[1] === 'pokemon')) return p[1];
+  if (r.query.u === 'onepiece' || r.query.u === 'pokemon') return r.query.u;
+  return last || 'onepiece';
+}
+export const UNIV_HOME = { onepiece: '/op', pokemon: '/pk' };
 export const useRoute = () => useSyncExternalStore((f) => { rsubs.add(f); return () => rsubs.delete(f); }, () => route);
 export const go = (to) => { location.hash = to; };
 export const href = (to) => '#' + to;

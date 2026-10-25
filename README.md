@@ -2,6 +2,8 @@
 
 Site de prix et de collection pour **One Piece TCG** et **Pokémon TCG**, publié avec GitHub Pages.
 
+La page d'accueil fait choisir l'univers (One Piece ou Pokémon). Chaque univers a son accueil, sa navigation, ses boosters et sa collection. One Piece a **L'équipage** (731 personnages et toutes leurs cartes), Pokémon a le **Pokédex** (1 025 espèces, statistiques, faiblesses, évolutions et cartes).
+
 - Accueil : recherche instantanée (noms anglais et français, numéros), podium des cartes les plus chères, hausses et baisses
 - Fiche carte : prix du jour sourcé, moyennes, historique quotidien, valeur selon l'état, suivi et alertes de prix
 - Comparateur : jusqu'à 4 cartes côte à côte avec courbes
@@ -24,6 +26,7 @@ Une clé gratuite pokemontcg.io peut être ajoutée en secret de dépôt `POKEMO
 
 - Code source : `app/` (React, sans dépendance à installer sur la machine de construction actuelle)
 - Construction : `node scripts/build-site.mjs` → `index.html`, `404.html`, `assets/`
+- Pokédex et Équipage : `node scripts/build-universes.mjs` → `db/pokedex/`, `db/equipage.json`
 - Catalogue : `node scripts/build-catalog.mjs` → `db/catalog/` (à partir de l'ancien export `data/`)
 
 Images : optcgapi.com, pokemontcg.io, Scrydex. One Piece © Eiichiro Oda / Shueisha, Toei Animation, Bandai. Pokémon © Nintendo, Creatures, GAME FREAK, The Pokémon Company. Site de fan non officiel.

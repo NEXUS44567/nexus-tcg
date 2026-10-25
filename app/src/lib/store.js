@@ -9,6 +9,7 @@ const DEFAULT = {
   packs: { energy: 10, refillAt: 0, opened: 0, best: null, virtual: {}, log: [] },
   recent: [],              // cartes consultées
   notified: {},            // alertes déjà signalées : key → date
+  universe: null,          // dernier univers visité
 };
 
 function read() {
@@ -110,4 +111,11 @@ export function importData(text) {
     Object.assign(s.watch, v.watch || {});
     for (const [k, n] of Object.entries(v.packs?.virtual || {})) s.packs.virtual[k] = Math.max(s.packs.virtual[k] || 0, n);
   });
+}
+
+import { useRoute, universeOf } from './hooks.js';
+export function useUniverse() {
+  const r = useRoute();
+  const last = useStore((s) => s.universe);
+  return universeOf(r, last);
 }

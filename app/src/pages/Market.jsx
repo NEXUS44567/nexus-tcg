@@ -1,6 +1,6 @@
 import React, { useMemo, useState } from 'react';
 import { useData, useAsync, href, cardHref } from '../lib/hooks.js';
-import { useStore, toggleCompare, toggleWatch, setAlert, getState } from '../lib/store.js';
+import { useStore, toggleCompare, toggleWatch, setAlert, getState, useUniverse } from '../lib/store.js';
 import { priceOf, eurOf, historyOf, search, fmtEur, fmtUsd, fmtDate, fmtNum, GAMES, img } from '../lib/data.js';
 import { CardImage, CardTile, PriceChart, SearchBox, Section, Loading, Empty, Icon, GameTag, Delta, Seg, Price, SourceNote, Sparkline } from '../components.jsx';
 import { Podium } from './Home.jsx';
@@ -11,7 +11,8 @@ const COLORS = ['#ff7a45', '#4cc9f0', '#ffd23f', '#b388ff'];
 export function SearchPage({ query }) {
   const d = useData();
   const q = query.q || '';
-  const [game, setGame] = useState(query.jeu || 'all');
+  const universe = useUniverse();
+  const game = query.u || universe;
   const [sort, setSort] = useState('pertinence');
   const [shown, setShown] = useState(60);
   const res = useMemo(() => (d.ready ? search(d.cats, q, { game, limit: 2000, P: d.P }) : []), [d.ready, q, game]);
@@ -22,12 +23,11 @@ export function SearchPage({ query }) {
   }, [res, sort]);
   return (
     <div className="page">
-      <h1 className="page-title">Recherche</h1>
+      <h1 className="page-title">Recherche · {GAMES[game]?.label}</h1>
       <SearchBox initial={q} key={q} />
       {!d.ready ? <Loading /> : (
         <>
           <div className="toolbar">
-            <Seg value={game} onChange={setGame} label="Jeu" options={[['all', 'Tous'], ['onepiece', 'One Piece'], ['pokemon', 'Pokémon']]} />
             <select value={sort} onChange={(e) => setSort(e.target.value)} aria-label="Trier"><option value="pertinence">Les plus pertinentes</option><option value="prix-desc">Prix décroissant</option><option value="prix-asc">Prix croissant</option></select>
             <span className="muted">{fmtNum(res.length)} résultat{res.length > 1 ? 's' : ''}{res.length >= 2000 ? ' (2 000 premiers)' : ''}</span>
           </div>
@@ -165,7 +165,7 @@ export function WatchPage() {
 // ---------- Classement ----------
 export function RankingPage() {
   const d = useData();
-  const [game, setGame] = useState('all');
+  const game = useUniverse();
   const [n, setN] = useState(100);
   const rows = useMemo(() => {
     if (!d.ready) return [];
@@ -179,15 +179,15 @@ export function RankingPage() {
   if (!d.ready) return <div className="page"><Loading /></div>;
   return (
     <div className="page">
-      <h1 className="page-title">Les cartes les plus chères</h1>
-      <Podium game={game} setGame={setGame} limit={3} />
+      <h1 className="page-title">Les cartes {GAMES[game].label} les plus chères</h1>
+      <Podium game={game} limit={3} />
       <ol className="ranking big" start={4}>
         {rows.slice(3).map(([e, c], i) => (
           <li key={c.key}><a href={cardHref(c)}><span className="pos">{i + 4}</span><CardImage card={c} className="mini" /><span className="r-name">{c.name}<small><GameTag game={c.game} /> {c.number}{c.variant ? ' · ' + c.variant : ''} · {d.cats[c.game].sets.get(c.set)?.name}</small></span><Price card={c} /></a></li>
         ))}
       </ol>
       {n < 500 && <div className="more"><button className="btn ghost" onClick={() => setN(n + 100)}>Afficher 100 de plus</button></div>}
-      <SourceNote game="onepiece" /><SourceNote game="pokemon" />
+      <SourceNote game={game} />
     </div>
   );
 }
@@ -202,7 +202,6 @@ export function SetsPage({ game }) {
   return (
     <div className="page">
       <h1 className="page-title">Extensions {GAMES[game].label}</h1>
-      <div className="toolbar"><Seg value={game} onChange={(v) => (location.hash = '/extensions/' + v)} label="Jeu" options={[['onepiece', 'One Piece'], ['pokemon', 'Pokémon']]} /></div>
       <div className="set-grid">
         {g.setList.map((s) => {
           const cards = g.cards.filter((c) => c.set === s.code);

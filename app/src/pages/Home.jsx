@@ -1,11 +1,11 @@
 import React, { useMemo, useState } from 'react';
 import { useData, href, cardHref } from '../lib/hooks.js';
 import { useStore } from '../lib/store.js';
-import { fmtEur, fmtDate, fmtNum, eurOf, GAMES } from '../lib/data.js';
+import { fmtEur, fmtDate, fmtNum, eurOf, GAMES, img } from '../lib/data.js';
 import { SearchBox, CardImage, Delta, Section, Seg, Icon, GameTag, Price, Loading, CardTile, SourceNote } from '../components.jsx';
 import { collectionValue } from './Collection.jsx';
 
-export function Podium({ game, setGame, limit = 10 }) {
+export function Podium({ game, limit = 10 }) {
   const { cats, M } = useData();
   const rows = useMemo(() => {
     const out = [];
@@ -26,7 +26,6 @@ export function Podium({ game, setGame, limit = 10 }) {
   );
   return (
     <div className="podium-wrap">
-      {setGame && <Seg value={game} onChange={setGame} label="Jeu" options={[['all', 'Tous'], ['onepiece', 'One Piece'], ['pokemon', 'Pokémon']]} />}
       <div className="podium">{step(second, 2)}{step(first, 1)}{step(third, 3)}</div>
       {rows.length > 3 && (
         <ol className="ranking" start={4}>
@@ -77,36 +76,54 @@ export function Movers({ game = 'all', limit = 6 }) {
           ))}
         </div>
       )}
-      <p className="source-note">Seulement les cartes à 5 € et plus. {per === 'week' && Object.values(M?.games || {}).some((g) => g.weekNote?.startsWith('Moyenne')) && 'Pokémon : moyenne Cardmarket sur 7 jours comparée à celle sur 30 jours.'}</p>
+      <p className="source-note">Seulement les cartes à 5 € et plus. {per === 'week' && game === 'pokemon' && M?.games?.pokemon?.weekNote?.startsWith('Moyenne') && 'Sur 7 jours : moyenne Cardmarket des 7 derniers jours comparée à celle des 30 derniers jours.'}</p>
     </div>
   );
 }
 
-export default function Home() {
+const UNIV = {
+  onepiece: {
+    kicker: 'One Piece Card Game', title: <>Combien vaut <em>vraiment</em> ta carte One Piece ?</>,
+    lead: 'Le prix du jour de chaque version, standard, parallèle ou manga, sourcé et daté. Cherche, compare, suis les prix, scanne et range ta collection.',
+    chips: ['Luffy', 'Shanks', 'Zoro', 'Nami', 'OP13-118', 'Yamato'], placeholder: 'Cherche une carte : Luffy, Shanks, OP13-118…',
+    world: { href: '/equipage', icon: 'crew', title: 'L’équipage', text: 'Plus de 700 personnages, chacun avec toutes ses cartes, ses parallèles et leur valeur du jour.', cta: 'Découvrir l’équipage →' },
+    packs: 'Déchire un booster, retourne les cartes une à une, et découvre la valeur réelle de ton tirage. Les parallèles brillent.',
+  },
+  pokemon: {
+    kicker: 'Pokémon Trading Card Game', title: <>Combien vaut <em>vraiment</em> ta carte Pokémon ?</>,
+    lead: 'Le prix du jour de plus de 20 000 cartes, de Set de Base à aujourd’hui. Cherche en français ou en anglais, compare, suis les prix, scanne et range ta collection.',
+    chips: ['Dracaufeu', 'Pikachu', 'Mewtwo', 'Évoli', 'Rayquaza', 'Lugia'], placeholder: 'Cherche une carte : Dracaufeu, Pikachu, 199/165…',
+    world: { href: '/pokedex', icon: 'dex', title: 'Le Pokédex', text: 'Les 1 025 Pokémon : types, statistiques, évolutions, faiblesses et toutes leurs cartes avec leur prix.', cta: 'Ouvrir le Pokédex →' },
+    packs: 'Déchire un booster, retourne les cartes une à une, et découvre la valeur réelle de ton tirage. Les illustrations rares brillent.',
+  },
+};
+
+export default function Home({ game }) {
   const d = useData();
-  const [game, setGame] = useState('all');
+  const U = UNIV[game];
   const coll = useStore((s) => s.collection);
-  const watch = useStore((s) => s.watch);
   const recent = useStore((s) => s.recent);
-  if (!d.ready) return <div className="page"><Hero /> {d.error ? <p className="error">Impossible de charger les données : {d.error}</p> : <Loading label="Chargement du catalogue et des prix…" />}</div>;
+  if (!d.ready) return <div className="page"><Hero game={game} /> {d.error ? <p className="error">Impossible de charger les données : {d.error}</p> : <Loading label="Chargement du catalogue et des prix…" />}</div>;
   const { cats, M } = d;
-  const total = cats.onepiece.cards.length + cats.pokemon.cards.length;
-  const priced = (M?.games?.onepiece?.priced || 0) + (M?.games?.pokemon?.priced || 0);
-  const value = coll.length ? collectionValue(coll, d) : null;
-  const recentCards = recent.map((k) => { const [g, ...r] = k.split(':'); return cats[g]?.byId.get(r.join(':')); }).filter(Boolean).slice(0, 6);
+  const total = cats[game].cards.length;
+  const priced = M?.games?.[game]?.priced || 0;
+  const mine = coll.filter((e) => e.key.startsWith(game + ':'));
+  const value = mine.length ? collectionValue(mine, d) : null;
+  const recentCards = recent.filter((k) => k.startsWith(game + ':')).map((k) => cats[game].byId.get(k.split(':').slice(1).join(':'))).filter(Boolean).slice(0, 6);
+  const sets = cats[game].setList.slice(0, 8);
   return (
     <div className="page home">
-      <Hero stats={{ total, priced, date: M?.updatedAt }} />
+      <Hero game={game} stats={{ total, priced, date: M?.updatedAt }} />
 
       {value && (
         <a className="my-coll-banner" href={href('/collection')}>
-          <div><div className="kicker">Ma collection</div><b>{fmtEur(value.total)}</b><span>{fmtNum(value.count)} cartes · {value.priced} avec un prix</span></div>
+          <div><div className="kicker">Ma collection {GAMES[game].label}</div><b>{fmtEur(value.total)}</b><span>{fmtNum(value.count)} cartes · {value.priced} avec un prix</span></div>
           <span className="btn ghost">Ouvrir <Icon name="album" size={18} /></span>
         </a>
       )}
 
       <Section kicker="Prix relevés chaque jour" title="Le podium des cartes les plus chères" id="podium" action={<a className="link" href={href('/classement')}>Voir le top 100</a>}>
-        <Podium game={game} setGame={setGame} />
+        <Podium game={game} />
       </Section>
 
       <Section kicker="Le marché bouge" title="Ce qui monte, ce qui baisse" id="mouvements" action={<a className="link" href={href('/suivis')}>Mes alertes</a>}>
@@ -114,21 +131,19 @@ export default function Home() {
       </Section>
 
       <section className="features">
+        <a className={'feature world ' + game} href={href(U.world.href)}>
+          <Icon name={U.world.icon} size={30} /><h3>{U.world.title}</h3><p>{U.world.text}</p><span className="link">{U.world.cta}</span>
+        </a>
         <a className="feature scan" href={href('/scanner')}>
           <Icon name="scan" size={30} /><h3>Scanne ta carte</h3>
           <p>Photo ou caméra : on lit son numéro, on estime son état sur 10, et elle rejoint ta collection.</p><span className="link">Scanner une carte →</span>
         </a>
         <a className="feature packs" href={href('/boosters')}>
-          <Icon name="pack" size={30} /><h3>Ouvre des boosters</h3>
-          <p>Déchire le paquet, retourne les cartes une à une, et découvre la valeur réelle de ton tirage.</p><span className="link">Ouvrir un booster →</span>
+          <Icon name="pack" size={30} /><h3>Ouvre des boosters</h3><p>{U.packs}</p><span className="link">Ouvrir un booster →</span>
         </a>
         <a className="feature compare" href={href('/comparateur')}>
           <Icon name="compare" size={30} /><h3>Compare les prix</h3>
-          <p>Jusqu’à 4 cartes côte à côte : Cardmarket, TCGplayer, moyennes et courbes.</p><span className="link">Ouvrir le comparateur →</span>
-        </a>
-        <a className="feature album" href={href('/collection')}>
-          <Icon name="album" size={30} /><h3>Ta collection, chiffrée</h3>
-          <p>Valeur totale, état de chaque carte, progression par extension. Sans compte, gardée sur ton appareil.</p><span className="link">Voir ma collection →</span>
+          <p>Jusqu’à 4 cartes côte à côte : sources, moyennes et courbes.</p><span className="link">Ouvrir le comparateur →</span>
         </a>
       </section>
 
@@ -138,25 +153,22 @@ export default function Home() {
         </Section>
       )}
 
-      <Section kicker="Deux jeux, un seul endroit" title="Parcourir les extensions">
-        <div className="game-cards">
-          {Object.values(GAMES).map((g) => {
-            const sets = cats[g.id].setList.slice(0, 6);
-            return (
-              <div className={'game-card ' + g.id} key={g.id}>
-                <h3>{g.label}<small>{fmtNum(cats[g.id].cards.length)} cartes · {cats[g.id].setList.length} extensions</small></h3>
-                <ul>{sets.map((s) => <li key={s.code}><a href={href('/extension/' + g.id + '/' + encodeURIComponent(s.code))}><span>{s.name}</span><small>{s.code}</small></a></li>)}</ul>
-                <a className="link" href={href('/extensions/' + g.id)}>Toutes les extensions →</a>
-              </div>
-            );
-          })}
+      <Section kicker={fmtNum(cats[game].setList.length) + ' extensions'} title="Les dernières extensions" action={<a className="link" href={href('/extensions/' + game)}>Toutes les extensions</a>}>
+        <div className="set-grid">
+          {sets.map((s) => (
+            <a key={s.code} className="set-card" href={href('/extension/' + game + '/' + encodeURIComponent(s.code))}>
+              {s.logo ? <img src={img(s.logo)} alt="" loading="lazy" referrerPolicy="no-referrer" onError={(e) => (e.currentTarget.style.display = 'none')} /> : <span className="set-code">{s.code}</span>}
+              <b>{s.name}</b><small>{s.code} · {s.count} cartes{s.date ? ' · ' + fmtDate(s.date, { month: 'short', year: 'numeric' }) : ''}</small>
+            </a>
+          ))}
         </div>
       </Section>
 
       <Section kicker="Transparence" title="D’où viennent les prix ?" className="faq">
         <div className="faq-grid">
-          <div><h3>One Piece</h3><p>Prix de marché TCGplayer, relevé chaque matin par optcgapi.com, converti en euros au taux du jour. Chaque version (standard, parallèle, réimpression) a son propre prix.</p><SourceNote game="onepiece" /></div>
-          <div><h3>Pokémon</h3><p>Tendance Cardmarket en euros, avec les moyennes sur 1, 7 et 30 jours et le prix TCGplayer quand il existe.</p><SourceNote game="pokemon" /></div>
+          {game === 'onepiece'
+            ? <div><h3>One Piece</h3><p>Prix de marché TCGplayer, relevé chaque matin par optcgapi.com, converti en euros au taux du jour. Chaque version (standard, parallèle, réimpression) a son propre prix.</p><SourceNote game="onepiece" /></div>
+            : <div><h3>Pokémon</h3><p>Tendance Cardmarket en euros, avec les moyennes sur 1, 7 et 30 jours et le prix TCGplayer quand il existe. Les cartes dont les deux sources divergent fortement sont signalées.</p><SourceNote game="pokemon" /></div>}
           <div><h3>Et si une carte n’a pas de prix ?</h3><p>On affiche « Pas de prix relevé ». Aucun prix n’est inventé ni estimé à partir d’une autre carte.</p></div>
           <div><h3>Mes données ?</h3><p>Ta collection, tes suivis et tes boosters restent dans ton navigateur. Tu peux les exporter à tout moment depuis ta collection.</p></div>
         </div>
@@ -165,17 +177,18 @@ export default function Home() {
   );
 }
 
-function Hero({ stats }) {
+function Hero({ game, stats }) {
+  const U = UNIV[game];
   return (
-    <section className="hero">
+    <section className={'hero ' + game}>
       <div className="hero-glow" aria-hidden="true" />
       <div className="hero-inner">
-        <div className="kicker">One Piece TCG · Pokémon TCG</div>
-        <h1>Combien vaut <em>vraiment</em> ta carte ?</h1>
-        <p className="lead">Le prix du jour de plus de 25 000 cartes, sourcé et daté. Cherche, compare, suis les prix, scanne et range ta collection.</p>
-        <SearchBox big />
+        <div className="kicker">{U.kicker}</div>
+        <h1>{U.title}</h1>
+        <p className="lead">{U.lead}</p>
+        <SearchBox big placeholder={U.placeholder} />
         <div className="hero-chips">
-          {['Luffy', 'Shanks', 'Dracaufeu', 'Pikachu', 'OP13-118', 'Mewtwo'].map((t) => <a key={t} href={href('/recherche?q=' + encodeURIComponent(t))} className="chip">{t}</a>)}
+          {U.chips.map((t) => <a key={t} href={href('/recherche?q=' + encodeURIComponent(t) + '&u=' + game)} className="chip">{t}</a>)}
         </div>
         {stats && (
           <dl className="hero-stats">

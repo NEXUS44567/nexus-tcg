@@ -1,6 +1,7 @@
 import React, { useMemo, useRef, useState } from 'react';
 import { useData, useAsync, href, cardHref } from '../lib/hooks.js';
-import { useStore, updateEntry, removeEntry, CONDITIONS, condOf, exportData, importData } from '../lib/store.js';
+import { useStore, updateEntry, removeEntry, CONDITIONS, condOf, exportData, importData, useUniverse } from '../lib/store.js';
+import { UNIV_HOME } from '../lib/hooks.js';
 import { eurOf, history, fmtEur, fmtDate, fmtNum, fmtPct, GAMES } from '../lib/data.js';
 import { CardImage, PriceChart, Section, Loading, Empty, Icon, GameTag, Delta, Seg, Modal, Price } from '../components.jsx';
 
@@ -25,10 +26,14 @@ export function collectionValue(coll, d) {
 
 export default function CollectionPage() {
   const d = useData();
-  const coll = useStore((s) => s.collection);
-  const virtual = useStore((s) => s.packs.virtual);
+  const game = useUniverse();
+  const allColl = useStore((s) => s.collection);
+  const coll = useMemo(() => allColl.filter((e) => e.key.startsWith(game + ':')), [allColl, game]);
+  const other = game === 'onepiece' ? 'pokemon' : 'onepiece';
+  const otherCount = allColl.length - coll.length;
+  const allVirtual = useStore((s) => s.packs.virtual);
+  const virtual = useMemo(() => Object.fromEntries(Object.entries(allVirtual).filter(([k]) => k.startsWith(game + ':'))), [allVirtual, game]);
   const [view, setView] = useState('classeur');
-  const [game, setGame] = useState('all');
   const [sort, setSort] = useState('valeur');
   const [q, setQ] = useState('');
   const [edit, setEdit] = useState(null);
@@ -75,7 +80,8 @@ export default function CollectionPage() {
 
   return (
     <div className="page collection-page">
-      <h1 className="page-title">Ma collection</h1>
+      <h1 className="page-title">Ma collection {GAMES[game].label}</h1>
+      {otherCount > 0 && <p className="muted">Tu as aussi {otherCount} carte{otherCount > 1 ? 's' : ''} {GAMES[other].label} : <a className="link" href={href('/collection?u=' + other)}>voir ma collection {GAMES[other].label}</a></p>}
       {coll.length === 0 ? (
         <Empty icon="album" title="Ta collection est vide" action={<div className="row"><a className="btn primary" href={href('/scanner')}><Icon name="scan" size={18} />Scanner une carte</a><a className="btn ghost" href={href('/')}><Icon name="search" size={18} />Chercher une carte</a></div>}>
           Ajoute tes cartes depuis leur fiche ou avec le scanner : on calcule sa valeur au prix du jour.
@@ -95,7 +101,6 @@ export default function CollectionPage() {
 
           <div className="toolbar">
             <Seg value={view} onChange={setView} label="Affichage" options={[['classeur', 'Classeur'], ['grille', 'Grille'], ['liste', 'Liste'], ['extensions', 'Extensions']]} />
-            <Seg value={game} onChange={setGame} label="Jeu" options={[['all', 'Tous'], ['onepiece', 'One Piece'], ['pokemon', 'Pokémon']]} />
             {view !== 'extensions' && <select value={sort} onChange={(e) => setSort(e.target.value)} aria-label="Trier"><option value="valeur">Valeur</option><option value="recent">Ajout récent</option><option value="nom">Nom</option><option value="extension">Extension</option></select>}
             {view !== 'extensions' && <input className="filter" value={q} onChange={(e) => setQ(e.target.value)} placeholder="Filtrer…" aria-label="Filtrer" />}
           </div>

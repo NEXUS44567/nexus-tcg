@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { img, priceOf, eurOf, fmtEur, fmtUsd, fmtPct, fmtDate, search, GAMES } from './lib/data.js';
 import { useData, href, cardHref, go } from './lib/hooks.js';
-import { useStore, toggleWatch, toggleCompare } from './lib/store.js';
+import { useStore, toggleWatch, toggleCompare, useUniverse } from './lib/store.js';
 
 export function Icon({ name, size = 20 }) {
   const p = {
@@ -30,6 +30,9 @@ export function Icon({ name, size = 20 }) {
     grid: <><rect x="4" y="4" width="7" height="7" rx="1" /><rect x="13" y="4" width="7" height="7" rx="1" /><rect x="4" y="13" width="7" height="7" rx="1" /><rect x="13" y="13" width="7" height="7" rx="1" /></>,
     list: <path d="M8 6h12M8 12h12M8 18h12M4 6h.01M4 12h.01M4 18h.01" />,
     refresh: <><path d="M20 11a8 8 0 1 0-2.3 5.7" /><path d="M20 5v6h-6" /></>,
+    crew: <><circle cx="12" cy="12" r="5" /><circle cx="12" cy="12" r="1.5" /><path d="M12 2v5M12 17v5M2 12h5M17 12h5M4.9 4.9l3.5 3.5M15.6 15.6l3.5 3.5M4.9 19.1l3.5-3.5M15.6 8.4l3.5-3.5" /></>,
+    dex: <><circle cx="12" cy="12" r="9" /><path d="M3 12h6M15 12h6" /><circle cx="12" cy="12" r="3" /></>,
+    swap: <><path d="M7 4 3 8l4 4" /><path d="M3 8h13a4 4 0 0 1 4 4" /><path d="m17 20 4-4-4-4" /><path d="M21 16H8a4 4 0 0 1-4-4" /></>,
   }[name];
   return <svg className="icon" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">{p}</svg>;
 }
@@ -113,13 +116,15 @@ export function Empty({ icon = 'album', title, children, action }) {
 }
 
 // ---- Recherche avec suggestions instantanées ----
-export function SearchBox({ autoFocus, big, initial = '', onDone, placeholder = 'Cherche une carte : Luffy, Dracaufeu, OP13-118, 199/165…' }) {
+export function SearchBox({ autoFocus, big, initial = '', onDone, placeholder = 'Cherche une carte…', scope }) {
   const { ready, cats, P } = useData();
+  const universe = useUniverse();
+  const game = scope || universe;
   const [q, setQ] = useState(initial);
   const [open, setOpen] = useState(false);
   const [sel, setSel] = useState(0);
   const ref = useRef();
-  const results = useMemo(() => (ready && q.trim().length >= 2 ? search(cats, q, { limit: 8, P }) : []), [ready, q]);
+  const results = useMemo(() => (ready && q.trim().length >= 2 ? search(cats, q, { limit: 8, P, game }) : []), [ready, q, game]);
   useEffect(() => setSel(0), [q]);
   useEffect(() => {
     const f = (e) => { if (ref.current && !ref.current.contains(e.target)) setOpen(false); };
@@ -128,7 +133,7 @@ export function SearchBox({ autoFocus, big, initial = '', onDone, placeholder = 
   const submit = (e) => {
     e?.preventDefault();
     if (open && results[sel] && sel >= 0 && e?.type !== 'submit-all') { go('/carte/' + encodeURIComponent(results[sel].key)); }
-    else if (q.trim()) go('/recherche?q=' + encodeURIComponent(q.trim()));
+    else if (q.trim()) go('/recherche?q=' + encodeURIComponent(q.trim()) + (game !== 'all' ? '&u=' + game : ''));
     setOpen(false); onDone?.();
   };
   return (
@@ -158,7 +163,7 @@ export function SearchBox({ autoFocus, big, initial = '', onDone, placeholder = 
               </a>
             </li>
           ))}
-          <li><a href={href('/recherche?q=' + encodeURIComponent(q))} className={'all' + (sel === results.length ? ' on' : '')} onClick={() => { setOpen(false); onDone?.(); }}>Voir tous les résultats pour « {q} »</a></li>
+          <li><a href={href('/recherche?q=' + encodeURIComponent(q) + (game !== 'all' ? '&u=' + game : ''))} className={'all' + (sel === results.length ? ' on' : '')} onClick={() => { setOpen(false); onDone?.(); }}>Voir tous les résultats pour « {q} »</a></li>
         </ul>
       )}
     </form>
@@ -272,3 +277,14 @@ export function SourceNote({ game }) {
 }
 
 export { fmtEur, fmtUsd, fmtPct, fmtDate };
+
+export function Logo() {
+  return (
+    <svg viewBox="0 0 40 40" width="34" height="34" aria-hidden="true">
+      <defs><linearGradient id="lg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stopColor="#ff5a3c" /><stop offset=".5" stopColor="#ffcb05" /><stop offset="1" stopColor="#4cc9f0" /></linearGradient></defs>
+      <rect x="9" y="4" width="20" height="28" rx="3" transform="rotate(-12 19 18)" fill="none" stroke="url(#lg)" strokeWidth="2.5" />
+      <rect x="12" y="8" width="20" height="28" rx="3" transform="rotate(8 22 22)" fill="url(#lg)" opacity=".9" />
+      <path d="M17 27V15l8 12V15" stroke="#0b0e1a" strokeWidth="2.6" fill="none" strokeLinecap="round" strokeLinejoin="round" transform="rotate(8 22 22)" />
+    </svg>
+  );
+}
