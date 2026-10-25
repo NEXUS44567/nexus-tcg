@@ -3,6 +3,7 @@ import { useData, href } from '../lib/hooks.js';
 import { update } from '../lib/store.js';
 import { img, fmtEur, fmtNum } from '../lib/data.js';
 import { Logo, PirateEmblem, EnergyEmblem } from '../components.jsx';
+import { SFX, vibrate } from './Boosters.jsx';
 
 const SIDES = {
   onepiece: { to: '/op', title: 'ONE PIECE', sub: 'CARD GAME', chips: ['Extensions et parallèles', 'L’équipage', 'Packs en Berrys', 'Ma collection'] },
@@ -42,7 +43,20 @@ export default function UniversePage() {
     }
     return out;
   }, [d.ready]);
+  const [going, setGoing] = useState(null);
   const enter = (g) => update((s) => { s.universe = g; });
+  // Animation d'entrée dans l'univers, puis navigation
+  const go = (e, g) => {
+    if (e.metaKey || e.ctrlKey || e.shiftKey || e.button > 0) return;
+    e.preventDefault();
+    if (going) return;
+    const to = () => { enter(g); location.hash = '#' + SIDES[g].to; };
+    if (matchMedia('(prefers-reduced-motion: reduce)').matches) return to();
+    setGoing({ g, x: e.clientX || innerWidth / 2, y: e.clientY || innerHeight / 2 });
+    if (g === 'onepiece') { SFX.haki(); setTimeout(() => SFX.tear(), 650); } else { SFX.charge(); setTimeout(() => SFX.thunder(), 550); }
+    vibrate(g === 'onepiece' ? [40, 60, 120] : [20, 40, 20, 40, 90]);
+    setTimeout(to, 1650);
+  };
   return (
     <div className={'universe' + (hover ? ' hover-' + hover : '')}>
       <div className="uv-logo"><Logo /><span>NEXUS<small>TCG</small></span></div>
@@ -50,7 +64,7 @@ export default function UniversePage() {
         const S = SIDES[g];
         const t = top[g];
         return (
-          <a key={g} href={href(S.to)} className={'uv-side ' + g} onPointerEnter={() => setHover(g)} onPointerLeave={() => setHover(null)} onFocus={() => setHover(g)} onClick={() => enter(g)}>
+          <a key={g} href={href(S.to)} className={'uv-side ' + g} onPointerEnter={() => setHover(g)} onPointerLeave={() => setHover(null)} onFocus={() => setHover(g)} onClick={(e) => go(e, g)}>
             <div className="uv-bg" aria-hidden="true">{g === 'onepiece' ? <><i className="sail" /><i className="wave w1" /><i className="wave w2" /></> : <><i className="ball" /><i className="spark s1" /><i className="spark s2" /></>}</div>
             {t?.ids?.length > 0 && (
               <div className="uv-cards" aria-hidden="true">
@@ -70,6 +84,34 @@ export default function UniversePage() {
       })}
       <div className="uv-vs" aria-hidden="true"><span>VS</span></div>
       <div className="uv-pick">CHOISIS TON UNIVERS</div>
+      {going && <Warp {...going} />}
+    </div>
+  );
+}
+
+// Plein écran : couleur de l'univers qui jaillit du clic, onde de choc, emblème qui tourne puis
+// « avale » l'écran ; Haki et traits de vitesse pour One Piece, éclairs et flash pour Pokémon.
+function Warp({ g, x, y }) {
+  const op = g === 'onepiece';
+  const bolts = useMemo(() => Array.from({ length: 7 }, (_, i) => {
+    const a = (i / 7) * Math.PI * 2 + Math.random() * 0.5; let px = 50, py = 50; let d = `M50 50`;
+    for (let k = 1; k <= 6; k++) { const r = k * 9; px = 50 + Math.cos(a) * r + (Math.random() - 0.5) * 8; py = 50 + Math.sin(a) * r + (Math.random() - 0.5) * 8; d += ` L${px.toFixed(1)} ${py.toFixed(1)}`; }
+    return { d, dl: (0.35 + Math.random() * 0.35).toFixed(2) };
+  }), []);
+  return (
+    <div className={'uv-warp ' + g} style={{ '--x': x + 'px', '--y': y + 'px' }} aria-hidden="true">
+      <div className="w-fill" />
+      <div className="w-lines" />
+      <i className="w-ring r1" /><i className="w-ring r2" /><i className="w-ring r3" />
+      {!op && (
+        <svg className="w-bolts" viewBox="0 0 100 100" preserveAspectRatio="none">
+          {bolts.map((b, i) => <path key={i} d={b.d} style={{ '--dl': b.dl + 's' }} pathLength="1" />)}
+        </svg>
+      )}
+      <div className="w-flash" />
+      <div className="w-emblem">{op ? <PirateEmblem size={200} className="w-svg" /> : <EnergyEmblem size={200} className="w-svg" />}</div>
+      <div className="w-title"><b>{op ? 'ONE PIECE' : 'POKÉMON'}</b><span>{op ? 'Lève l’ancre !' : 'Attrape-les tous !'}</span></div>
+      <div className="w-end" />
     </div>
   );
 }

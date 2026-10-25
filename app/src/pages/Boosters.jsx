@@ -19,7 +19,7 @@ function tone(f, at, dur, type = 'triangle', vol = 0.12) {
   g.gain.setValueAtTime(0, c.currentTime + at); g.gain.linearRampToValueAtTime(vol, c.currentTime + at + 0.01); g.gain.exponentialRampToValueAtTime(1e-4, c.currentTime + at + dur);
   o.connect(g).connect(c.destination); o.start(c.currentTime + at); o.stop(c.currentTime + at + dur + 0.05);
 }
-const SFX = {
+export const SFX = {
   tear() { const c = ac(); if (!c) return; const n = Math.floor(c.sampleRate * 0.45), b = c.createBuffer(1, n, c.sampleRate), d = b.getChannelData(0); for (let i = 0; i < n; i++) d[i] = (Math.random() * 2 - 1) * (1 - i / n) ** 2; const s = c.createBufferSource(), f = c.createBiquadFilter(), g = c.createGain(); s.buffer = b; f.type = 'bandpass'; f.frequency.setValueAtTime(900, c.currentTime); f.frequency.linearRampToValueAtTime(3800, c.currentTime + 0.4); g.gain.value = 0.35; s.connect(f).connect(g).connect(c.destination); s.start(); },
   haki() { const c = ac(); if (!c) return; const o = c.createOscillator(), g = c.createGain(); o.type = 'sawtooth'; o.frequency.setValueAtTime(90, c.currentTime); o.frequency.exponentialRampToValueAtTime(38, c.currentTime + 0.8); g.gain.setValueAtTime(1e-4, c.currentTime); g.gain.exponentialRampToValueAtTime(0.18, c.currentTime + 0.05); g.gain.exponentialRampToValueAtTime(1e-4, c.currentTime + 0.9); const f = c.createBiquadFilter(); f.type = 'lowpass'; f.frequency.value = 400; o.connect(f).connect(g).connect(c.destination); o.start(); o.stop(c.currentTime + 1); },
   thunder() { const c = ac(); if (!c) return; for (let k = 0; k < 3; k++) { const n = Math.floor(c.sampleRate * 0.18), b = c.createBuffer(1, n, c.sampleRate), d = b.getChannelData(0); for (let i = 0; i < n; i++) d[i] = (Math.random() * 2 - 1) * (1 - i / n) ** 3 * (Math.random() < 0.3 ? 1 : 0.3); const s = c.createBufferSource(), f = c.createBiquadFilter(), g = c.createGain(); s.buffer = b; f.type = 'highpass'; f.frequency.value = 1800; g.gain.value = 0.3; s.connect(f).connect(g).connect(c.destination); s.start(c.currentTime + k * 0.12); } },
@@ -27,7 +27,7 @@ const SFX = {
   charge() { const c = ac(); if (!c) return; const o = c.createOscillator(), g = c.createGain(); o.type = 'sine'; o.frequency.setValueAtTime(220, c.currentTime); o.frequency.exponentialRampToValueAtTime(880, c.currentTime + 0.8); g.gain.setValueAtTime(1e-4, c.currentTime); g.gain.exponentialRampToValueAtTime(0.09, c.currentTime + 0.6); g.gain.exponentialRampToValueAtTime(1e-4, c.currentTime + 0.85); o.connect(g).connect(c.destination); o.start(); o.stop(c.currentTime + 0.9); },
   rare(lv) { const n = [523.25, 659.25, 783.99, 1046.5, 1318.5, 1567.98, 2093]; for (let i = 0; i < Math.min(n.length, 2 + lv); i++) tone(n[i], i * 0.07, 0.5, 'triangle', 0.1); if (lv >= 3) tone(2093, 0.5, 0.9, 'sine', 0.06); },
 };
-const vibrate = (p) => { try { navigator.vibrate?.(p); } catch {} };
+export const vibrate = (p) => { try { navigator.vibrate?.(p); } catch {} };
 
 // ---- Confettis selon la rareté (V1) ----
 const PALETTE = { 1: ['#7cc4ff', '#ffffff'], 2: ['#b48bff', '#7cc4ff', '#ffffff'], 3: ['#ffd76a', '#fff3c2', '#ffb347'], 4: ['#ff6b9a', '#ffd76a', '#7cf5c4', '#7cc4ff', '#b48bff'] };
