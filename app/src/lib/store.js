@@ -140,8 +140,21 @@ export function claimDaily(game, start = 1000, daily = 200) {
   return gained;
 }
 export function spendCoins(game, amount) {
+  if (state.admin) { if (!state.wallet?.[game]) claimDaily(game); return true; }
   const w = state.wallet?.[game];
   if (!w || w.coins < amount) return false;
   update((s) => { s.wallet[game].coins -= amount; });
   return true;
+}
+
+// ---- Mode administrateur : Berrys et Pokéballs illimités sur cet appareil ----
+// Activé par un lien secret #/admin/<code> ; seule l'empreinte SHA-256 du code figure ici.
+const ADMIN_HASH = '5f6ec8114b0e48bd4bcb01814655127164e61618d7c4e7d69ac11fdf821dcc49';
+export async function tryAdmin(code) {
+  if (code === 'off') { update((s) => { s.admin = false; }); return 'off'; }
+  const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(code));
+  const hex = [...new Uint8Array(buf)].map((b) => b.toString(16).padStart(2, '0')).join('');
+  if (hex !== ADMIN_HASH) return 'bad';
+  update((s) => { s.admin = true; });
+  return 'on';
 }

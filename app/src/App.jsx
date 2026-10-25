@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useRoute, useData, href, cardHref, UNIV_HOME } from './lib/hooks.js';
-import { useStore, update, useUniverse } from './lib/store.js';
+import { useStore, update, useUniverse, tryAdmin } from './lib/store.js';
 import { fmtEur, GAMES } from './lib/data.js';
 import { Icon, SearchBox, Logo } from './components.jsx';
 import Home from './pages/Home.jsx';
@@ -47,6 +47,7 @@ export default function App() {
     case 'extension': page = <SetPage game={p[1]} code={p[2]} />; break;
     case 'collection': page = <CollectionPage key={universe} />; break;
     case 'boosters': page = p[1] === 'collection' ? <VirtualCollection key={universe} /> : <BoostersPage key={universe} />; break;
+    case 'admin': page = <AdminPage code={p[1] || ''} />; break;
     case 'boutique': page = <ShopPage key={universe} />; break;
     case 'scanner': page = <ScannerPage />; break;
     case 'pokedex': page = p[1] ? <PokemonPage id={p[1]} /> : <PokedexPage />; break;
@@ -118,6 +119,29 @@ function AlertBanner() {
       <span><b>{fresh.length} alerte{fresh.length > 1 ? 's' : ''} de prix</b> : {fresh.slice(0, 2).map((h, i) => <a key={h.c.key} href={cardHref(h.c)}>{i ? ', ' : ''}{h.c.name} à {fmtEur(h.eur)} ({h.kind === 'below' ? 'sous' : 'au-dessus de'} {fmtEur(h.target)})</a>)}{fresh.length > 2 ? '…' : ''}</span>
       <a className="btn small ghost" href={href('/suivis')}>Voir</a>
       <button className="icon-btn" onClick={dismiss} aria-label="Masquer"><Icon name="x" size={16} /></button>
+    </div>
+  );
+}
+
+function AdminPage({ code }) {
+  const [res, setRes] = useState(null);
+  const admin = useStore((s) => !!s.admin);
+  useEffect(() => { tryAdmin(code).then(setRes); }, [code]);
+  return (
+    <div className="page">
+      <h1 className="page-title">Mode administrateur</h1>
+      {res === null && <p className="muted">Vérification…</p>}
+      {res === 'bad' && <p className="error">Lien non valide.</p>}
+      {res !== null && res !== 'bad' && (
+        <>
+          <p className="lead">{admin ? 'Activé sur cet appareil : Berrys et Pokéballs illimités pour ouvrir autant de boosters et de displays que tu veux.' : 'Désactivé sur cet appareil : tu retrouves ton solde normal.'}</p>
+          <div className="row">
+            <a className="btn primary" href={href('/op')} onClick={() => update((s) => { s.universe = 'onepiece'; })}>Boosters One Piece</a>
+            <a className="btn primary pk" href={href('/pk')} onClick={() => update((s) => { s.universe = 'pokemon'; })}>Boosters Pokémon</a>
+            {admin && <a className="btn ghost" href={href('/admin/off')}>Désactiver le mode administrateur</a>}
+          </div>
+        </>
+      )}
     </div>
   );
 }

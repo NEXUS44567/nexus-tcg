@@ -182,6 +182,7 @@ export default function BoostersPage({ focus }) {
   const cur = CURRENCY[game];
   const wallet = useStore((s) => s.wallet?.[game]);
   const muted = useStore((s) => !!s.muted);
+  const admin = useStore((s) => !!s.admin);
   const [phase, setPhase] = useState('pack'); // pack → opening → reveal → summary
   const [pack, setPack] = useState(null);     // { pulls, fresh:Set<index> }
   const [bulk, setBulk] = useState(null);     // { packs:[{pulls}], fresh }
@@ -198,7 +199,7 @@ export default function BoostersPage({ focus }) {
   const prod = useMemo(() => (d.ready ? buildProduct(game, d.cats, d.P, d.fx) : null), [d.ready, game]);
   useEffect(() => { const g = claimDaily(game, PRICE.start, PRICE.daily); if (g) setGain(g); }, [game]);
   useEffect(() => { if (focus && prod) later(() => document.getElementById('collection-virtuelle')?.scrollIntoView({ behavior: 'smooth' }), 250); }, [focus, !!prod]);
-  const coins = wallet?.coins ?? PRICE.start;
+  const coins = admin ? Infinity : wallet?.coins ?? PRICE.start;
 
   // Ajoute un tirage à la collection virtuelle, renvoie les index des nouvelles cartes
   const record = (packsList) => {
@@ -274,8 +275,8 @@ export default function BoostersPage({ focus }) {
 
       <div className={'wallet ' + game}>
         <span className="coin" aria-hidden="true">{cur.sym}</span>
-        <div><b>{fmtNum(coins)}</b><span>{cur.name}</span></div>
-        <a className="btn small ghost" href={href('/boutique')}><Icon name="plus" size={16} />Obtenir des {cur.name}</a>
+        <div><b>{admin ? '∞' : fmtNum(coins)}</b><span>{cur.name}</span></div>
+        {admin ? <span className="admin-badge">Mode administrateur · illimité</span> : <a className="btn small ghost" href={href('/boutique')}><Icon name="plus" size={16} />Obtenir des {cur.name}</a>}
         <button className="icon-btn" onClick={() => update((s) => { s.muted = !s.muted; })} aria-label={muted ? 'Activer le son' : 'Couper le son'}>{muted ? '🔇' : '🔊'}</button>
         <small>Booster : {PRICE.booster} {cur.name} · Display : {fmtNum(PRICE.display)} pour {PRICE.displayPacks} boosters · +{PRICE.daily} {cur.name} chaque jour, même les jours où tu ne viens pas. Monnaie virtuelle, sans valeur réelle.</small>
         {gain > 0 && <span className="gain">+{fmtNum(gain)} {cur.name} reçus depuis ta dernière visite</span>}
@@ -287,7 +288,7 @@ export default function BoostersPage({ focus }) {
           <>
             <Booster prod={prod} onOpen={openOne} opening={phase === 'opening'} locked={locked} />
             {phase === 'pack' && actions(false)}
-            {phase === 'pack' && (noFunds || locked) && <p className="notice">Solde insuffisant : il faut {PRICE.booster} {cur.name} pour ouvrir un booster (tu en as {fmtNum(coins)}). Reviens demain pour le bonus quotidien, ou passe par la <a className="link" href={href('/boutique')}>boutique</a>.</p>}
+            {phase === 'pack' && (noFunds || locked) && <p className="notice">Solde insuffisant : il faut {PRICE.booster} {cur.name} pour ouvrir un booster (tu en as {fmtNum(wallet?.coins ?? 0)}). Reviens demain pour le bonus quotidien, ou passe par la <a className="link" href={href('/boutique')}>boutique</a>.</p>}
             <p className="small faint">{prod.composition} <button className="link small" onClick={() => setOdds(true)}>Voir les taux</button></p>
           </>
         )}
