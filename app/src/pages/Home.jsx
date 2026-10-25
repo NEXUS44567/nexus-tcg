@@ -4,6 +4,7 @@ import { useStore } from '../lib/store.js';
 import { fmtEur, fmtDate, fmtNum, eurOf, GAMES, img } from '../lib/data.js';
 import { SearchBox, CardImage, Delta, Section, Seg, Icon, GameTag, Price, Loading, CardTile, SourceNote, PirateEmblem, EnergyEmblem } from '../components.jsx';
 import { collectionValue } from './Collection.jsx';
+import Podium3D from './Podium3D.jsx';
 
 export function Podium({ game, limit = 10 }) {
   const { cats, M } = useData();
@@ -17,16 +18,9 @@ export function Podium({ game, limit = 10 }) {
   }, [cats, M, game]);
   if (!rows.length) return <p className="muted">Le podium apparaîtra après le premier relevé de prix.</p>;
   const [first, second, third] = rows;
-  const step = (r, n) => r && (
-    <a className={'step s' + n} href={cardHref(r.c)} key={r.c.key}>
-      <div className="step-card"><CardImage card={r.c} eager />{n === 1 && <span className="crown" aria-hidden="true">♛</span>}</div>
-      <div className="step-info"><b>{r.c.name}</b><small><GameTag game={r.c.game} /> {r.c.number}{r.c.variant ? ' · ' + r.c.variant : ''}</small><span className="step-price"><Price card={r.c} /></span></div>
-      <div className="step-base"><span>{n}</span></div>
-    </a>
-  );
   return (
     <div className="podium-wrap">
-      <div className="podium">{step(second, 2)}{step(first, 1)}{step(third, 3)}</div>
+      <Podium3D first={first} second={second} third={third} />
       {rows.length > 3 && (
         <ol className="ranking" start={4}>
           {rows.slice(3).map((r, i) => (
