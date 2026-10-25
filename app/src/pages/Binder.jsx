@@ -9,6 +9,7 @@ import { CardImage, Icon, Loading, Modal, PirateEmblem, EnergyEmblem } from '../
 
 export const COVERS = [
   ['rouge', 'Rouge corsaire', '#8e1b1f'],
+  ['bleu', 'Bleu roi', '#1f47a8'],
   ['marine', 'Bleu marine', '#1b2c5e'],
   ['noir', 'Noir', '#1a181f'],
   ['vert', 'Vert émeraude', '#14523c'],
@@ -16,6 +17,9 @@ export const COVERS = [
   ['camel', 'Cuir camel', '#8a5a2b'],
 ];
 const PER = 9;
+// Couleur de couverture par univers : rouge pour One Piece, bleu pour Pokémon (modifiable)
+export const DEFAULT_COVER = { onepiece: 'rouge', pokemon: 'bleu' };
+export const coverOf = (b, game) => b?.covers?.[game] || DEFAULT_COVER[game] || 'rouge';
 
 // ---- Lien de partage : [nom, couverture, jeu, [[id, qté, état, note]]] compressé en base64url ----
 const b64 = (u8) => { let s = ''; for (let i = 0; i < u8.length; i += 0x8000) s += String.fromCharCode(...u8.subarray(i, i + 0x8000)); return btoa(s).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, ''); };
@@ -78,7 +82,7 @@ function Page({ items, n, side, anim, onOpen, readOnly }) {
 function Rings() { return <div className="bd-rings" aria-hidden="true"><i /><i /><i /></div>; }
 
 export function Cover({ name, cover, game, stats, onOpen, small }) {
-  const color = (COVERS.find((c) => c[0] === cover) || COVERS[0])[2];
+  const color = (COVERS.find((c) => c[0] === (cover || DEFAULT_COVER[game])) || COVERS[0])[2];
   return (
     <button className={'bd-cover' + (small ? ' small' : '')} style={{ '--leather': color }} onClick={onOpen} aria-label="Ouvrir le classeur">
       <span className="bd-spine" />
@@ -113,7 +117,7 @@ export function ShowBinder({ items, name, cover, game, stats, onOpen, readOnly, 
     addEventListener('keydown', k); return () => removeEventListener('keydown', k);
   });
   if (!open) return <div className="bd-wrap closed"><Cover name={name} cover={cover} game={game} stats={stats} onOpen={() => setOpen(true)} /><p className="muted small">Touche la couverture pour ouvrir le classeur</p></div>;
-  const color = (COVERS.find((c) => c[0] === cover) || COVERS[0])[2];
+  const color = (COVERS.find((c) => c[0] === (cover || DEFAULT_COVER[game])) || COVERS[0])[2];
   const slice = (pi) => items.slice(pi * PER, pi * PER + PER);
   const left = wide ? cur * 2 : cur;
   return (
@@ -143,7 +147,7 @@ export function ShareModal({ open, onClose, game, entries }) {
   const b = useStore((s) => s.binder);
   const [url, setUrl] = useState('');
   const [msg, setMsg] = useState('');
-  const name = b.name ?? '', cover = b.cover || 'rouge';
+  const name = b.name ?? '', cover = coverOf(b, game);
   const setB = (patch) => update((s) => { s.binder = { ...(s.binder || {}), ...patch }; });
   useEffect(() => { setUrl(''); setMsg(''); }, [open, name, cover, entries.length]);
   if (!open) return null;
@@ -165,7 +169,7 @@ export function ShareModal({ open, onClose, game, entries }) {
         <div className="bd-share-form">
           <label>Nom du classeur<input value={name} maxLength={40} placeholder="Mon classeur" onChange={(e) => setB({ name: e.target.value })} /></label>
           <div className="bd-colors" role="radiogroup" aria-label="Couleur de la couverture">
-            {COVERS.map(([id, label, c]) => <button key={id} role="radio" aria-checked={cover === id} aria-label={label} title={label} className={cover === id ? 'on' : ''} style={{ background: c }} onClick={() => setB({ cover: id })} />)}
+            {COVERS.map(([id, label, c]) => <button key={id} role="radio" aria-checked={cover === id} aria-label={label} title={label} className={cover === id ? 'on' : ''} style={{ background: c }} onClick={() => setB({ covers: { ...(b.covers || {}), [game]: id } })} />)}
           </div>
           <div className="row">
             <button className="btn primary" onClick={share}><Icon name="ext" size={18} />Partager</button>

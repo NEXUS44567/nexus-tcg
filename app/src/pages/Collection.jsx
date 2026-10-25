@@ -3,7 +3,7 @@ import { useData, useAsync, href, cardHref } from '../lib/hooks.js';
 import { useStore, updateEntry, removeEntry, CONDITIONS, condOf, exportData, importData, useUniverse } from '../lib/store.js';
 import { UNIV_HOME } from '../lib/hooks.js';
 import { eurOf, history, fmtEur, fmtDate, fmtNum, fmtPct, GAMES } from '../lib/data.js';
-import { ShowBinder, ShareModal } from './Binder.jsx';
+import { ShowBinder, ShareModal, coverOf } from './Binder.jsx';
 import { CardImage, PriceChart, Section, Loading, Empty, Icon, GameTag, Delta, Seg, Modal, Price } from '../components.jsx';
 
 export function resolve(d, key) { const [g, ...r] = key.split(':'); return d.cats?.[g]?.byId.get(r.join(':')) || null; }
@@ -108,7 +108,7 @@ export default function CollectionPage() {
             {view !== 'extensions' && <input className="filter" value={q} onChange={(e) => setQ(e.target.value)} placeholder="Filtrer…" aria-label="Filtrer" />}
           </div>
 
-          {view === 'classeur' && <ShowBinder items={items} name={binder.name} cover={binder.cover} game={game} stats={V} onOpen={setEdit} />}
+          {view === 'classeur' && <ShowBinder items={items} name={binder.name} cover={coverOf(binder, game)} game={game} stats={V} onOpen={setEdit} />}
           {view === 'grille' && <div className="grid tiles">{items.map((x) => <CollTile key={x.e.uid} x={x} onOpen={() => setEdit(x)} />)}</div>}
           {view === 'liste' && <CollList items={items} onOpen={setEdit} />}
           {view === 'extensions' && <SetProgress coll={coll} game={game} />}
