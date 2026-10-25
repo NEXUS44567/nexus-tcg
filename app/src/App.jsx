@@ -151,14 +151,18 @@ function AdminPage({ code }) {
 
 // Petit éclair qui file de l'ancienne section à la nouvelle dans la barre de navigation (V1)
 function boltPath(a, b) {
-  const n = Math.max(4, Math.round(Math.hypot(b.x - a.x, b.y - a.y) / 12));
+  // vrai zigzag : segments droits, angles vifs, amplitude marquée + une petite fourche
+  const len = Math.abs(b.x - a.x), n = Math.max(4, Math.round(len / 20));
   const pts = [a]; let sgn = Math.random() < 0.5 ? 1 : -1;
-  for (let i = 1; i < n; i++) { if (Math.random() < 0.8) sgn = -sgn; const t = (i + (Math.random() - 0.5) * 0.4) / n; const off = sgn * (1.5 + Math.random() * 2.5); pts.push({ x: a.x + (b.x - a.x) * t, y: a.y + off }); }
+  for (let i = 1; i < n; i++) { sgn = -sgn; const t = (i + (Math.random() - 0.5) * 0.35) / n; pts.push({ x: a.x + (b.x - a.x) * t, y: a.y + sgn * (5 + Math.random() * 4) }); }
   pts.push(b);
   const f = (v) => v.toFixed(1);
-  let d = `M${f(pts[0].x)} ${f(pts[0].y)}`;
-  for (let i = 1; i < pts.length - 1; i++) { const m = { x: (pts[i].x + pts[i + 1].x) / 2, y: (pts[i].y + pts[i + 1].y) / 2 }; d += ` Q${f(pts[i].x)} ${f(pts[i].y)} ${f(m.x)} ${f(m.y)}`; }
-  return d + ` L${f(b.x)} ${f(b.y)}`;
+  let d = pts.map((p, i) => (i ? 'L' : 'M') + f(p.x) + ' ' + f(p.y)).join(' ');
+  if (pts.length > 4) {
+    const k = 1 + Math.floor(Math.random() * (pts.length - 3)), p = pts[k], dir = Math.sign(b.x - a.x) || 1, up = p.y < a.y ? -1 : 1;
+    d += ` M${f(p.x)} ${f(p.y)} L${f(p.x + dir * 7)} ${f(p.y + up * 6)} L${f(p.x + dir * 4)} ${f(p.y + up * 11)}`;
+  }
+  return d;
 }
 function NavBolt({ navRef, edge, path }) {
   const last = useRef(null);
