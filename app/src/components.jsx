@@ -334,11 +334,17 @@ export function PirateEmblem({ size = 44, className = 'emblem' }) {
       <path d="M48 118a58 58 0 0 0 104 0 52 52 0 0 1-104 0z" fill="#f0dcae" />
       {Array.from({ length: 24 }, (_, k) => { const a = (k / 24) * Math.PI * 2; const [x0, y0] = pt(100, 100, 52, a); const [x1, y1] = pt(100, 100, k % 6 === 0 ? 44 : 48, a); return <line key={k} x1={x0} y1={y0} x2={x1} y2={y1} stroke={INK} strokeWidth={k % 6 === 0 ? 3.5 : 2} strokeLinecap="round" />; })}
       {sabre(-42)}{sabre(42)}
-      <path d="M100 50 L111 100 L100 100 Z" fill="#e2302b" stroke={INK} strokeWidth="4" strokeLinejoin="round" />
-      <path d="M100 50 L89 100 L100 100 Z" fill="#a81c1a" stroke={INK} strokeWidth="4" strokeLinejoin="round" />
-      <path d="M100 150 L89 100 L100 100 Z" fill="#ffffff" stroke={INK} strokeWidth="4" strokeLinejoin="round" />
-      <path d="M100 150 L111 100 L100 100 Z" fill="#cfd6df" stroke={INK} strokeWidth="4" strokeLinejoin="round" />
-      <circle cx="100" cy="100" r="9" fill="#ffd23f" stroke={INK} strokeWidth="4" />
+      <g>
+        <path d="M100 62c-20 0-33 13-33 30 0 10 5 17 11 21v9c0 4 3 6 6 6h32c3 0 6-2 6-6v-9c6-4 11-11 11-21 0-17-13-30-33-30z" fill="#ffffff" stroke={INK} strokeWidth="5" strokeLinejoin="round" />
+        <path d="M74 106c6 7 15 10 26 10s20-3 26-10c-2 6-5 9-8 11v5c0 4-3 6-6 6H88c-3 0-6-2-6-6v-5c-3-2-6-5-8-11z" fill="#d9dee6" />
+        <ellipse cx="88" cy="93" rx="9" ry="10" fill={INK} />
+        <ellipse cx="112" cy="93" rx="9" ry="10" fill={INK} />
+        <circle cx="85" cy="89" r="2.6" fill="#fff" />
+        <circle cx="109" cy="89" r="2.6" fill="#fff" />
+        <path d="M100 103l-5 8h10z" fill={INK} />
+        <path d="M89 119v9M95 119v9M100 119v9M105 119v9M111 119v9" stroke={INK} strokeWidth="3" strokeLinecap="round" />
+        <path d="M78 80c4-8 11-12 18-13" stroke="#fff" strokeOpacity=".0" strokeWidth="4" fill="none" />
+      </g>
       <text x="100" y="27" textAnchor="middle" dominantBaseline="middle" fontSize="20" fontWeight="900" fill="#fff" stroke={INK} strokeWidth="4" paintOrder="stroke" fontFamily="Bricolage Grotesque, system-ui, sans-serif">N</text>
       <path d="M58 62c8-10 20-17 33-20" stroke="#fff" strokeWidth="5" fill="none" strokeLinecap="round" opacity=".9" />
     </svg>
