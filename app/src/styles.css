@@ -1555,3 +1555,4 @@ main#contenu:not(.chooser-main) { animation: uv-arrive .45s ease-out; }
 .lg-val small { color: var(--faint); font-size: .7rem; }
 @media (max-width: 480px) { .lg-board li { grid-template-columns: 1.8rem minmax(0, 1fr) auto; } .lg-bar { display: none; } }
 .lg-board > .btn { margin-top: .6rem; }
+.boosters-page > .league { margin: 1rem 0 1.4rem; }

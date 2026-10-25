@@ -314,6 +314,8 @@ export default function BoostersPage({ focus }) {
       <h1 className="page-title">Booster {prod.name}</h1>
       <p className="lead">Déchire un booster de la dernière extension. Chaque carte obtenue est cochée « Obtenue » dans ta collection virtuelle, juste en dessous ; les autres restent « À découvrir ».</p>
 
+      <League prod={prod} />
+
       <div className={'wallet ' + game}>
         <span className="coin" aria-hidden="true">{cur.sym}</span>
         <div><b>{admin ? '∞' : fmtNum(coins)}</b><span>{cur.name}</span></div>
@@ -403,7 +405,6 @@ export default function BoostersPage({ focus }) {
         {wallet?.best && <a href={href('/carte/' + encodeURIComponent(wallet.best.key))}><span>Meilleur tirage</span><b>{wallet.best.name}</b><small>{wallet.best.rarity}</small></a>}
       </div>
 
-      <League prod={prod} />
       <VirtualSet prod={prod} />
 
       <Modal open={odds} onClose={() => setOdds(false)} title={'Taux · ' + prod.name}>
