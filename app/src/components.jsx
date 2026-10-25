@@ -289,83 +289,94 @@ export function Logo() {
   );
 }
 
-// ---- Emblèmes originaux de NEXUS (aucun logo officiel) ----
-// One Piece : médaillon pirate (tête de mort et os croisés, motif traditionnel), cordage et bandeau rouge
+// ---- Emblèmes originaux de NEXUS : écussons en métal 3D (aucun logo officiel) ----
+function useIds() { const id = React.useId().replace(/:/g, ''); return (n) => `${n}-${id}`; }
+function MetalDefs({ g, light, mid, dark, deep }) {
+  return (
+    <>
+      <linearGradient id={g('m1')} x1="0" y1="0" x2="0" y2="1"><stop offset="0" stopColor={light} /><stop offset=".45" stopColor={mid} /><stop offset=".55" stopColor={dark} /><stop offset="1" stopColor={light} /></linearGradient>
+      <linearGradient id={g('m2')} x1="0" y1="1" x2="0" y2="0"><stop offset="0" stopColor={light} /><stop offset=".5" stopColor={dark} /><stop offset="1" stopColor={deep} /></linearGradient>
+      <linearGradient id={g('spec')} x1="0" y1="0" x2="1" y2="1"><stop offset="0" stopColor="#fff" stopOpacity=".0" /><stop offset=".45" stopColor="#fff" stopOpacity=".0" /><stop offset=".5" stopColor="#fff" stopOpacity=".55" /><stop offset=".56" stopColor="#fff" stopOpacity=".0" /></linearGradient>
+      <filter id={g('drop')} x="-25%" y="-25%" width="150%" height="150%"><feDropShadow dx="0" dy="5" stdDeviation="4" floodColor="#000" floodOpacity=".6" /></filter>
+      <filter id={g('emb')} x="-20%" y="-20%" width="140%" height="140%"><feDropShadow dx="0" dy="2" stdDeviation="1.2" floodColor="#000" floodOpacity=".65" /><feDropShadow dx="0" dy="-1" stdDeviation=".4" floodColor="#fff" floodOpacity=".35" /></filter>
+    </>
+  );
+}
+
+// One Piece : écusson doré à rivets, émail rouge sombre, rose des vents en argent sur deux sabres croisés
 export function PirateEmblem({ size = 44, className = 'emblem' }) {
-  const id = React.useId().replace(/:/g, '');
-  const g = (n) => `${n}-${id}`;
+  const g = useIds();
+  const oct = (r) => Array.from({ length: 8 }, (_, k) => { const a = (Math.PI / 8) + (k * Math.PI) / 4; return `${(100 + Math.cos(a) * r).toFixed(1)},${(100 + Math.sin(a) * r).toFixed(1)}`; }).join(' ');
+  const star = (r1, r2, n = 8) => Array.from({ length: n * 2 }, (_, k) => { const a = -Math.PI / 2 + (k * Math.PI) / n; const r = k % 2 ? r2 : r1; return `${(100 + Math.cos(a) * r).toFixed(1)},${(100 + Math.sin(a) * r).toFixed(1)}`; }).join(' ');
   return (
     <svg viewBox="0 0 200 200" width={size} height={size} className={className} aria-hidden="true">
       <defs>
-        <radialGradient id={g('bg')} cx="50%" cy="38%" r="65%"><stop offset="0" stopColor="#3a2a22" /><stop offset=".6" stopColor="#1a1110" /><stop offset="1" stopColor="#0a0605" /></radialGradient>
-        <linearGradient id={g('rim')} x1="0" y1="0" x2="0" y2="1"><stop offset="0" stopColor="#f7e2a1" /><stop offset=".35" stopColor="#c9952f" /><stop offset=".6" stopColor="#8a5a14" /><stop offset="1" stopColor="#e9c46a" /></linearGradient>
-        <radialGradient id={g('bone')} cx="40%" cy="30%" r="80%"><stop offset="0" stopColor="#fffdf4" /><stop offset=".55" stopColor="#ece2c6" /><stop offset="1" stopColor="#b8a77e" /></radialGradient>
-        <radialGradient id={g('skull')} cx="42%" cy="30%" r="75%"><stop offset="0" stopColor="#ffffff" /><stop offset=".5" stopColor="#f1e9d2" /><stop offset="1" stopColor="#b9a882" /></radialGradient>
-        <linearGradient id={g('band')} x1="0" y1="0" x2="0" y2="1"><stop offset="0" stopColor="#ff5a4a" /><stop offset=".5" stopColor="#d6211b" /><stop offset="1" stopColor="#7d0d0b" /></linearGradient>
-        <pattern id={g('rope')} width="10" height="10" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect width="10" height="10" fill="#b98a4c" /><rect width="4" height="10" fill="#7a5426" /></pattern>
-        <filter id={g('sh')} x="-20%" y="-20%" width="140%" height="140%"><feDropShadow dx="0" dy="3" stdDeviation="2.5" floodColor="#000" floodOpacity=".55" /></filter>
+        <MetalDefs g={g} light="#fff3c4" mid="#e0a93a" dark="#8a5a10" deep="#4a2c00" />
+        <radialGradient id={g('enamel')} cx="50%" cy="35%" r="70%"><stop offset="0" stopColor="#c8262b" /><stop offset=".6" stopColor="#6e0c12" /><stop offset="1" stopColor="#2a0306" /></radialGradient>
+        <linearGradient id={g('steel')} x1="0" y1="0" x2="1" y2="1"><stop offset="0" stopColor="#ffffff" /><stop offset=".35" stopColor="#cfd6df" /><stop offset=".5" stopColor="#7d8794" /><stop offset=".65" stopColor="#e9eef3" /><stop offset="1" stopColor="#6b7480" /></linearGradient>
+        <linearGradient id={g('blade')} x1="0" y1="0" x2="0" y2="1"><stop offset="0" stopColor="#f4f7fa" /><stop offset=".5" stopColor="#a9b3bf" /><stop offset="1" stopColor="#5a6370" /></linearGradient>
       </defs>
-      <circle cx="100" cy="100" r="96" fill={`url(#${g('rim')})`} />
-      <circle cx="100" cy="100" r="88" fill="none" stroke={`url(#${g('rope')})`} strokeWidth="9" />
-      <circle cx="100" cy="100" r="82" fill={`url(#${g('bg')})`} stroke="#000" strokeOpacity=".5" strokeWidth="2" />
-      <circle cx="100" cy="100" r="82" fill="none" stroke="#fff" strokeOpacity=".07" strokeWidth="10" strokeDasharray="2 7" />
-      <g filter={`url(#${g('sh')})`}>
-        {[-38, 38].map((a) => (
-          <g key={a} transform={`rotate(${a} 100 112)`}>
-            <rect x="38" y="105" width="124" height="14" rx="7" fill={`url(#${g('bone')})`} stroke="#6b5a3a" strokeWidth="1.5" />
-            {[[38, 104], [38, 120], [162, 104], [162, 120]].map(([x, y], k) => <circle key={k} cx={x} cy={y} r="9.5" fill={`url(#${g('bone')})`} stroke="#6b5a3a" strokeWidth="1.5" />)}
+      <g filter={`url(#${g('drop')})`}>
+        <polygon points={oct(96)} fill={`url(#${g('m1')})`} />
+        <polygon points={oct(88)} fill={`url(#${g('m2')})`} />
+        <polygon points={oct(80)} fill={`url(#${g('enamel')})`} stroke="#2a0306" strokeWidth="2" />
+        {Array.from({ length: 8 }, (_, k) => { const a = (Math.PI / 8) + (k * Math.PI) / 4; return <g key={k}><circle cx={100 + Math.cos(a) * 88} cy={100 + Math.sin(a) * 88} r="4.5" fill={`url(#${g('m1')})`} stroke="#4a2c00" strokeWidth="1" /><circle cx={100 + Math.cos(a) * 88 - 1.2} cy={100 + Math.sin(a) * 88 - 1.4} r="1.4" fill="#fff" opacity=".8" /></g>; })}
+      </g>
+      <g filter={`url(#${g('emb')})`}>
+        {[-42, 42].map((a) => (
+          <g key={a} transform={`rotate(${a} 100 100)`}>
+            <path d="M100 30 C104 60 105 110 103 150 L97 150 C95 110 96 60 100 30Z" fill={`url(#${g('blade')})`} stroke="#3a4048" strokeWidth="1" />
+            <rect x="86" y="150" width="28" height="6" rx="3" fill={`url(#${g('m1')})`} stroke="#4a2c00" strokeWidth="1" />
+            <rect x="97" y="156" width="6" height="18" rx="2" fill="#3b2412" />
+            <circle cx="100" cy="177" r="5" fill={`url(#${g('m1')})`} stroke="#4a2c00" strokeWidth="1" />
           </g>
         ))}
-        <path d="M100 42c-29 0-47 18-47 42 0 14 7 24 16 30v13c0 6 4 9 9 9h44c5 0 9-3 9-9v-13c9-6 16-16 16-30 0-24-18-42-47-42z" fill={`url(#${g('skull')})`} stroke="#5b4a2e" strokeWidth="2" />
-        <path d="M58 70c8-22 76-22 84 0l2 8c-26-12-62-12-88 0z" fill={`url(#${g('band')})`} stroke="#4a0606" strokeWidth="1.5" />
-        <path d="M140 72c10-2 20 2 24 9-6 1-12 0-17-3 3 6 3 12 0 18-4-7-6-14-7-24z" fill={`url(#${g('band')})`} stroke="#4a0606" strokeWidth="1.5" />
-        <ellipse cx="83" cy="92" rx="12" ry="13" fill="#140b08" />
-        <ellipse cx="117" cy="92" rx="12" ry="13" fill="#140b08" />
-        <ellipse cx="80" cy="88" rx="3" ry="2.5" fill="#fff" opacity=".18" />
-        <ellipse cx="114" cy="88" rx="3" ry="2.5" fill="#fff" opacity=".18" />
-        <path d="M100 103l-7 11h14z" fill="#140b08" />
-        <path d="M80 124h40M86 120v14M93 120v14M100 120v14M107 120v14M114 120v14" stroke="#5b4a2e" strokeWidth="2.2" strokeLinecap="round" />
-        <path d="M70 60c10-10 26-14 42-12" fill="none" stroke="#fff" strokeOpacity=".55" strokeWidth="3" strokeLinecap="round" />
+        <circle cx="100" cy="100" r="40" fill="#1a0204" stroke={`url(#${g('m1')})`} strokeWidth="5" />
+        <circle cx="100" cy="100" r="33" fill="none" stroke="#e0a93a" strokeOpacity=".5" strokeWidth="1" strokeDasharray="1 4" />
+        <polygon points={star(36, 8, 4)} fill={`url(#${g('steel')})`} stroke="#3a4048" strokeWidth="1" />
+        <polygon points={star(22, 6, 4)} transform="rotate(45 100 100)" fill={`url(#${g('m1')})`} stroke="#4a2c00" strokeWidth="1" />
+        <path d="M100 64 L104 100 L100 100Z" fill="#fff" opacity=".7" />
+        <path d="M100 136 L96 100 L100 100Z" fill="#000" opacity=".35" />
+        <circle cx="100" cy="100" r="6" fill={`url(#${g('m1')})`} stroke="#4a2c00" strokeWidth="1.2" />
+        <text x="100" y="58" textAnchor="middle" fontSize="11" fontWeight="800" fill="#fff3c4" fontFamily="Georgia, serif">N</text>
       </g>
-      <path d="M30 70a78 78 0 0 1 140 0" fill="none" stroke="#fff" strokeOpacity=".35" strokeWidth="3" strokeLinecap="round" />
+      <polygon points={oct(96)} fill={`url(#${g('spec')})`} />
+      <path d="M40 52 Q100 18 160 52" fill="none" stroke="#fff" strokeOpacity=".45" strokeWidth="3" strokeLinecap="round" />
     </svg>
   );
 }
 
-// Pokémon : blason émaillé, éclair doré et trois orbes d'énergie (feu, eau, plante)
+// Pokémon : écusson hexagonal argent et bleu, étoile d'énergie dorée avec une flamme au cœur
 export function EnergyEmblem({ size = 44, className = 'emblem' }) {
-  const id = React.useId().replace(/:/g, '');
-  const g = (n) => `${n}-${id}`;
-  const shield = 'M100 8 178 38v58c0 50-34 82-78 96C56 178 22 146 22 96V38z';
+  const g = useIds();
+  const hex = (r) => Array.from({ length: 6 }, (_, k) => { const a = -Math.PI / 2 + (k * Math.PI) / 3; return `${(100 + Math.cos(a) * r).toFixed(1)},${(100 + Math.sin(a) * r).toFixed(1)}`; }).join(' ');
+  const star = (r1, r2, n = 5) => Array.from({ length: n * 2 }, (_, k) => { const a = -Math.PI / 2 + (k * Math.PI) / n; const r = k % 2 ? r2 : r1; return `${(100 + Math.cos(a) * r).toFixed(1)},${(104 + Math.sin(a) * r).toFixed(1)}`; }).join(' ');
   return (
     <svg viewBox="0 0 200 200" width={size} height={size} className={className} aria-hidden="true">
       <defs>
-        <linearGradient id={g('rim')} x1="0" y1="0" x2="1" y2="1"><stop offset="0" stopColor="#fff6c8" /><stop offset=".3" stopColor="#f2c230" /><stop offset=".6" stopColor="#a8700b" /><stop offset="1" stopColor="#ffe27a" /></linearGradient>
-        <radialGradient id={g('enamel')} cx="50%" cy="30%" r="80%"><stop offset="0" stopColor="#3f7cff" /><stop offset=".55" stopColor="#1c3fa8" /><stop offset="1" stopColor="#0a1747" /></radialGradient>
-        <linearGradient id={g('bolt')} x1="0" y1="0" x2="0" y2="1"><stop offset="0" stopColor="#fffbe0" /><stop offset=".35" stopColor="#ffe14d" /><stop offset=".75" stopColor="#f5a400" /><stop offset="1" stopColor="#c46f00" /></linearGradient>
-        <radialGradient id={g('fire')} cx="35%" cy="30%"><stop offset="0" stopColor="#ffe0a0" /><stop offset=".5" stopColor="#ff6a2a" /><stop offset="1" stopColor="#a8200a" /></radialGradient>
-        <radialGradient id={g('water')} cx="35%" cy="30%"><stop offset="0" stopColor="#d8f2ff" /><stop offset=".5" stopColor="#3aa8ff" /><stop offset="1" stopColor="#0b4aa8" /></radialGradient>
-        <radialGradient id={g('leaf')} cx="35%" cy="30%"><stop offset="0" stopColor="#e6ffcc" /><stop offset=".5" stopColor="#4cc94c" /><stop offset="1" stopColor="#14701e" /></radialGradient>
-        <filter id={g('glow')} x="-40%" y="-40%" width="180%" height="180%"><feGaussianBlur stdDeviation="5" result="b" /><feMerge><feMergeNode in="b" /><feMergeNode in="SourceGraphic" /></feMerge></filter>
-        <filter id={g('sh')} x="-20%" y="-20%" width="140%" height="140%"><feDropShadow dx="0" dy="3" stdDeviation="2.5" floodColor="#000" floodOpacity=".5" /></filter>
-        <clipPath id={g('clip')}><path d={shield} transform="translate(100 100) scale(.86) translate(-100 -100)" /></clipPath>
+        <MetalDefs g={g} light="#ffffff" mid="#b9c6d6" dark="#5d6b80" deep="#2a3344" />
+        <radialGradient id={g('enamel')} cx="50%" cy="35%" r="70%"><stop offset="0" stopColor="#3f86ff" /><stop offset=".6" stopColor="#163a9e" /><stop offset="1" stopColor="#081540" /></radialGradient>
+        <linearGradient id={g('gold')} x1="0" y1="0" x2="0" y2="1"><stop offset="0" stopColor="#fffbe0" /><stop offset=".35" stopColor="#ffd84a" /><stop offset=".7" stopColor="#e89400" /><stop offset="1" stopColor="#9a5a00" /></linearGradient>
+        <radialGradient id={g('flame')} cx="50%" cy="70%" r="70%"><stop offset="0" stopColor="#fff6c8" /><stop offset=".35" stopColor="#ffb02e" /><stop offset=".75" stopColor="#ff4a1c" /><stop offset="1" stopColor="#a8140a" /></radialGradient>
+        <filter id={g('glow')} x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="6" result="b" /><feMerge><feMergeNode in="b" /><feMergeNode in="SourceGraphic" /></feMerge></filter>
       </defs>
-      <path d={shield} fill={`url(#${g('rim')})`} stroke="#6b4300" strokeWidth="2" />
-      <path d={shield} transform="translate(100 100) scale(.86) translate(-100 -100)" fill={`url(#${g('enamel')})`} stroke="#4a2e00" strokeWidth="2" />
-      <g clipPath={`url(#${g('clip')})`}>
-        {Array.from({ length: 12 }, (_, i) => <path key={i} d="M100 92 L96 -40 L104 -40 Z" fill="#fff" opacity=".06" transform={`rotate(${i * 30} 100 92)`} />)}
-        <ellipse cx="80" cy="40" rx="70" ry="26" fill="#fff" opacity=".12" />
+      <g filter={`url(#${g('drop')})`}>
+        <polygon points={hex(96)} fill={`url(#${g('m1')})`} />
+        <polygon points={hex(87)} fill={`url(#${g('m2')})`} />
+        <polygon points={hex(79)} fill={`url(#${g('enamel')})`} stroke="#081540" strokeWidth="2" />
+        {Array.from({ length: 6 }, (_, k) => { const a = -Math.PI / 2 + (k * Math.PI) / 3; return <g key={k}><circle cx={100 + Math.cos(a) * 87} cy={100 + Math.sin(a) * 87} r="4.5" fill={`url(#${g('m1')})`} stroke="#2a3344" strokeWidth="1" /><circle cx={100 + Math.cos(a) * 87 - 1.2} cy={100 + Math.sin(a) * 87 - 1.4} r="1.4" fill="#fff" opacity=".9" /></g>; })}
       </g>
+      <g opacity=".5">{Array.from({ length: 12 }, (_, k) => <path key={k} d="M100 104 L97 34 L103 34Z" fill="#9cc2ff" opacity=".35" transform={`rotate(${k * 30} 100 104)`} />)}</g>
       <g filter={`url(#${g('glow')})`}>
-        <path d="M112 28 62 106h32l-14 66 62-92h-34l16-52z" fill={`url(#${g('bolt')})`} stroke="#7a4300" strokeWidth="3" strokeLinejoin="round" />
-        <path d="M108 38 72 100" stroke="#fff" strokeOpacity=".7" strokeWidth="3" strokeLinecap="round" />
+        <polygon points={star(62, 26)} fill={`url(#${g('gold')})`} stroke="#7a4300" strokeWidth="2.5" strokeLinejoin="round" />
       </g>
-      <g filter={`url(#${g('sh')})`}>
-        <circle cx="52" cy="124" r="11" fill={`url(#${g('fire')})`} stroke="#5a1200" strokeWidth="1.5" />
-        <circle cx="148" cy="124" r="11" fill={`url(#${g('water')})`} stroke="#062a66" strokeWidth="1.5" />
-        <circle cx="100" cy="172" r="9" fill={`url(#${g('leaf')})`} stroke="#0b4012" strokeWidth="1.5" />
+      <g filter={`url(#${g('emb')})`}>
+        <polygon points={star(50, 21)} fill="none" stroke="#fff3b0" strokeOpacity=".7" strokeWidth="1.5" strokeLinejoin="round" />
+        <path d="M100 66c6 12 22 20 22 40 0 13-10 22-22 22s-22-9-22-22c0-11 6-17 10-24 1 7 4 11 8 12-2-11 0-20 4-28z" fill={`url(#${g('flame')})`} stroke="#6a1200" strokeWidth="2" strokeLinejoin="round" />
+        <path d="M100 98c4 6 10 10 10 18 0 6-4 10-10 10s-10-4-10-10c0-5 3-8 5-11 1 3 2 5 4 5-1-5 0-9 1-12z" fill="#fff3c0" opacity=".9" />
       </g>
-      <path d="M34 44 100 18l66 26" fill="none" stroke="#fff" strokeOpacity=".55" strokeWidth="3" strokeLinecap="round" />
+      <polygon points={hex(96)} fill={`url(#${g('spec')})`} />
+      <path d="M36 62 L100 22 L164 62" fill="none" stroke="#fff" strokeOpacity=".55" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
     </svg>
   );
 }
