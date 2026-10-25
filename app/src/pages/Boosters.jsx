@@ -1,59 +1,169 @@
-import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { useData, href, cardHref, useNow } from '../lib/hooks.js';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useData, href, cardHref } from '../lib/hooks.js';
 import { useStore, update, getState, useUniverse, claimDaily, spendCoins } from '../lib/store.js';
-import { eurOf, fmtEur, fmtNum, img, GAMES } from '../lib/data.js';
+import { fmtNum, img, GAMES } from '../lib/data.js';
 import { buildProduct, openPack, TIER_STYLE, PRICE, CURRENCY } from '../lib/packs.js';
-import { CardImage, Icon, Loading, Seg, Modal, GameTag, Empty, Section, Price } from '../components.jsx';
+import { CardImage, Icon, Loading, Seg, Modal } from '../components.jsx';
 
-// ---- Petits sons synthétisés (aucun fichier) ----
-let ctx;
-function sfx(kind) {
-  if (getState().muted) return;
-  try {
-    ctx ||= new (window.AudioContext || window.webkitAudioContext)();
-    const t = ctx.currentTime;
-    if (kind === 'tear') {
-      const len = 0.35, buf = ctx.createBuffer(1, ctx.sampleRate * len, ctx.sampleRate), d = buf.getChannelData(0);
-      for (let i = 0; i < d.length; i++) d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / d.length, 2);
-      const s = ctx.createBufferSource(); s.buffer = buf; const f = ctx.createBiquadFilter(); f.type = 'highpass'; f.frequency.value = 1800;
-      const g = ctx.createGain(); g.gain.value = 0.35; s.connect(f).connect(g).connect(ctx.destination); s.start(t);
-    } else if (kind === 'haki' || kind === 'rumble') {
-      const len = kind === 'haki' ? 1.6 : 0.9;
-      const o = ctx.createOscillator(), g = ctx.createGain(); o.type = 'sawtooth';
-      o.frequency.setValueAtTime(kind === 'haki' ? 90 : 70, t); o.frequency.exponentialRampToValueAtTime(32, t + len);
-      const lp = ctx.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = 260;
-      g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(kind === 'haki' ? 0.5 : 0.25, t + 0.06); g.gain.exponentialRampToValueAtTime(0.0001, t + len);
-      o.connect(lp).connect(g).connect(ctx.destination); o.start(t); o.stop(t + len + 0.05);
-      const buf = ctx.createBuffer(1, ctx.sampleRate * 0.5, ctx.sampleRate), d = buf.getChannelData(0);
-      for (let i = 0; i < d.length; i++) d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / d.length, 3) * (Math.random() < 0.08 ? 1 : 0.3);
-      const n = ctx.createBufferSource(); n.buffer = buf; const ng = ctx.createGain(); ng.gain.value = kind === 'haki' ? 0.35 : 0.15; n.connect(ng).connect(ctx.destination); n.start(t + 0.02);
-    } else {
-      const notes = kind === 'flip' ? [520] : kind === 'rare' ? [660, 880, 1320] : [440, 660, 990, 1320, 1760];
-      notes.forEach((fr, i) => {
-        const o = ctx.createOscillator(), g = ctx.createGain(); o.type = kind === 'flip' ? 'triangle' : 'sine'; o.frequency.value = fr;
-        const st = t + i * 0.07; g.gain.setValueAtTime(0, st); g.gain.linearRampToValueAtTime(kind === 'flip' ? 0.08 : 0.12, st + 0.01); g.gain.exponentialRampToValueAtTime(0.0001, st + (kind === 'flip' ? 0.12 : 0.6));
-        o.connect(g).connect(ctx.destination); o.start(st); o.stop(st + 0.7);
-      });
-    }
-  } catch {}
+// Animations reprises de la V1 : booster qui flotte et brille, languette à déchirer, Haki (One Piece)
+// ou foudre (Pokémon) à l'ouverture, carte qui se charge avant une rare, retournement, bannière,
+// confettis selon la rareté, bande des cartes déjà révélées.
+
+// ---- Sons (V1) ----
+let actx = null;
+const soundOn = () => !getState().muted;
+function ac() { if (!soundOn()) return null; try { actx ??= new (window.AudioContext || window.webkitAudioContext)(); if (actx.state === 'suspended') actx.resume(); return actx; } catch { return null; } }
+function tone(f, at, dur, type = 'triangle', vol = 0.12) {
+  const c = ac(); if (!c) return;
+  const o = c.createOscillator(), g = c.createGain(); o.type = type; o.frequency.value = f;
+  g.gain.setValueAtTime(0, c.currentTime + at); g.gain.linearRampToValueAtTime(vol, c.currentTime + at + 0.01); g.gain.exponentialRampToValueAtTime(1e-4, c.currentTime + at + dur);
+  o.connect(g).connect(c.destination); o.start(c.currentTime + at); o.stop(c.currentTime + at + dur + 0.05);
 }
+const SFX = {
+  tear() { const c = ac(); if (!c) return; const n = Math.floor(c.sampleRate * 0.45), b = c.createBuffer(1, n, c.sampleRate), d = b.getChannelData(0); for (let i = 0; i < n; i++) d[i] = (Math.random() * 2 - 1) * (1 - i / n) ** 2; const s = c.createBufferSource(), f = c.createBiquadFilter(), g = c.createGain(); s.buffer = b; f.type = 'bandpass'; f.frequency.setValueAtTime(900, c.currentTime); f.frequency.linearRampToValueAtTime(3800, c.currentTime + 0.4); g.gain.value = 0.35; s.connect(f).connect(g).connect(c.destination); s.start(); },
+  haki() { const c = ac(); if (!c) return; const o = c.createOscillator(), g = c.createGain(); o.type = 'sawtooth'; o.frequency.setValueAtTime(90, c.currentTime); o.frequency.exponentialRampToValueAtTime(38, c.currentTime + 0.8); g.gain.setValueAtTime(1e-4, c.currentTime); g.gain.exponentialRampToValueAtTime(0.18, c.currentTime + 0.05); g.gain.exponentialRampToValueAtTime(1e-4, c.currentTime + 0.9); const f = c.createBiquadFilter(); f.type = 'lowpass'; f.frequency.value = 400; o.connect(f).connect(g).connect(c.destination); o.start(); o.stop(c.currentTime + 1); },
+  thunder() { const c = ac(); if (!c) return; for (let k = 0; k < 3; k++) { const n = Math.floor(c.sampleRate * 0.18), b = c.createBuffer(1, n, c.sampleRate), d = b.getChannelData(0); for (let i = 0; i < n; i++) d[i] = (Math.random() * 2 - 1) * (1 - i / n) ** 3 * (Math.random() < 0.3 ? 1 : 0.3); const s = c.createBufferSource(), f = c.createBiquadFilter(), g = c.createGain(); s.buffer = b; f.type = 'highpass'; f.frequency.value = 1800; g.gain.value = 0.3; s.connect(f).connect(g).connect(c.destination); s.start(c.currentTime + k * 0.12); } },
+  flip() { tone(1250, 0, 0.05, 'square', 0.04); tone(620, 0.02, 0.08, 'triangle', 0.06); },
+  charge() { const c = ac(); if (!c) return; const o = c.createOscillator(), g = c.createGain(); o.type = 'sine'; o.frequency.setValueAtTime(220, c.currentTime); o.frequency.exponentialRampToValueAtTime(880, c.currentTime + 0.8); g.gain.setValueAtTime(1e-4, c.currentTime); g.gain.exponentialRampToValueAtTime(0.09, c.currentTime + 0.6); g.gain.exponentialRampToValueAtTime(1e-4, c.currentTime + 0.85); o.connect(g).connect(c.destination); o.start(); o.stop(c.currentTime + 0.9); },
+  rare(lv) { const n = [523.25, 659.25, 783.99, 1046.5, 1318.5, 1567.98, 2093]; for (let i = 0; i < Math.min(n.length, 2 + lv); i++) tone(n[i], i * 0.07, 0.5, 'triangle', 0.1); if (lv >= 3) tone(2093, 0.5, 0.9, 'sine', 0.06); },
+};
 const vibrate = (p) => { try { navigator.vibrate?.(p); } catch {} };
 
-function PackArt({ prod, small, torn }) {
-  const g = GAMES[prod.game];
+// ---- Confettis selon la rareté (V1) ----
+const PALETTE = { 1: ['#7cc4ff', '#ffffff'], 2: ['#b48bff', '#7cc4ff', '#ffffff'], 3: ['#ffd76a', '#fff3c2', '#ffb347'], 4: ['#ff6b9a', '#ffd76a', '#7cf5c4', '#7cc4ff', '#b48bff'] };
+function confetti(el, lv) {
+  if (!el || lv < 1 || matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  const r = el.getBoundingClientRect();
+  const cv = document.createElement('canvas'); cv.className = 'fx-canvas';
+  cv.width = innerWidth * devicePixelRatio; cv.height = innerHeight * devicePixelRatio; document.body.appendChild(cv);
+  const g = cv.getContext('2d'); g.scale(devicePixelRatio, devicePixelRatio);
+  const pal = PALETTE[Math.min(4, lv)], n = 40 + lv * 45, cx = r.left + r.width / 2, cy = r.top + r.height / 2;
+  const ps = Array.from({ length: n }, () => { const a = Math.random() * Math.PI * 2, v = 3 + Math.random() * (5 + lv * 2.5); return { x: cx, y: cy, vx: Math.cos(a) * v, vy: Math.sin(a) * v - 3, s: 2 + Math.random() * 4, c: pal[Math.floor(Math.random() * pal.length)], r: Math.random() * 6 }; });
+  const t0 = performance.now();
+  const step = (t) => {
+    const u = (t - t0) / 1600; g.clearRect(0, 0, innerWidth, innerHeight);
+    for (const p of ps) { p.vy += 0.18; p.vx *= 0.985; p.x += p.vx; p.y += p.vy; p.r += 0.2; g.save(); g.globalAlpha = Math.max(0, 1 - u); g.translate(p.x, p.y); g.rotate(p.r); g.fillStyle = p.c; g.fillRect(-p.s / 2, -p.s / 4, p.s, p.s / 2); g.restore(); }
+    if (u < 1) requestAnimationFrame(step); else cv.remove();
+  };
+  requestAnimationFrame(step);
+}
+
+// Niveau de rareté 0 à 4 (V1 : une parallèle vaut 4)
+export const levelOf = (x) => (x.card.variant ? 4 : Math.min(4, TIER_STYLE[x.tier] ?? 0));
+
+// ---- Éclairs d'ouverture (V1) : Haki des rois pour One Piece, foudre pour Pokémon ----
+const C0 = [200, 125];
+function zig(a, b, n, amp) { const pts = [a], dx = b[0] - a[0], dy = b[1] - a[1], L = Math.hypot(dx, dy), nx = -dy / L, ny = dx / L; for (let i = 1; i < n; i++) { const t = i / n, o = (Math.random() - 0.5) * 2 * amp; pts.push([a[0] + dx * t + nx * o, a[1] + dy * t + ny * o]); } pts.push(b); return pts; }
+const pathOf = (pts) => pts.map((p, i) => (i ? 'L' : 'M') + p[0].toFixed(1) + ' ' + p[1].toFixed(1)).join(' ');
+function strikeBolts(game) {
+  const out = [];
+  if (game === 'onepiece') {
+    for (let k = 0; k < 11; k++) {
+      const a = (k / 11) * Math.PI * 2 + Math.random() * 0.4, L = 230 + Math.random() * 80;
+      const pts = zig(C0, [C0[0] + Math.cos(a) * L, C0[1] + Math.sin(a) * L * 0.8], 9, 16);
+      out.push({ d: pathOf(pts), delay: k * 0.03, w: 1 });
+      const o = pts[3 + Math.floor(Math.random() * 4)], b = a + (Math.random() < 0.5 ? -0.6 : 0.6);
+      out.push({ d: pathOf(zig(o, [o[0] + Math.cos(b) * 70, o[1] + Math.sin(b) * 56], 5, 9)), delay: k * 0.03 + 0.08, w: 0.6 });
+    }
+  } else {
+    for (let k = 0; k < 7; k++) {
+      const x = 40 + Math.random() * 320, end = [C0[0] + (Math.random() - 0.5) * 60, C0[1] + (Math.random() - 0.5) * 30];
+      const pts = zig([x, -20], end, 8, 18);
+      out.push({ d: pathOf(pts), delay: k * 0.07, w: 1 });
+      const s = pts[3 + (k % 3)];
+      out.push({ d: pathOf(zig(s, [s[0] + (Math.random() - 0.5) * 120, s[1] + 50], 4, 10)), delay: k * 0.07 + 0.05, w: 0.6 });
+    }
+    for (let k = 0; k < 6; k++) { const a = Math.random() * Math.PI * 2; out.push({ d: pathOf(zig(C0, [C0[0] + Math.cos(a) * 120, C0[1] + Math.sin(a) * 90], 5, 10)), delay: 0.45 + k * 0.03, w: 0.7 }); }
+  }
+  return out;
+}
+function Strike({ game }) {
+  const bolts = useMemo(() => strikeBolts(game), [game]);
   return (
-    <div className={'pack-art ' + prod.game + ' ' + prod.kind + (small ? ' small' : '') + (torn ? ' torn' : '')} style={{ '--accent': g.accent }}>
-      <div className="pack-top"><span>{prod.kind === 'legend' ? '★ ★ ★' : 'NEXUS'}</span></div>
-      <div className="pack-body">
-        <div className="pack-brand">{g.label}</div>
-        <div className="pack-window">{prod.cover && <img src={img(prod.cover.image, 'small')} alt="" referrerPolicy="no-referrer" draggable="false" />}</div>
-        <div className="pack-name">{prod.name}</div>
-        <div className="pack-sub">{prod.code} · {prod.size} cartes</div>
-      </div>
-      <span className="pack-foil" />
+    <div className={'strike strike-' + game} aria-hidden="true">
+      <div className="strike-flash" />
+      <svg viewBox="0 0 400 300" preserveAspectRatio="xMidYMid slice">
+        {bolts.map((b, i) => (
+          <g key={i} className="strike-bolt" style={{ animationDelay: b.delay + 's' }}>
+            <path d={b.d} className="s-out" style={{ strokeWidth: 7 * b.w }} pathLength="1" />
+            <path d={b.d} className="s-mid" style={{ strokeWidth: 4 * b.w }} pathLength="1" />
+            <path d={b.d} className="s-core" style={{ strokeWidth: 1.4 * b.w }} pathLength="1" />
+          </g>
+        ))}
+      </svg>
+      {game === 'onepiece' && <div className="strike-ring" />}
     </div>
   );
 }
+
+// Emblèmes du booster
+function Emblem({ game }) {
+  return game === 'onepiece' ? (
+    <svg viewBox="0 0 120 120" width="44" height="44" aria-hidden="true"><g fill="none" stroke="currentColor" strokeWidth="8" strokeLinecap="round"><circle cx="60" cy="60" r="28" />{Array.from({ length: 8 }, (_, i) => { const a = (i * Math.PI) / 4; return <line key={i} x1={60 + Math.cos(a) * 12} y1={60 + Math.sin(a) * 12} x2={60 + Math.cos(a) * 52} y2={60 + Math.sin(a) * 52} />; })}</g><circle cx="60" cy="60" r="8" fill="currentColor" /></svg>
+  ) : (
+    <svg viewBox="0 0 120 120" width="44" height="44" aria-hidden="true"><path d="M60 8 105 34v52L60 112 15 86V34z" fill="none" stroke="currentColor" strokeWidth="8" strokeLinejoin="round" /><path d="M66 26 40 66h18l-6 30 28-42H62z" fill="currentColor" /></svg>
+  );
+}
+
+// ---- Le booster (V1) : inclinaison, reflet, languette à déchirer ----
+function Booster({ prod, onOpen, opening, locked }) {
+  const ref = useRef(null);
+  const drag = useRef(null);
+  const [tear, setTear] = useState(0);
+  const move = (e) => { const el = ref.current; if (!el || opening) return; const r = el.getBoundingClientRect(); const x = (e.clientX - r.left) / r.width, y = (e.clientY - r.top) / r.height; el.style.setProperty('--ry', ((x - 0.5) * 22).toFixed(1) + 'deg'); el.style.setProperty('--rx', ((0.5 - y) * 16).toFixed(1) + 'deg'); el.style.setProperty('--mx', x * 100 + '%'); el.style.setProperty('--my', y * 100 + '%'); };
+  const leave = () => { const el = ref.current; if (el) { el.style.setProperty('--rx', '0deg'); el.style.setProperty('--ry', '0deg'); } };
+  const down = (e) => { if (locked || opening) return; const r = ref.current.getBoundingClientRect(); drag.current = { x: e.clientX, w: r.width }; e.target.setPointerCapture?.(e.pointerId); };
+  const dmove = (e) => { if (!drag.current) return; const f = Math.max(0, Math.min(1, (e.clientX - drag.current.x) / (drag.current.w * 0.8))); setTear(f); if (f >= 0.6) { drag.current = null; setTear(1); onOpen(); } };
+  const up = () => { if (drag.current) { drag.current = null; setTear(0); } };
+  useEffect(() => { if (!opening) setTear(0); }, [opening]);
+  return (
+    <div className={'booster-zone' + (opening ? ' is-opening' : '')}>
+      <div ref={ref} className="booster" data-game={prod.game} onPointerMove={move} onPointerLeave={leave} style={{ '--tear': tear }}>
+        <div className="booster-body">
+          {prod.cover && <img src={img(prod.cover.image, 'large')} alt="" className="booster-art" referrerPolicy="no-referrer" draggable="false" onError={(e) => (e.currentTarget.style.display = 'none')} />}
+          <div className="booster-shine" aria-hidden="true" />
+          <div className="booster-label">
+            <span className="booster-emblem"><Emblem game={prod.game} /></span>
+            <span className="booster-game">{GAMES[prod.game].label} TCG</span>
+            <b className="booster-code">{prod.code.toUpperCase()}</b>
+            <b className="booster-name">{prod.name}</b>
+            <span className="booster-count">{prod.size} cartes</span>
+          </div>
+        </div>
+        <div className="booster-flap" aria-hidden="true" />
+        <div className="booster-tear" role="presentation" onPointerDown={down} onPointerMove={dmove} onPointerUp={up} onPointerCancel={up}>
+          <span>{locked ? 'Solde insuffisant' : 'Glissez pour déchirer →'}</span>
+          <i style={{ width: tear * 100 + '%' }} />
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ---- Carte révélée (V1) ----
+function RevealCard({ x, phase, isNew }) {
+  const lv = levelOf(x);
+  return (
+    <div className={`reveal-card lv-${lv} is-${phase}`}>
+      <div className="reveal-inner">
+        <div className="reveal-back" aria-hidden="true"><i>N</i></div>
+        <div className="reveal-front">
+          <CardImage card={x.card} size="large" eager />
+          {lv >= 2 && <span className="reveal-holo" aria-hidden="true" />}
+        </div>
+      </div>
+      {phase === 'front' && lv >= 2 && <span className="reveal-banner">{x.card.variant ? 'Parallèle !' : `${x.card.rarity || x.label} !`}</span>}
+      {phase === 'front' && (
+        <div className="reveal-caption">
+          <b>{x.card.name}</b>
+          <span>{x.card.number} · {x.card.rarity}{x.card.variant ? ' · parallèle' : ''}</span>
+          {isNew ? <span className="badge-new">Nouvelle</span> : <span className="badge-dup">Déjà obtenue</span>}
+        </div>
+      )}
+    </div>
+  );
+}
+const rarLabel = (x) => (x.card.rarity || x.label) + (x.card.variant ? ' · parallèle' : '');
 
 export default function BoostersPage({ focus }) {
   const d = useData();
@@ -61,21 +171,90 @@ export default function BoostersPage({ focus }) {
   const cur = CURRENCY[game];
   const wallet = useStore((s) => s.wallet?.[game]);
   const muted = useStore((s) => !!s.muted);
-  const [opening, setOpening] = useState(null);
+  const [phase, setPhase] = useState('pack'); // pack → opening → reveal → summary
+  const [pack, setPack] = useState(null);     // { pulls, fresh:Set<index> }
+  const [bulk, setBulk] = useState(null);     // { packs:[{pulls}], fresh }
+  const [m, setM] = useState(0);
+  const [charging, setCharging] = useState(false);
+  const [noFunds, setNoFunds] = useState(false);
   const [odds, setOdds] = useState(false);
   const [gain, setGain] = useState(0);
+  const [nonce, setNonce] = useState(0);
+  const stageRef = useRef(null);
+  const timers = useRef([]);
+  const later = (f, ms) => timers.current.push(setTimeout(f, ms));
+  useEffect(() => () => timers.current.forEach(clearTimeout), []);
   const prod = useMemo(() => (d.ready ? buildProduct(game, d.cats, d.P, d.fx) : null), [d.ready, game]);
   useEffect(() => { const g = claimDaily(game, PRICE.start, PRICE.daily); if (g) setGain(g); }, [game]);
-  useEffect(() => { if (focus && prod) setTimeout(() => document.getElementById('collection-virtuelle')?.scrollIntoView({ behavior: 'smooth' }), 200); }, [focus, !!prod]);
-  if (!d.ready || !prod) return <div className="page"><Loading /></div>;
+  useEffect(() => { if (focus && prod) later(() => document.getElementById('collection-virtuelle')?.scrollIntoView({ behavior: 'smooth' }), 250); }, [focus, !!prod]);
   const coins = wallet?.coins ?? PRICE.start;
-  const buy = (n) => {
-    const cost = n === 1 ? PRICE.booster : PRICE.display;
-    if (!spendCoins(game, cost)) return;
-    setOpening({ n: n === 1 ? 1 : PRICE.displayPacks, nonce: Math.random() });
+
+  // Ajoute un tirage à la collection virtuelle, renvoie les index des nouvelles cartes
+  const record = (packsList) => {
+    const known = new Set(Object.keys(getState().packs.virtual));
+    const fresh = packsList.map((pulls) => { const f = new Set(); pulls.forEach((x, i) => { if (!known.has(x.card.key)) { f.add(i); known.add(x.card.key); } }); return f; });
+    update((s) => {
+      const w = s.wallet[game];
+      w.opened = (w.opened || 0) + packsList.length; w.openedToday = (w.openedToday || 0) + packsList.length;
+      for (const pulls of packsList) for (const x of pulls) s.packs.virtual[x.card.key] = (s.packs.virtual[x.card.key] || 0) + 1;
+      const head = packsList.map((p) => p[p.length - 1]).sort((a, b) => levelOf(b) - levelOf(a))[0];
+      if (head && (!w.best || levelOf(head) >= (w.best.lv ?? 0))) w.best = { key: head.card.key, name: head.card.name, rarity: rarLabel(head), lv: levelOf(head) };
+    });
+    return fresh;
   };
-  if (opening) return <Opening prod={prod} count={opening.n} nonce={opening.nonce} onClose={() => setOpening(null)} onAgain={(n) => buy(n)} coins={coins} />;
-  const missing = (cost) => Math.max(0, cost - coins);
+
+  const openOne = useCallback(() => {
+    if (!prod || phase === 'opening') return;
+    if (!spendCoins(game, PRICE.booster)) { setNoFunds(true); return; }
+    setNoFunds(false); setBulk(null);
+    const pulls = openPack(prod);
+    const [fresh] = record([pulls]);
+    setPack({ pulls, fresh }); setM(0); setCharging(false); setNonce((n) => n + 1);
+    SFX.tear(); game === 'onepiece' ? SFX.haki() : SFX.thunder(); vibrate([40, 30, 80]);
+    setPhase('opening');
+    later(() => setPhase('reveal'), 950);
+  }, [prod, phase, game]);
+
+  const openDisplay = () => {
+    if (!prod) return;
+    if (!spendCoins(game, PRICE.display)) { setNoFunds(true); return; }
+    setNoFunds(false);
+    const list = Array.from({ length: PRICE.displayPacks }, () => openPack(prod));
+    const fresh = record(list);
+    setBulk({ packs: list.map((pulls, i) => ({ pulls, fresh: fresh[i] })), fresh: fresh.reduce((s, f) => s + f.size, 0) });
+    setPack(null); setPhase('summary'); SFX.tear();
+    const top = Math.max(...list.flatMap((p) => p.map(levelOf)));
+    if (top >= 2) { SFX.rare(top); later(() => confetti(stageRef.current, top), 100); }
+  };
+
+  const next = useCallback(() => {
+    if (!pack || phase !== 'reveal' || charging) return;
+    if (m >= pack.pulls.length) { setPhase('summary'); return; }
+    const x = pack.pulls[m], lv = levelOf(x);
+    const show = () => {
+      setCharging(false); setM((v) => v + 1); SFX.flip();
+      if (lv >= 2) { SFX.rare(lv); vibrate(lv >= 4 ? [60, 40, 120] : 30); later(() => confetti(stageRef.current?.querySelector('.reveal-card'), lv), 80); }
+    };
+    if (lv >= 2) { setCharging(true); SFX.charge(); later(show, 900); } else show();
+  }, [pack, phase, charging, m]);
+  useEffect(() => {
+    const f = (e) => { if ((e.key === ' ' || e.key === 'Enter') && phase === 'reveal' && !e.target.closest('button,a,input,select')) { e.preventDefault(); next(); } };
+    addEventListener('keydown', f); return () => removeEventListener('keydown', f);
+  }, [next, phase]);
+
+  if (!d.ready || !prod) return <div className="page"><Loading /></div>;
+  const shown = pack && m > 0 ? pack.pulls[m - 1] : null;
+  const upcoming = pack && m < pack.pulls.length ? pack.pulls[m] : null;
+  const left = pack ? pack.pulls.length - m : 0;
+  const locked = coins < PRICE.booster;
+  const actions = (again) => (
+    <div className="pack-actions">
+      <button className={'btn primary big' + (again ? ' pulse' : '')} disabled={locked} onClick={openOne}><span className="coin-ico">{cur.sym}</span>{again ? 'Ouvrir un autre booster' : 'Ouvrir le booster'} · {PRICE.booster}</button>
+      <button className="btn ghost big display-btn" disabled={coins < PRICE.display} onClick={openDisplay}><span className="display-ribbon">10 + 2 offerts</span>Display · {PRICE.displayPacks} boosters · {fmtNum(PRICE.display)}</button>
+      {again && <button className="btn ghost" onClick={() => { setPhase('pack'); setPack(null); setBulk(null); }}>Revenir au booster</button>}
+    </div>
+  );
+
   return (
     <div className="page boosters-page">
       <div className="kicker">{GAMES[game].label} · boosters virtuels</div>
@@ -91,23 +270,75 @@ export default function BoostersPage({ focus }) {
         {gain > 0 && <span className="gain">+{fmtNum(gain)} {cur.name} reçus depuis ta dernière visite</span>}
       </div>
 
-      <div className="pack-stage">
-        <button className="pack-btn big" disabled={coins < PRICE.booster} onClick={() => buy(1)} aria-label={'Ouvrir un booster ' + prod.name}><PackArt prod={prod} /></button>
-        <div className="pack-offers">
-          <button className="offer primary" disabled={coins < PRICE.booster} onClick={() => buy(1)}>
-            <b>Ouvrir un booster</b><span>{PRICE.booster} {cur.name}</span>{coins < PRICE.booster && <small>Il te manque {fmtNum(missing(PRICE.booster))}</small>}
-          </button>
-          <button className="offer display" disabled={coins < PRICE.display} onClick={() => buy(12)}>
-            <span className="tag-off">10 + 2 OFFERTS</span>
-            <b>Display · {PRICE.displayPacks} boosters</b><span>{fmtNum(PRICE.display)} {cur.name}</span>{coins < PRICE.display && <small>Il te manque {fmtNum(missing(PRICE.display))}</small>}
-          </button>
-          <p className="muted small">{prod.size} cartes : {prod.composition} <button className="link small" onClick={() => setOdds(true)}>Voir les taux</button></p>
-          <div className="pack-stats">
-            <div><span>Aujourd’hui</span><b>{fmtNum(wallet?.openedToday || 0)}</b></div>
-            <div><span>Au total</span><b>{fmtNum(wallet?.opened || 0)}</b></div>
-            {wallet?.best && <a href={href('/carte/' + encodeURIComponent(wallet.best.key))}><span>Meilleur tirage</span><b>{wallet.best.name}</b></a>}
+      <section className={`pack-stage2 phase-${phase} game-${game}`} ref={stageRef}>
+        {phase === 'opening' && <Strike key={nonce} game={game} />}
+        {(phase === 'pack' || phase === 'opening') && (
+          <>
+            <Booster prod={prod} onOpen={openOne} opening={phase === 'opening'} locked={locked} />
+            {phase === 'pack' && actions(false)}
+            {phase === 'pack' && (noFunds || locked) && <p className="notice">Solde insuffisant : il faut {PRICE.booster} {cur.name} pour ouvrir un booster (tu en as {fmtNum(coins)}). Reviens demain pour le bonus quotidien, ou passe par la <a className="link" href={href('/boutique')}>boutique</a>.</p>}
+            <p className="small faint">{prod.composition} <button className="link small" onClick={() => setOdds(true)}>Voir les taux</button></p>
+          </>
+        )}
+
+        {phase === 'reveal' && pack && (
+          <>
+            <p className="reveal-count" aria-live="polite">{m} / {pack.pulls.length}</p>
+            <button className="reveal-table" onClick={next} aria-label={upcoming ? `Retourner la carte ${m + 1} sur ${pack.pulls.length}` : 'Voir le résumé'}>
+              {charging && upcoming ? <RevealCard key={'c' + m} x={upcoming} phase="charging" />
+                : shown ? <RevealCard key={'f' + m} x={shown} phase="front" isNew={pack.fresh.has(m - 1)} />
+                : <span className="reveal-hint">Touche le paquet pour retourner la première carte</span>}
+              {left > 0 && !charging && <span className="deck" aria-hidden="true">{Array.from({ length: Math.min(6, left) }, (_, i) => <i key={i} style={{ '--d': i }} />)}<b>{left}</b></span>}
+            </button>
+            <div className="row center">
+              <button className="btn primary" onClick={next} disabled={charging}>{upcoming ? 'Carte suivante' : 'Voir le résumé'}</button>
+              <button className="btn ghost" onClick={() => { setM(pack.pulls.length); setPhase('summary'); }}>Tout révéler</button>
+            </div>
+            <div className="reveal-strip" aria-label="Cartes déjà révélées">
+              {pack.pulls.slice(0, Math.max(0, m - 1)).map((x, i) => <span key={i} className={'strip-card lv-' + levelOf(x)} title={x.card.name + ' ' + x.card.number}><CardImage card={x.card} /></span>)}
+            </div>
+          </>
+        )}
+
+        {phase === 'summary' && pack && !bulk && (
+          <div className="summary">
+            {(() => { const h = pack.pulls[pack.pulls.length - 1]; return <p className="pack-hit-line">Carte de tête : <b>{h.card.name}</b> ({rarLabel(h)}) · <b>{pack.fresh.size}</b> nouvelle{pack.fresh.size > 1 ? 's' : ''} carte{pack.fresh.size > 1 ? 's' : ''} dans ta collection virtuelle.</p>; })()}
+            <div className="summary-grid">
+              {pack.pulls.map((x, i) => (
+                <a key={i} href={cardHref(x.card)} className={'summary-card lv-' + levelOf(x)} style={{ '--i': i }}>
+                  <span className="summary-img"><CardImage card={x.card} />{pack.fresh.has(i) && <span className="badge-new">Nouvelle</span>}</span>
+                  <span className="summary-meta"><b>{x.card.name}</b><span>{x.card.number} · {rarLabel(x)}</span></span>
+                </a>
+              ))}
+            </div>
+            {actions(true)}
           </div>
-        </div>
+        )}
+
+        {phase === 'summary' && bulk && (
+          <div className="summary">
+            <p className="pack-hit-line"><b>{bulk.packs.length} boosters</b> ouverts d’un coup · <b>{bulk.fresh}</b> nouvelle{bulk.fresh > 1 ? 's' : ''} carte{bulk.fresh > 1 ? 's' : ''} dans ta collection virtuelle.</p>
+            <div className="bulk-list">
+              {bulk.packs.map((p, i) => {
+                const h = p.pulls[p.pulls.length - 1];
+                return (
+                  <div key={i} className="bulk-pack" style={{ '--i': i }}>
+                    <span className="bulk-num">#{i + 1}</span>
+                    {p.pulls.map((x, k) => <a key={k} href={cardHref(x.card)} className={'strip-card lv-' + levelOf(x) + (p.fresh.has(k) ? ' fresh' : '')} title={x.card.name + ' ' + x.card.number + ' · ' + rarLabel(x)}><CardImage card={x.card} /></a>)}
+                    <span className="bulk-head"><b>{h.card.name}</b><span>{rarLabel(h)}</span></span>
+                  </div>
+                );
+              })}
+            </div>
+            {actions(true)}
+          </div>
+        )}
+      </section>
+
+      <div className="pack-stats">
+        <div><span>Aujourd’hui</span><b>{fmtNum(wallet?.openedToday || 0)}</b><small>booster{(wallet?.openedToday || 0) > 1 ? 's' : ''} ouvert{(wallet?.openedToday || 0) > 1 ? 's' : ''}</small></div>
+        <div><span>Au total</span><b>{fmtNum(wallet?.opened || 0)}</b><small>booster{(wallet?.opened || 0) > 1 ? 's' : ''} {GAMES[game].label}</small></div>
+        {wallet?.best && <a href={href('/carte/' + encodeURIComponent(wallet.best.key))}><span>Meilleur tirage</span><b>{wallet.best.name}</b><small>{wallet.best.rarity}</small></a>}
       </div>
 
       <VirtualSet prod={prod} />
@@ -130,7 +361,6 @@ function VirtualSet({ prod }) {
   const [filter, setFilter] = useState('all');
   const cards = prod.cards;
   const have = cards.filter((c) => virtual[c.key]);
-  const value = have.reduce((s, c) => s + (eurOf(c, d.P, d.fx) || 0), 0);
   const shown = cards.filter((c) => filter === 'all' || (filter === 'have' ? virtual[c.key] : !virtual[c.key]));
   return (
     <section className="section" id="collection-virtuelle">
@@ -184,237 +414,6 @@ export function ShopPage() {
         <div><h3>Une monnaie par univers</h3><p>Les {cur.name} ne servent qu’aux boosters {GAMES[game].label}.</p></div>
         <div><h3>Virtuel</h3><p>Monnaies et cartes virtuelles : aucune valeur réelle, aucune carte physique.</p></div>
       </div>
-    </div>
-  );
-}
-
-function Opening({ prod, count, nonce, onClose, onAgain, coins }) {
-  const d = useData();
-  const game = prod.game;
-  const cur = CURRENCY[game];
-  const packs = useMemo(() => Array.from({ length: count }, () => openPack(prod)), [nonce]);
-  const [pi, setPi] = useState(0); // booster en cours (display)
-  const pulls = packs[pi];
-  const [stage, setStage] = useState('pack'); // pack → tearing → reveal → summary
-  const [idx, setIdx] = useState(0);
-  const [flipped, setFlipped] = useState(false);
-  const [newKeys, setNewKeys] = useState(new Set());
-  const tearRef = useRef({ x0: null, p: 0 });
-  const [tear, setTear] = useState(0);
-  const wallet = useStore((s) => s.wallet?.[game]);
-
-  useEffect(() => {
-    // Enregistre tout le tirage dans la collection virtuelle dès l'ouverture
-    const before = getState().packs.virtual;
-    const all = packs.flat();
-    setNewKeys(new Set(all.filter((x) => !before[x.card.key]).map((x) => x.card.key)));
-    update((s) => {
-      const w = s.wallet[game];
-      w.opened = (w.opened || 0) + packs.length; w.openedToday = (w.openedToday || 0) + packs.length;
-      for (const x of all) s.packs.virtual[x.card.key] = (s.packs.virtual[x.card.key] || 0) + 1;
-      const best = all.map((x) => ({ x, e: eurOf(x.card, d.P, d.fx) || 0 })).sort((a, b) => b.e - a.e)[0];
-      if (best && (!w.best || best.e > w.best.eur)) w.best = { key: best.x.card.key, name: best.x.card.name, eur: best.e };
-    });
-    setPi(0); setStage('pack'); setIdx(0); setFlipped(false); setTear(0);
-  }, [packs]);
-
-  const doTear = () => { sfx('tear'); vibrate(30); setStage('tearing'); setTimeout(() => setStage('reveal'), 750); };
-  const curP = pulls?.[idx];
-  const curTier = curP ? TIER_STYLE[curP.tier] ?? 0 : 0;
-  const nextPack = () => { if (pi + 1 < packs.length) { setPi(pi + 1); setIdx(0); setFlipped(false); setTear(0); setStage('pack'); } else setStage('summary'); };
-  const next = () => {
-    if (!flipped) {
-      setFlipped(true);
-      if (curTier >= 4) { sfx(game === 'onepiece' ? 'haki' : 'rumble'); setTimeout(() => sfx('epic'), 450); vibrate([60, 40, 120, 40, 200]); }
-      else if (curTier >= 3) { sfx('rumble'); setTimeout(() => sfx('epic'), 250); vibrate([30, 40, 60]); }
-      else if (curTier >= 2) { sfx('rare'); vibrate(25); } else sfx('flip');
-      return;
-    }
-    if (idx + 1 >= pulls.length) { setStage(packs.length > 1 && pi + 1 < packs.length ? 'between' : 'summary'); return; }
-    setIdx(idx + 1); setFlipped(false);
-  };
-  useEffect(() => {
-    const f = (e) => { if (stage === 'reveal' && (e.key === ' ' || e.key === 'Enter' || e.key === 'ArrowRight')) { e.preventDefault(); next(); } if (stage === 'pack' && e.key === 'Enter') doTear(); };
-    window.addEventListener('keydown', f); return () => window.removeEventListener('keydown', f);
-  });
-
-  const values = pulls.map((x) => eurOf(x.card, d.P, d.fx));
-  const all = (stage === 'summary' ? packs.flat() : pulls).map((x) => ({ x, v: eurOf(x.card, d.P, d.fx) }));
-  const byTier = (a, b) => (TIER_STYLE[b.x.tier] ?? 0) - (TIER_STYLE[a.x.tier] ?? 0);
-  const hits = all.filter((y) => (TIER_STYLE[y.x.tier] ?? 0) >= 2).length;
-  const newCount = new Set(all.filter((y) => newKeys.has(y.x.card.key)).map((y) => y.x.card.key)).size;
-  const left = wallet?.coins ?? coins;
-
-  return (
-    <div className={'opening ' + game + ' stage-' + stage + ' tier-' + (stage === 'reveal' && flipped ? curTier : 0) + (stage === 'reveal' && !flipped && curTier >= 3 ? ' tension t' + curTier : '')}>
-      <div className="op-bg" aria-hidden="true" />
-      <header className="op-head">
-        <button className="btn ghost" onClick={onClose}>‹ Boosters</button>
-        <span>{prod.name}{packs.length > 1 ? ` · booster ${pi + 1}/${packs.length}` : ''}</span>
-        {(stage === 'reveal' || stage === 'between' || stage === 'pack') && <button className="btn ghost" onClick={() => setStage('summary')}>Tout révéler</button>}
-      </header>
-
-      {(stage === 'pack' || stage === 'tearing') && (
-        <div className="op-pack-zone">
-          <div className={'op-pack' + (stage === 'tearing' ? ' tearing' : '')} style={{ '--tear': tear }}
-            onPointerDown={(e) => { tearRef.current = { x0: e.clientX, p: 0 }; e.currentTarget.setPointerCapture(e.pointerId); }}
-            onPointerMove={(e) => { if (tearRef.current.x0 == null || stage !== 'pack') return; const p = Math.min(1, Math.abs(e.clientX - tearRef.current.x0) / 180); tearRef.current.p = p; setTear(p); if (p >= 1) { tearRef.current.x0 = null; doTear(); } }}
-            onPointerUp={() => { if (tearRef.current.p < 0.15 && stage === 'pack') doTear(); tearRef.current.x0 = null; setTear(0); }}>
-            <PackArt prod={prod} torn={stage === 'tearing'} />
-            <div className="tear-line" style={{ width: tear * 100 + '%' }} />
-          </div>
-          <p className="op-hint">{stage === 'pack' ? 'Glisse ton doigt sur le haut du paquet pour le déchirer, ou touche-le' : 'Ça s’ouvre…'}</p>
-        </div>
-      )}
-
-      {stage === 'reveal' && curP && (
-        <div className="op-reveal" onClick={next}>
-          <div className="op-count">{idx + 1} / {pulls.length}</div>
-          <div className="op-stack">
-            {pulls.slice(idx + 1, idx + 4).map((x, i) => <div key={idx + 1 + i} className="op-back stacked" style={{ '--i': i + 1 }}><CardBack /></div>)}
-            <FlipCard key={pi + '-' + idx} pull={curP} flipped={flipped} tier={curTier} isNew={newKeys.has(curP.card.key)} eur={values[idx]} />
-          </div>
-          <p className="op-hint">{flipped ? (idx + 1 >= pulls.length ? 'Touche pour continuer' : 'Touche pour la carte suivante') : curTier >= 4 ? (game === 'onepiece' ? 'Une pression écrasante se fait sentir… touche pour retourner' : 'Une énergie légendaire s’éveille… touche pour retourner') : curTier >= 3 ? 'Quelque chose brille… touche pour retourner' : 'Touche pour retourner'}</p>
-          {flipped && curTier >= 1 && <RevealFx key={pi + '-' + idx} game={game} tier={curTier} />}
-        </div>
-      )}
-
-      {stage === 'between' && (
-        <div className="op-summary">
-          <div className="sum-head"><span className="kicker">Booster {pi + 1} sur {packs.length}</span><b className="sum-total">{hits ? hits + ' carte' + (hits > 1 ? 's' : '') + ' rare' + (hits > 1 ? 's' : '') + ' !' : 'Booster ouvert'}</b></div>
-          <div className="sum-grid">{all.sort(byTier).map(({ x }, i) => <a key={i} className={'sum-card t' + (TIER_STYLE[x.tier] ?? 0)} href={cardHref(x.card)}><CardImage card={x.card} />{newKeys.has(x.card.key) && <span className="new">Nouvelle</span>}<span className="sc-name">{x.card.name}</span><span className={'sc-rar t' + (TIER_STYLE[x.tier] ?? 0)}>{x.label}</span></a>)}</div>
-          <div className="row center"><button className="btn primary big" onClick={nextPack}><Icon name="pack" size={20} />Booster suivant ({pi + 2}/{packs.length})</button><button className="btn ghost" onClick={() => setStage('summary')}>Tout révéler</button></div>
-        </div>
-      )}
-
-      {stage === 'summary' && (
-        <div className="op-summary">
-          <div className="sum-head">
-            <span className="kicker">{packs.length > 1 ? `Display de ${packs.length} boosters` : 'Ton booster'}</span>
-            <b className="sum-total">{hits ? hits + ' carte' + (hits > 1 ? 's' : '') + ' rare' + (hits > 1 ? 's' : '') + ' !' : all.length + ' cartes'}</b>
-            <span>{newCount} nouvelle{newCount > 1 ? 's' : ''} carte{newCount > 1 ? 's' : ''} pour ta collection virtuelle</span>
-          </div>
-          <div className="sum-grid">
-            {all.sort(byTier).slice(0, packs.length > 1 ? 36 : 12).map(({ x }, i) => (
-              <a key={i} className={'sum-card t' + (TIER_STYLE[x.tier] ?? 0)} href={cardHref(x.card)}>
-                <CardImage card={x.card} />
-                {newKeys.has(x.card.key) && <span className="new">Nouvelle</span>}
-                <span className="sc-name">{x.card.name}</span>
-                <span className={'sc-rar t' + (TIER_STYLE[x.tier] ?? 0)}>{x.label}</span>
-              </a>
-            ))}
-          </div>
-          {packs.length > 1 && all.length > 36 && <p className="muted center">Les 36 plus rares sur {all.length} sont affichées ; toutes sont dans ta collection virtuelle.</p>}
-          <div className="row center">
-            <button className="btn primary big" disabled={left < PRICE.booster} onClick={() => onAgain(1)}><Icon name="pack" size={20} />Rouvrir · {PRICE.booster} {cur.name}</button>
-            <button className="btn ghost" disabled={left < PRICE.display} onClick={() => onAgain(12)}>Display · {fmtNum(PRICE.display)}</button>
-            <button className="btn ghost" onClick={onClose}>Voir ma collection virtuelle</button>
-          </div>
-          <p className="muted center">Il te reste {fmtNum(left)} {cur.name}.</p>
-          <p className="source-note">Cartes virtuelles, sans valeur monétaire. Taux estimés, non officiels.</p>
-        </div>
-      )}
-    </div>
-  );
-}
-
-function CardBack() {
-  return <div className="card-back"><div className="cb-inner"><span>NEXUS</span><small>TCG</small></div></div>;
-}
-
-function FlipCard({ pull, flipped, tier, isNew, eur }) {
-  const ref = useRef();
-  useEffect(() => {
-    const el = ref.current; if (!el) return;
-    const move = (e) => { const r = el.getBoundingClientRect(); const x = (e.clientX - r.left) / r.width, y = (e.clientY - r.top) / r.height; el.style.setProperty('--mx', x * 100 + '%'); el.style.setProperty('--my', y * 100 + '%'); el.style.setProperty('--rx', (0.5 - y) * 14 + 'deg'); el.style.setProperty('--ry', (x - 0.5) * 18 + 'deg'); };
-    const orient = (e) => { if (e.gamma == null) return; el.style.setProperty('--ry', Math.max(-18, Math.min(18, e.gamma / 2)) + 'deg'); el.style.setProperty('--rx', Math.max(-14, Math.min(14, (e.beta - 45) / 3)) + 'deg'); el.style.setProperty('--mx', 50 + e.gamma + '%'); };
-    el.addEventListener('pointermove', move); window.addEventListener('deviceorientation', orient);
-    return () => { el.removeEventListener('pointermove', move); window.removeEventListener('deviceorientation', orient); };
-  }, []);
-  return (
-    <div className={'flip t' + tier + (flipped ? ' flipped' : '')} ref={ref}>
-      <div className="flip-inner">
-        <div className="flip-face back"><CardBack />{tier >= 3 && <span className="aura" />}{tier >= 3 && !flipped && <Crackle game={pull.card.game} strong={tier >= 4} />}</div>
-        <div className="flip-face front">
-          <CardImage card={pull.card} size="large" eager />
-          {tier >= 2 && <span className="holo" />}
-        </div>
-      </div>
-      {flipped && (
-        <div className="flip-info">
-          <span className={'rar t' + tier}>{pull.label}</span>
-          {isNew && <span className="new">Nouvelle</span>}
-          <b>{pull.card.name}</b>
-        </div>
-      )}
-      {flipped && tier >= 2 && <div className="burst" aria-hidden="true">{Array.from({ length: tier >= 4 ? 28 : 18 }, (_, i) => <i key={i} style={{ '--a': (i * 360) / (tier >= 4 ? 28 : 18) + 'deg', '--d': 80 + (i % 3) * 30 + (tier >= 4 ? 60 : 0) + 'px' }} />)}</div>}
-    </div>
-  );
-}
-
-// ---- Effets de révélation ----
-// Éclair en zigzag de (x0, y0) vers (x1, y1), avec des branches
-function bolt(x0, y0, x1, y1, jag, segs = 9) {
-  let d = `M${x0.toFixed(1)} ${y0.toFixed(1)}`;
-  const pts = [];
-  for (let i = 1; i <= segs; i++) {
-    const t = i / segs;
-    const nx = -(y1 - y0), ny = x1 - x0, len = Math.hypot(nx, ny) || 1;
-    const off = i === segs ? 0 : (Math.random() - 0.5) * jag;
-    const x = x0 + (x1 - x0) * t + (nx / len) * off, y = y0 + (y1 - y0) * t + (ny / len) * off;
-    pts.push([x, y]);
-    d += ` L${x.toFixed(1)} ${y.toFixed(1)}`;
-  }
-  return { d, pts };
-}
-function useBolts(n, r0, r1, jag, branch = true) {
-  return useMemo(() => {
-    const out = [];
-    for (let i = 0; i < n; i++) {
-      const a = (i / n) * Math.PI * 2 + (Math.random() - 0.5) * 0.5;
-      const rr = r1 * (0.7 + Math.random() * 0.45);
-      const b = bolt(Math.cos(a) * r0, Math.sin(a) * r0, Math.cos(a) * rr, Math.sin(a) * rr, jag);
-      out.push({ d: b.d, w: 2 + Math.random() * 3, delay: Math.random() * 0.25 });
-      if (branch && Math.random() < 0.7) {
-        const [bx, by] = b.pts[Math.floor(b.pts.length / 2)];
-        const ba = a + (Math.random() < 0.5 ? -1 : 1) * (0.4 + Math.random() * 0.5);
-        const bl = rr * 0.35;
-        out.push({ d: bolt(bx, by, bx + Math.cos(ba) * bl, by + Math.sin(ba) * bl, jag * 0.6, 5).d, w: 1.2 + Math.random() * 1.5, delay: 0.1 + Math.random() * 0.3 });
-      }
-    }
-    return out;
-  }, []);
-}
-
-function Crackle({ game, strong }) {
-  const bolts = useBolts(strong ? 10 : 6, 150, 230, 26, false);
-  return (
-    <svg className={'crackle ' + game + (strong ? ' strong' : '')} viewBox="-260 -320 520 640" aria-hidden="true">
-      {bolts.map((b, i) => <path key={i} d={b.d} pathLength="1" style={{ '--w': b.w, '--dl': b.delay * 3 + 's' }} />)}
-    </svg>
-  );
-}
-
-function RevealFx({ game, tier }) {
-  const big = tier >= 4;
-  const bolts = useBolts(big ? 16 : tier >= 3 ? 9 : 0, big ? 120 : 140, big ? 900 : 420, big ? 90 : 50);
-  const orbs = useMemo(() => Array.from({ length: tier >= 3 ? 26 : 12 }, () => ({ x: Math.random() * 100, s: 4 + Math.random() * 10, d: 1.2 + Math.random() * 1.6, dl: Math.random() * 0.6 })), []);
-  const op = game === 'onepiece';
-  const title = big ? (op ? 'HAKI DES ROIS' : 'ÉNERGIE LÉGENDAIRE') : tier >= 3 ? (op ? 'HAKI DE L’ARMEMENT' : 'ÉNERGIE RARE') : null;
-  return (
-    <div className={'fx ' + game + ' fx' + tier} aria-hidden="true">
-      {tier >= 2 && <div className="fx-flash" />}
-      {big && <div className="fx-dark" />}
-      {!op && tier >= 3 && <div className="fx-rays" />}
-      {op && tier >= 3 && <div className="fx-aura" />}
-      {Array.from({ length: big ? 4 : tier >= 2 ? 2 : 1 }, (_, i) => <span key={i} className="fx-ring" style={{ '--dl': i * 0.18 + 's' }} />)}
-      {bolts.length > 0 && (
-        <svg className="fx-bolts" viewBox="-1000 -1000 2000 2000" preserveAspectRatio="xMidYMid slice">
-          {bolts.map((b, i) => <path key={i} d={b.d} pathLength="1" style={{ '--w': b.w * (big ? 2.2 : 1.4), '--dl': b.delay + 's' }} />)}
-        </svg>
-      )}
-      {(!op || tier >= 3) && <div className="fx-orbs">{orbs.map((o, i) => <i key={i} style={{ left: o.x + '%', '--s': o.s + 'px', '--d': o.d + 's', '--dl': o.dl + 's' }} />)}</div>}
-      {title && <div className="fx-title"><span>{title}</span></div>}
     </div>
   );
 }
