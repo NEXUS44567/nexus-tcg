@@ -290,94 +290,74 @@ export function Logo({ size = 34, color = LOGO_COLOR }) {
   );
 }
 
-// ---- Emblèmes originaux de NEXUS : écussons en métal 3D (aucun logo officiel) ----
+// ---- Emblèmes originaux de NEXUS, style cartoon manga (aucun logo officiel) ----
+// Gros contours noirs, aplats de couleur, ombre en une teinte, trame de points et traits de vitesse.
 function useIds() { const id = React.useId().replace(/:/g, ''); return (n) => `${n}-${id}`; }
-function MetalDefs({ g, light, mid, dark, deep }) {
-  return (
-    <>
-      <linearGradient id={g('m1')} x1="0" y1="0" x2="0" y2="1"><stop offset="0" stopColor={light} /><stop offset=".45" stopColor={mid} /><stop offset=".55" stopColor={dark} /><stop offset="1" stopColor={light} /></linearGradient>
-      <linearGradient id={g('m2')} x1="0" y1="1" x2="0" y2="0"><stop offset="0" stopColor={light} /><stop offset=".5" stopColor={dark} /><stop offset="1" stopColor={deep} /></linearGradient>
-      <linearGradient id={g('spec')} x1="0" y1="0" x2="1" y2="1"><stop offset="0" stopColor="#fff" stopOpacity=".0" /><stop offset=".45" stopColor="#fff" stopOpacity=".0" /><stop offset=".5" stopColor="#fff" stopOpacity=".55" /><stop offset=".56" stopColor="#fff" stopOpacity=".0" /></linearGradient>
-      <filter id={g('drop')} x="-25%" y="-25%" width="150%" height="150%"><feDropShadow dx="0" dy="5" stdDeviation="4" floodColor="#000" floodOpacity=".6" /></filter>
-      <filter id={g('emb')} x="-20%" y="-20%" width="140%" height="140%"><feDropShadow dx="0" dy="2" stdDeviation="1.2" floodColor="#000" floodOpacity=".65" /><feDropShadow dx="0" dy="-1" stdDeviation=".4" floodColor="#fff" floodOpacity=".35" /></filter>
-    </>
-  );
+const INK = '#15121f';
+const pt = (cx, cy, r, a) => [cx + Math.cos(a) * r, cy + Math.sin(a) * r];
+const starPts = (cx, cy, r1, r2, n, rot = -Math.PI / 2) => Array.from({ length: n * 2 }, (_, k) => pt(cx, cy, k % 2 ? r2 : r1, rot + (k * Math.PI) / n).map((v) => v.toFixed(1)).join(',')).join(' ');
+function Halftone({ g, color }) {
+  return <pattern id={g('dots')} width="9" height="9" patternUnits="userSpaceOnUse" patternTransform="rotate(30)"><circle cx="4.5" cy="4.5" r="1.9" fill={color} /></pattern>;
+}
+function SpeedLines({ cx = 100, cy = 100, r0 = 70, r1 = 98, n = 28, color = INK }) {
+  return <g stroke={color} strokeLinecap="round">{Array.from({ length: n }, (_, k) => { const a = (k / n) * Math.PI * 2 + (k % 2) * 0.05; const [x0, y0] = pt(cx, cy, r0 + (k % 3) * 4, a); const [x1, y1] = pt(cx, cy, r1, a); return <line key={k} x1={x0} y1={y0} x2={x1} y2={y1} strokeWidth={k % 3 ? 2 : 3.5} />; })}</g>;
 }
 
-// One Piece : écusson doré à rivets, émail rouge sombre, rose des vents en argent sur deux sabres croisés
+// One Piece : médaillon d'aventure, rose des vents et sabres croisés, trame de points sur fond rouge
 export function PirateEmblem({ size = 44, className = 'emblem' }) {
   const g = useIds();
-  const oct = (r) => Array.from({ length: 8 }, (_, k) => { const a = (Math.PI / 8) + (k * Math.PI) / 4; return `${(100 + Math.cos(a) * r).toFixed(1)},${(100 + Math.sin(a) * r).toFixed(1)}`; }).join(' ');
-  const star = (r1, r2, n = 8) => Array.from({ length: n * 2 }, (_, k) => { const a = -Math.PI / 2 + (k * Math.PI) / n; const r = k % 2 ? r2 : r1; return `${(100 + Math.cos(a) * r).toFixed(1)},${(100 + Math.sin(a) * r).toFixed(1)}`; }).join(' ');
+  const sabre = (a) => (
+    <g transform={`rotate(${a} 100 104)`}>
+      <path d="M100 26c7 22 9 64 5 104h-10c-4-40-2-82 5-104z" fill="#e8eef5" stroke={INK} strokeWidth="5" strokeLinejoin="round" />
+      <path d="M100 34c3 20 4 56 2 92" stroke="#9fb0c2" strokeWidth="4" fill="none" strokeLinecap="round" />
+      <path d="M78 130h44a6 6 0 0 1 0 12H78a6 6 0 0 1 0-12z" fill="#ffd23f" stroke={INK} strokeWidth="5" />
+      <rect x="93" y="142" width="14" height="26" rx="5" fill="#7a3b1c" stroke={INK} strokeWidth="5" />
+      <circle cx="100" cy="174" r="8" fill="#ffd23f" stroke={INK} strokeWidth="5" />
+    </g>
+  );
   return (
     <svg viewBox="0 0 200 200" width={size} height={size} className={className} aria-hidden="true">
-      <defs>
-        <MetalDefs g={g} light="#fff3c4" mid="#e0a93a" dark="#8a5a10" deep="#4a2c00" />
-        <radialGradient id={g('enamel')} cx="50%" cy="35%" r="70%"><stop offset="0" stopColor="#c8262b" /><stop offset=".6" stopColor="#6e0c12" /><stop offset="1" stopColor="#2a0306" /></radialGradient>
-        <linearGradient id={g('steel')} x1="0" y1="0" x2="1" y2="1"><stop offset="0" stopColor="#ffffff" /><stop offset=".35" stopColor="#cfd6df" /><stop offset=".5" stopColor="#7d8794" /><stop offset=".65" stopColor="#e9eef3" /><stop offset="1" stopColor="#6b7480" /></linearGradient>
-        <linearGradient id={g('blade')} x1="0" y1="0" x2="0" y2="1"><stop offset="0" stopColor="#f4f7fa" /><stop offset=".5" stopColor="#a9b3bf" /><stop offset="1" stopColor="#5a6370" /></linearGradient>
-      </defs>
-      <g filter={`url(#${g('drop')})`}>
-        <polygon points={oct(96)} fill={`url(#${g('m1')})`} />
-        <polygon points={oct(88)} fill={`url(#${g('m2')})`} />
-        <polygon points={oct(80)} fill={`url(#${g('enamel')})`} stroke="#2a0306" strokeWidth="2" />
-        {Array.from({ length: 8 }, (_, k) => { const a = (Math.PI / 8) + (k * Math.PI) / 4; return <g key={k}><circle cx={100 + Math.cos(a) * 88} cy={100 + Math.sin(a) * 88} r="4.5" fill={`url(#${g('m1')})`} stroke="#4a2c00" strokeWidth="1" /><circle cx={100 + Math.cos(a) * 88 - 1.2} cy={100 + Math.sin(a) * 88 - 1.4} r="1.4" fill="#fff" opacity=".8" /></g>; })}
-      </g>
-      <g filter={`url(#${g('emb')})`}>
-        {[-42, 42].map((a) => (
-          <g key={a} transform={`rotate(${a} 100 100)`}>
-            <path d="M100 30 C104 60 105 110 103 150 L97 150 C95 110 96 60 100 30Z" fill={`url(#${g('blade')})`} stroke="#3a4048" strokeWidth="1" />
-            <rect x="86" y="150" width="28" height="6" rx="3" fill={`url(#${g('m1')})`} stroke="#4a2c00" strokeWidth="1" />
-            <rect x="97" y="156" width="6" height="18" rx="2" fill="#3b2412" />
-            <circle cx="100" cy="177" r="5" fill={`url(#${g('m1')})`} stroke="#4a2c00" strokeWidth="1" />
-          </g>
-        ))}
-        <circle cx="100" cy="100" r="40" fill="#1a0204" stroke={`url(#${g('m1')})`} strokeWidth="5" />
-        <circle cx="100" cy="100" r="33" fill="none" stroke="#e0a93a" strokeOpacity=".5" strokeWidth="1" strokeDasharray="1 4" />
-        <polygon points={star(36, 8, 4)} fill={`url(#${g('steel')})`} stroke="#3a4048" strokeWidth="1" />
-        <polygon points={star(22, 6, 4)} transform="rotate(45 100 100)" fill={`url(#${g('m1')})`} stroke="#4a2c00" strokeWidth="1" />
-        <path d="M100 64 L104 100 L100 100Z" fill="#fff" opacity=".7" />
-        <path d="M100 136 L96 100 L100 100Z" fill="#000" opacity=".35" />
-        <circle cx="100" cy="100" r="6" fill={`url(#${g('m1')})`} stroke="#4a2c00" strokeWidth="1.2" />
-        <text x="100" y="58" textAnchor="middle" fontSize="11" fontWeight="800" fill="#fff3c4" fontFamily="Georgia, serif">N</text>
-      </g>
-      <polygon points={oct(96)} fill={`url(#${g('spec')})`} />
-      <path d="M40 52 Q100 18 160 52" fill="none" stroke="#fff" strokeOpacity=".45" strokeWidth="3" strokeLinecap="round" />
+      <defs><Halftone g={g} color="#ff8a7a" /></defs>
+      <polygon points={starPts(100, 100, 99, 84, 16)} fill="#ffd23f" stroke={INK} strokeWidth="5" strokeLinejoin="round" />
+      <circle cx="100" cy="100" r="78" fill="#e2302b" stroke={INK} strokeWidth="6" />
+      <circle cx="100" cy="100" r="78" fill={`url(#${g('dots')})`} opacity=".55" />
+      <path d="M42 136a78 78 0 0 0 116 0 70 70 0 0 1-116 0z" fill="#a81c1a" opacity=".7" />
+      <circle cx="100" cy="100" r="66" fill="none" stroke="#fff3c8" strokeWidth="4" strokeDasharray="2 9" strokeLinecap="round" />
+      {sabre(-40)}{sabre(40)}
+      <circle cx="100" cy="100" r="42" fill="#fff8e6" stroke={INK} strokeWidth="6" />
+      <path d="M68 118a42 42 0 0 0 64 0 36 36 0 0 1-64 0z" fill="#f0dcae" />
+      <polygon points={starPts(100, 100, 36, 9, 4)} fill="#ffffff" stroke={INK} strokeWidth="4.5" strokeLinejoin="round" />
+      <path d={`M100 64 L109 100 L100 100 Z M100 136 L91 100 L100 100 Z M64 100 L100 91 L100 100 Z M136 100 L100 109 L100 100 Z`} fill="#e2302b" />
+      <polygon points={starPts(100, 100, 20, 6, 4, -Math.PI / 4)} fill="#ffd23f" stroke={INK} strokeWidth="4" strokeLinejoin="round" />
+      <circle cx="100" cy="100" r="6" fill={INK} />
+      <path d="M50 60c10-14 26-24 44-27" stroke="#fff" strokeWidth="6" fill="none" strokeLinecap="round" opacity=".85" />
+      <path d="M156 40l4 10 10 4-10 4-4 10-4-10-10-4 10-4z" fill="#fff" stroke={INK} strokeWidth="3" strokeLinejoin="round" />
     </svg>
   );
 }
 
-// Pokémon : écusson hexagonal argent et bleu, étoile d'énergie dorée avec une flamme au cœur
+// Pokémon : écusson hexagonal bleu, étoile d'énergie jaune et flamme, traits de vitesse façon manga
 export function EnergyEmblem({ size = 44, className = 'emblem' }) {
   const g = useIds();
-  const hex = (r) => Array.from({ length: 6 }, (_, k) => { const a = -Math.PI / 2 + (k * Math.PI) / 3; return `${(100 + Math.cos(a) * r).toFixed(1)},${(100 + Math.sin(a) * r).toFixed(1)}`; }).join(' ');
-  const star = (r1, r2, n = 5) => Array.from({ length: n * 2 }, (_, k) => { const a = -Math.PI / 2 + (k * Math.PI) / n; const r = k % 2 ? r2 : r1; return `${(100 + Math.cos(a) * r).toFixed(1)},${(104 + Math.sin(a) * r).toFixed(1)}`; }).join(' ');
+  const hex = (r) => Array.from({ length: 6 }, (_, k) => pt(100, 100, r, -Math.PI / 2 + (k * Math.PI) / 3).map((v) => v.toFixed(1)).join(',')).join(' ');
   return (
     <svg viewBox="0 0 200 200" width={size} height={size} className={className} aria-hidden="true">
-      <defs>
-        <MetalDefs g={g} light="#ffffff" mid="#b9c6d6" dark="#5d6b80" deep="#2a3344" />
-        <radialGradient id={g('enamel')} cx="50%" cy="35%" r="70%"><stop offset="0" stopColor="#3f86ff" /><stop offset=".6" stopColor="#163a9e" /><stop offset="1" stopColor="#081540" /></radialGradient>
-        <linearGradient id={g('gold')} x1="0" y1="0" x2="0" y2="1"><stop offset="0" stopColor="#fffbe0" /><stop offset=".35" stopColor="#ffd84a" /><stop offset=".7" stopColor="#e89400" /><stop offset="1" stopColor="#9a5a00" /></linearGradient>
-        <radialGradient id={g('flame')} cx="50%" cy="70%" r="70%"><stop offset="0" stopColor="#fff6c8" /><stop offset=".35" stopColor="#ffb02e" /><stop offset=".75" stopColor="#ff4a1c" /><stop offset="1" stopColor="#a8140a" /></radialGradient>
-        <filter id={g('glow')} x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="6" result="b" /><feMerge><feMergeNode in="b" /><feMergeNode in="SourceGraphic" /></feMerge></filter>
-      </defs>
-      <g filter={`url(#${g('drop')})`}>
-        <polygon points={hex(96)} fill={`url(#${g('m1')})`} />
-        <polygon points={hex(87)} fill={`url(#${g('m2')})`} />
-        <polygon points={hex(79)} fill={`url(#${g('enamel')})`} stroke="#081540" strokeWidth="2" />
-        {Array.from({ length: 6 }, (_, k) => { const a = -Math.PI / 2 + (k * Math.PI) / 3; return <g key={k}><circle cx={100 + Math.cos(a) * 87} cy={100 + Math.sin(a) * 87} r="4.5" fill={`url(#${g('m1')})`} stroke="#2a3344" strokeWidth="1" /><circle cx={100 + Math.cos(a) * 87 - 1.2} cy={100 + Math.sin(a) * 87 - 1.4} r="1.4" fill="#fff" opacity=".9" /></g>; })}
+      <defs><Halftone g={g} color="#6fa8ff" /><clipPath id={g('clip')}><polygon points={hex(80)} /></clipPath></defs>
+      <polygon points={hex(97)} fill="#ffd23f" stroke={INK} strokeWidth="6" strokeLinejoin="round" />
+      <polygon points={hex(97)} fill="none" stroke="#fff6c0" strokeWidth="3" strokeLinejoin="round" transform="translate(100 100) scale(.93) translate(-100 -100)" />
+      <polygon points={hex(80)} fill="#2457d6" stroke={INK} strokeWidth="6" strokeLinejoin="round" />
+      <g clipPath={`url(#${g('clip')})`}>
+        <rect x="0" y="0" width="200" height="200" fill={`url(#${g('dots')})`} opacity=".6" />
+        <path d="M20 130 L180 70 L180 200 L20 200z" fill="#163a9e" opacity=".75" />
+        <SpeedLines r0={58} r1={100} n={30} color="#bcd6ff" />
       </g>
-      <g opacity=".5">{Array.from({ length: 12 }, (_, k) => <path key={k} d="M100 104 L97 34 L103 34Z" fill="#9cc2ff" opacity=".35" transform={`rotate(${k * 30} 100 104)`} />)}</g>
-      <g filter={`url(#${g('glow')})`}>
-        <polygon points={star(62, 26)} fill={`url(#${g('gold')})`} stroke="#7a4300" strokeWidth="2.5" strokeLinejoin="round" />
-      </g>
-      <g filter={`url(#${g('emb')})`}>
-        <polygon points={star(50, 21)} fill="none" stroke="#fff3b0" strokeOpacity=".7" strokeWidth="1.5" strokeLinejoin="round" />
-        <path d="M100 66c6 12 22 20 22 40 0 13-10 22-22 22s-22-9-22-22c0-11 6-17 10-24 1 7 4 11 8 12-2-11 0-20 4-28z" fill={`url(#${g('flame')})`} stroke="#6a1200" strokeWidth="2" strokeLinejoin="round" />
-        <path d="M100 98c4 6 10 10 10 18 0 6-4 10-10 10s-10-4-10-10c0-5 3-8 5-11 1 3 2 5 4 5-1-5 0-9 1-12z" fill="#fff3c0" opacity=".9" />
-      </g>
-      <polygon points={hex(96)} fill={`url(#${g('spec')})`} />
-      <path d="M36 62 L100 22 L164 62" fill="none" stroke="#fff" strokeOpacity=".55" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
+      <polygon points={starPts(100, 104, 62, 27, 5)} fill="#ffd23f" stroke={INK} strokeWidth="6" strokeLinejoin="round" />
+      <polygon points={starPts(100, 104, 62, 27, 5)} fill="#f0a800" clipPath="none" opacity="0" />
+      <path d="M100 42 L116 84 L100 104 Z M159 85 L127 115 L100 104 Z" fill="#f0a800" opacity=".9" />
+      <path d="M100 68c8 14 26 22 26 44 0 15-12 26-26 26s-26-11-26-26c0-12 7-19 12-27 1 8 5 13 10 14-3-12 0-22 4-31z" fill="#ff5a1f" stroke={INK} strokeWidth="5.5" strokeLinejoin="round" />
+      <path d="M100 100c5 7 12 11 12 21 0 7-5 12-12 12s-12-5-12-12c0-6 3-9 6-13 1 3 2 6 5 6-1-6 0-10 1-14z" fill="#ffe27a" stroke={INK} strokeWidth="3.5" strokeLinejoin="round" />
+      <path d="M44 74c6-12 16-20 28-24" stroke="#fff" strokeWidth="6" fill="none" strokeLinecap="round" opacity=".9" />
+      <path d="M160 132l3 8 8 3-8 3-3 8-3-8-8-3 8-3z" fill="#fff" stroke={INK} strokeWidth="3" strokeLinejoin="round" />
     </svg>
   );
 }

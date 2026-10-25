@@ -1249,3 +1249,47 @@ main { max-width: 1180px; margin: 0 auto; padding: 0 16px; }
 .r3 .p3-light { background: linear-gradient(180deg, rgba(243, 154, 91, 0), rgba(243, 154, 91, .45) 75%, rgba(243, 154, 91, .1)); }
 .podium3d, .u-pokemon .podium3d, .u-onepiece .podium3d { background: linear-gradient(180deg, #110e1d, #07060d); }
 .p3-floor { background: radial-gradient(circle, rgba(255,255,255,.07) 0 30%, transparent 55%); }
+
+/* ---------- Podium : estrade commune, plaques sur la face avant, raccords propres ---------- */
+.podium3d { --gap: 10px; --stage-h: 92px; --stage-d: calc(var(--dp) + 70px); --row-w: calc(var(--w) * 3 + var(--gap) * 2); padding-bottom: 54px; }
+@media (max-width: 640px) { .podium3d { --gap: 4px; --stage-h: 84px; --stage-d: calc(var(--dp) + 46px); } }
+.p3-scene { flex-direction: column; align-items: center; }
+.p3-row { gap: var(--gap); }
+.p3-block .front { border-top-width: 0; border-radius: 0 0 10px 10px; }
+.p3-block .left, .p3-block .right, .p3-block .back { border-top-width: 0; border-radius: 0 0 8px 8px; }
+.p3-block .top { border-radius: 14px; }
+.p3-block .front::after { top: 8px; }
+.p3-card { margin-bottom: 18px; }
+/* estrade */
+.p3-stage { position: relative; width: calc(var(--row-w) + 36px); height: var(--stage-h); transform-style: preserve-3d; animation: p3-grow .7s cubic-bezier(.2, .9, .3, 1.1) backwards; transform-origin: 50% 100%; }
+.p3-stage .sf { position: absolute; border: var(--line-w) solid var(--ink); backface-visibility: hidden; }
+.p3-stage .front { inset: 0; transform: translateZ(calc(var(--stage-d) / 2)); background: linear-gradient(180deg, #3b3160 0 70%, #2a2347 70% 100%); border-radius: 6px 6px 16px 16px; display: flex; justify-content: center; align-items: stretch; gap: var(--gap); padding: 8px 14px 10px; }
+.p3-stage .back { inset: 0; transform: rotateY(180deg) translateZ(calc(var(--stage-d) / 2)); background: #241d3d; }
+.p3-stage .left, .p3-stage .right { top: 0; height: 100%; width: var(--stage-d); left: calc(50% - var(--stage-d) / 2); background: linear-gradient(180deg, #2c2449 0 70%, #1f1937 70% 100%); border-radius: 6px 6px 14px 14px; }
+.p3-stage .left { transform: rotateY(-90deg) translateZ(calc((var(--row-w) + 36px) / 2)); }
+.p3-stage .right { transform: rotateY(90deg) translateZ(calc((var(--row-w) + 36px) / 2)); }
+.p3-stage .top { left: 0; width: 100%; height: var(--stage-d); top: calc(var(--stage-d) / -2); transform: rotateX(90deg); background: #4a3e78; border-radius: 18px; display: flex; justify-content: center; align-items: center; gap: var(--gap); box-shadow: inset 0 0 0 6px #5a4d8f; }
+.p3-stage .top .spot { width: var(--w); height: 80%; border-radius: 50%; filter: blur(6px); opacity: .85; }
+.p3-stage .top .s1 { background: radial-gradient(closest-side, rgba(255, 210, 63, .9), transparent); }
+.p3-stage .top .s2 { background: radial-gradient(closest-side, rgba(230, 238, 250, .75), transparent); }
+.p3-stage .top .s3 { background: radial-gradient(closest-side, rgba(243, 154, 91, .8), transparent); }
+.p3-stage .top .s2 { order: 0; } .p3-stage .top .s1 { order: 1; } .p3-stage .top .s3 { order: 2; }
+/* plaques sur l'estrade */
+.p3-stage .p3-plate { width: var(--w); min-height: 0; margin: 0; transform: none; padding: .35rem .3rem .4rem; border-radius: 14px; box-shadow: 0 4px 0 var(--ink); display: grid; align-content: center; justify-items: center; gap: .05rem; }
+.p3-stage .p3-plate.empty { visibility: hidden; }
+.p3-stage .p3-plate.r1 { background: #ffd23f; color: var(--ink); } .p3-stage .p3-plate.r2 { background: #e9eff6; color: var(--ink); } .p3-stage .p3-plate.r3 { background: #f39a5b; color: var(--ink); }
+.p3-stage .p3-plate small { color: rgba(21, 18, 31, .7); }
+.p3-stage .p3-plate .p3-rank { color: rgba(21, 18, 31, .65); }
+.p3-stage .p3-plate .price, .p3-stage .r1 .p3-price .price { color: var(--ink); text-shadow: none; }
+.p3-stage .p3-plate .approx { color: rgba(21, 18, 31, .6); }
+.p3-stage .p3-plate .gtag { background: rgba(21, 18, 31, .15); color: var(--ink); }
+.p3-stage .p3-plate:hover { transform: translateY(-2px); }
+.p3-floor { bottom: 0; }
+@media (max-width: 640px) { .p3-stage .front { padding: 6px 8px 8px; } .p3-stage .p3-plate b { font-size: .72rem; } .p3-stage .p3-plate small { font-size: .62rem; } .p3-stage .p3-price { font-size: .8rem; } .p3-stage .r1 .p3-price .price { font-size: .86rem; } }
+.podium3d { --stage-h: 122px; }
+@media (max-width: 640px) { .podium3d { --stage-h: 100px; } .p3-stage .p3-plate small { display: none; } }
+.p3-stage .p3-plate { line-height: 1.15; overflow: hidden; }
+.p3-stage .p3-plate > * { max-width: 100%; }
+.p3-stage .p3-plate b { display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.p3-stage .p3-plate small { display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin: .1rem 0; }
+.p3-stage .p3-price { margin-top: .1rem; }

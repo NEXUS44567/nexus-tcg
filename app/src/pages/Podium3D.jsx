@@ -32,12 +32,28 @@ function Spot({ r, rank, delay }) {
         </div>
       </a>
       <Block rank={rank} />
-      <div className="p3-plate">
-        <span className="p3-rank">{LABEL[rank]}</span>
-        <b title={r.c.name}>{r.c.name}</b>
-        <small><GameTag game={r.c.game} /> {r.c.number}{r.c.variant ? ' · ' + r.c.variant : ''}</small>
-        <span className="p3-price"><Price card={r.c} /></span>
-      </div>
+    </div>
+  );
+}
+
+// L'estrade : un grand socle commun ; sa face avant porte les plaques des trois cartes
+function Plate({ r, rank }) {
+  if (!r) return <div className="p3-plate empty" />;
+  return (
+    <a className={'p3-plate r' + rank} href={cardHref(r.c)}>
+      <span className="p3-rank">{LABEL[rank]}</span>
+      <b title={r.c.name}>{r.c.name}</b>
+      <small><GameTag game={r.c.game} /> {r.c.number}{r.c.variant ? ' · ' + r.c.variant : ''}</small>
+      <span className="p3-price"><Price card={r.c} /></span>
+    </a>
+  );
+}
+function Stage({ items }) {
+  return (
+    <div className="p3-stage">
+      <span className="sf front">{items.map(([r, k]) => <Plate key={k} r={r} rank={k} />)}</span>
+      <span className="sf top">{items.map(([, k]) => <i key={k} className={'spot s' + k} />)}</span>
+      <span className="sf left" /><span className="sf right" /><span className="sf back" />
     </div>
   );
 }
@@ -72,6 +88,7 @@ export default function Podium3D({ first, second, third }) {
           <Spot r={first} rank={1} delay={0.5} />
           <Spot r={third} rank={3} delay={0} />
         </div>
+        <Stage items={[[second, 2], [first, 1], [third, 3]]} />
       </div>
     </div>
   );
