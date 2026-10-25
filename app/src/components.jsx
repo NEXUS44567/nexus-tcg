@@ -288,3 +288,19 @@ export function Logo() {
     </svg>
   );
 }
+
+// Emblème pirate original de NEXUS (tête de mort et os croisés, motif traditionnel)
+export function PirateEmblem({ size = 44, className = 'emblem' }) {
+  return (
+    <svg viewBox="0 0 120 120" width={size} height={size} className={className} aria-hidden="true">
+      <g fill="#fff" stroke="#111" strokeWidth="3" strokeLinejoin="round">
+        <g transform="rotate(35 60 64)"><rect x="12" y="58" width="96" height="12" rx="6" /><circle cx="12" cy="58" r="7" /><circle cx="12" cy="70" r="7" /><circle cx="108" cy="58" r="7" /><circle cx="108" cy="70" r="7" /></g>
+        <g transform="rotate(-35 60 64)"><rect x="12" y="58" width="96" height="12" rx="6" /><circle cx="12" cy="58" r="7" /><circle cx="12" cy="70" r="7" /><circle cx="108" cy="58" r="7" /><circle cx="108" cy="70" r="7" /></g>
+        <path d="M60 22c-20 0-33 13-33 30 0 10 5 17 11 21v10c0 4 3 6 6 6h32c3 0 6-2 6-6V73c6-4 11-11 11-21 0-17-13-30-33-30z" />
+      </g>
+      <g fill="#111"><ellipse cx="47" cy="52" rx="8" ry="9" /><ellipse cx="73" cy="52" rx="8" ry="9" /><path d="M60 62l-5 8h10z" /></g>
+      <g stroke="#111" strokeWidth="2.5"><path d="M46 80v9M53 80v9M60 80v9M67 80v9M74 80v9" /></g>
+      <path d="M28 40c10-14 54-14 64 0" fill="none" stroke="#e2433a" strokeWidth="7" strokeLinecap="round" />
+    </svg>
+  );
+}

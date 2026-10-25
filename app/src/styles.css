@@ -628,7 +628,7 @@ main { max-width: 1180px; margin: 0 auto; padding: 0 16px; }
 .uv-content { display: grid; justify-items: center; text-align: center; gap: .55rem; color: #fff; }
 .emblem { width: clamp(70px, 9vw, 110px); height: auto; color: #fff; filter: drop-shadow(0 6px 18px rgba(0,0,0,.35)); transition: transform .8s; }
 .uv-side.pokemon .emblem { color: rgba(255,255,255,.92); }
-.uv-side:hover .emblem { transform: rotate(45deg) scale(1.08); }
+.uv-side:hover .emblem { transform: rotate(-6deg) scale(1.1); }
 .uv-side.pokemon:hover .emblem { transform: scale(1.12); }
 .uv-content h2 { font: 800 clamp(2.6rem, 7vw, 5rem)/.95 var(--display); letter-spacing: -.01em; margin: .3rem 0 0; text-shadow: 0 4px 0 rgba(0,0,0,.25), 0 10px 30px rgba(0,0,0,.35); font-variation-settings: "wdth" 85; }
 .uv-sub { font-weight: 800; letter-spacing: .32em; font-size: clamp(.7rem, 1.4vw, .88rem); color: #ffc46b; }

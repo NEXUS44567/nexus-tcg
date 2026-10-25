@@ -3,7 +3,7 @@ import { useData, href, cardHref } from '../lib/hooks.js';
 import { useStore, update, getState, useUniverse, claimDaily, spendCoins } from '../lib/store.js';
 import { fmtNum, img, GAMES } from '../lib/data.js';
 import { buildProduct, openPack, TIER_STYLE, PRICE, CURRENCY } from '../lib/packs.js';
-import { CardImage, Icon, Loading, Seg, Modal } from '../components.jsx';
+import { CardImage, Icon, Loading, Seg, Modal, PirateEmblem } from '../components.jsx';
 
 // Animations reprises de la V1 : booster qui flotte et brille, languette à déchirer, Haki (One Piece)
 // ou foudre (Pokémon) à l'ouverture, carte qui se charge avant une rare, retournement, bannière,
@@ -99,7 +99,7 @@ function Strike({ game }) {
 // Emblèmes du booster
 function Emblem({ game }) {
   return game === 'onepiece' ? (
-    <svg viewBox="0 0 120 120" width="44" height="44" aria-hidden="true"><g fill="none" stroke="currentColor" strokeWidth="8" strokeLinecap="round"><circle cx="60" cy="60" r="28" />{Array.from({ length: 8 }, (_, i) => { const a = (i * Math.PI) / 4; return <line key={i} x1={60 + Math.cos(a) * 12} y1={60 + Math.sin(a) * 12} x2={60 + Math.cos(a) * 52} y2={60 + Math.sin(a) * 52} />; })}</g><circle cx="60" cy="60" r="8" fill="currentColor" /></svg>
+    <PirateEmblem size={48} className="" />
   ) : (
     <svg viewBox="0 0 120 120" width="44" height="44" aria-hidden="true"><path d="M60 8 105 34v52L60 112 15 86V34z" fill="none" stroke="currentColor" strokeWidth="8" strokeLinejoin="round" /><path d="M66 26 40 66h18l-6 30 28-42H62z" fill="currentColor" /></svg>
   );

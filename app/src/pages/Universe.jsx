@@ -2,7 +2,7 @@ import React, { useMemo, useState } from 'react';
 import { useData, href } from '../lib/hooks.js';
 import { update } from '../lib/store.js';
 import { img, fmtEur, fmtNum } from '../lib/data.js';
-import { Logo } from '../components.jsx';
+import { Logo, PirateEmblem } from '../components.jsx';
 
 const SIDES = {
   onepiece: { to: '/op', title: 'ONE PIECE', sub: 'CARD GAME', chips: ['Extensions et parallèles', 'L’équipage', 'Packs en Berrys', 'Ma collection'] },
@@ -58,7 +58,7 @@ export default function UniversePage() {
               </div>
             )}
             <div className="uv-content">
-              {g === 'onepiece' ? <Wheel /> : <Bolt />}
+              {g === 'onepiece' ? <PirateEmblem size={110} /> : <Bolt />}
               <h2>{S.title}</h2>
               <span className="uv-sub">{S.sub}</span>
               <div className="uv-chips">{S.chips.map((c) => <span key={c}>{c}</span>)}</div>
