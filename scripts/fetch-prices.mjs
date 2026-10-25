@@ -82,6 +82,12 @@ async function onePiece(catalog, fx) {
 }
 
 // ---------- Pokémon ----------
+// Prix TCGplayer de l'impression de base : normale, sinon holo, sinon la moins chère des autres
+function tcgMarket(prices, get) {
+  for (const k of ['normal', 'holofoil', 'unlimitedHolofoil', 'unlimited']) { const v = num(get(prices[k])); if (v != null) return v; }
+  const rest = Object.values(prices).map((p) => num(get(p))).filter((v) => v != null);
+  return rest.length ? Math.min(...rest) : null;
+}
 function pokemonItem(cm, tpMarket) {
   const eur = num(cm.trendPrice ?? cm.trend) ?? num(cm.averageSellPrice ?? cm.avg) ?? num(cm.avg7) ?? num(cm.avg30);
   if (eur == null && tpMarket == null) return null;
@@ -100,8 +106,7 @@ async function pokemonTcgIo(ids) {
     if (page === 1) log('pokemontcg total', total, 'exemple', JSON.stringify(j.data?.[0]).slice(0, 500));
     for (const c of j.data || []) {
       if (!ids.has(c.id)) continue;
-      const tp = c.tcgplayer?.prices || {};
-      const tpMarket = Math.max(0, ...Object.values(tp).map((p) => num(p?.market) || 0)) || null;
+      const tpMarket = tcgMarket(c.tcgplayer?.prices || {}, (p) => p?.market);
       const it = pokemonItem(c.cardmarket?.prices || {}, tpMarket);
       if (!it) continue;
       items[c.id] = it; matched++;
@@ -157,7 +162,7 @@ async function tcgdex(catalog) {
       if (!sample && pr.cardmarket) { sample = true; log('exemple tcgdex', JSON.stringify(pr).slice(0, 600)); }
       const cm = pr.cardmarket || {};
       const tp = pr.tcgplayer || {};
-      const tpMarket = Math.max(0, ...Object.values(tp).map((p) => (p && typeof p === 'object' ? num(p.marketPrice ?? p.market) || 0 : 0))) || null;
+      const tpMarket = tcgMarket(tp, (p) => (p && typeof p === 'object' ? p.marketPrice ?? p.market : null));
       const it = pokemonItem(cm, tpMarket);
       if (it) { items[our] = it; const d = cm.updated; if (d && (!latest || d > latest)) latest = d; }
     } catch { fails++; }
@@ -167,17 +172,45 @@ async function tcgdex(catalog) {
   return { items, latest, name: 'Cardmarket (tendance) et TCGplayer via api.tcgdex.net', url: 'https://tcgdex.dev' };
 }
 
-async function pokemon(catalog) {
+// Contrôle de cohérence : Cardmarket est parfois associé à la mauvaise impression (holo / non holo,
+// promos regroupées). On écarte une valeur partagée à l'identique par 3 cartes ou plus d'une même
+// extension, et on signale (« x ») les cartes dont Cardmarket et TCGplayer divergent de plus d'un facteur 3 :
+// elles restent affichées avec un avertissement mais sortent du podium et des mouvements.
+function sanitizePokemon(items, fx) {
+  const groups = new Map();
+  for (const [id, v] of Object.entries(items)) {
+    if (v[0] == null) continue;
+    const k = id.split('-')[0] + '|' + v.slice(0, 5).join(',');
+    if (!groups.has(k)) groups.set(k, []);
+    groups.get(k).push(id);
+  }
+  let dup = 0, swapped = 0;
+  for (const ids of groups.values()) {
+    if (ids.length < 3) continue;
+    for (const id of ids) { const v = items[id]; v[0] = v[1] = v[2] = v[3] = v[4] = null; dup++; }
+  }
+  for (const [id, v] of Object.entries(items)) {
+    v[6] = 'cm';
+    const tpEur = v[5] != null ? v[5] * fx.usdEur : null;
+    if (v[0] == null) { if (tpEur != null) { v[0] = round(tpEur); v[6] = 'tp'; } else delete items[id]; continue; }
+    if (tpEur != null && tpEur >= 2 && (v[0] / tpEur > 3 || v[0] / tpEur < 1 / 3)) { v[6] = 'x'; swapped++; }
+  }
+  log('Pokémon contrôle : valeurs dupliquées écartées', dup, 'sources divergentes signalées', swapped);
+  return items;
+}
+
+async function pokemon(catalog, fx) {
   const ids = new Set(catalog.cards.map((c) => c[0]));
   let r = null;
   try { r = await pokemonTcgIo(ids); log('pokemontcg prix', Object.keys(r.items).length); } catch (e) { log('pokemontcg indisponible :', e.message); }
   if (!r || Object.keys(r.items).length < 1000) {
     try { const t = await tcgdex(catalog); if (!r || Object.keys(t.items).length > Object.keys(r.items).length) r = t; } catch (e) { log('tcgdex indisponible :', e.message); if (!r) throw e; }
   }
+  sanitizePokemon(r.items, fx);
   return {
     game: 'pokemon', updatedAt: now.toISOString(), sourceDate: r.latest,
-    source: { name: r.name, url: r.url, currency: 'EUR' },
-    fields: ['eur_trend', 'eur_avg1', 'eur_avg7', 'eur_avg30', 'eur_low', 'usd_tcgplayer'], items: r.items,
+    source: { name: r.name, url: r.url, currency: 'EUR', fx },
+    fields: ['eur', 'eur_avg1', 'eur_avg7', 'eur_avg30', 'eur_low', 'usd_tcgplayer', 'eur_source'], items: r.items,
   };
 }
 
@@ -215,7 +248,7 @@ function market(cats, all, fx) {
   for (const [game, cat] of Object.entries(cats)) {
     const prices = all[game];
     const byId = new Map(cat.cards.map((c) => [c[0], c]));
-    const list = Object.entries(prices.items).filter(([, v]) => v[0] != null).map(([id, v]) => ({ id, eur: v[0], c: byId.get(id) })).filter((x) => x.c);
+    const list = Object.entries(prices.items).filter(([, v]) => v[0] != null && v[6] !== 'x').map(([id, v]) => ({ id, eur: v[0], c: byId.get(id) })).filter((x) => x.c);
     list.sort((a, b) => b.eur - a.eur);
     const podium = list.slice(0, 25).map((x) => [x.id, x.eur]);
 
@@ -224,6 +257,7 @@ function market(cats, all, fx) {
     for (const f of fs.existsSync(histDir) ? fs.readdirSync(histDir) : []) {
       const h = readJSON(path.join(histDir, f), null); if (!h) continue;
       for (const [id, s] of Object.entries(h.p)) {
+        if (prices.items[id]?.[6] === 'x') continue;
         const [a, b] = lastTwo(s);
         if (a != null && b != null && b >= 5 && a !== b) day.push([id, a, b, round(((b - a) / a) * 100)]);
         const n = s.length; const old = s.slice(Math.max(0, n - 8), Math.max(0, n - 6)).find((v) => v != null);
@@ -234,7 +268,9 @@ function market(cats, all, fx) {
     if (game === 'pokemon' && week.length < 20) {
       for (const [id, v] of Object.entries(prices.items)) {
         const [eur, , a7, a30] = v;
-        if (eur != null && a7 != null && a30 != null && eur >= 5 && a30 > 0 && a7 !== a30) week.push([id, a30, a7, round(((a7 - a30) / a30) * 100), 'cm']);
+        if (v[6] !== 'cm' || eur == null || a7 == null || a30 == null) continue;
+        if (Math.abs(eur - a7) / a7 > 0.5) continue; // moyenne 7 j trop éloignée de la tendance : peu d'échanges
+        if (eur >= 5 && a30 > 0 && a7 !== a30) week.push([id, a30, a7, round(((a7 - a30) / a30) * 100), 'cm']);
       }
     }
     const sortUp = (a, b) => b[3] - a[3];
