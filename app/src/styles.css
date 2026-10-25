@@ -1205,3 +1205,47 @@ main { max-width: 1180px; margin: 0 auto; padding: 0 16px; }
 .p3-card { animation-fill-mode: backwards; }
 .p3-block { animation-fill-mode: backwards; }
 .p3-backdrop .p3-rays { position: absolute; left: 50%; top: 38%; bottom: auto; width: min(620px, 120%); aspect-ratio: 1; transform: translate(-50%, -50%); z-index: 0; }
+
+/* ---------- Podium : version cartoon, socles arrondis, trois lumières seulement ---------- */
+.podium3d { --ink: #15121f; --line-w: 4px; }
+.p3-block .f { border: var(--line-w) solid var(--ink); }
+.p3-block .front { border-radius: 26px 26px 10px 10px; }
+.p3-block .back { border-radius: 26px 26px 10px 10px; }
+.p3-block .left, .p3-block .right { border-radius: 22px 22px 8px 8px; }
+.p3-block .top { border-radius: 26px; }
+.p3-block .front::after { inset: 10px 12px auto; height: 22%; border-radius: 999px; background: rgba(255,255,255,.55); animation: none; transform: none; }
+/* couleurs franches, ombrage en aplats */
+.p3-block.gold .front { background: linear-gradient(180deg, #ffd23f 0 62%, #f0a800 62% 100%); box-shadow: none; }
+.p3-block.gold .left, .p3-block.gold .right, .p3-block.gold .back { background: linear-gradient(180deg, #e39b00 0 62%, #c47f00 62% 100%); }
+.p3-block.gold .top { background: #ffe27a; box-shadow: inset 0 -8px 0 #ffd23f; }
+.p3-block.silver .front { background: linear-gradient(180deg, #e9eff6 0 62%, #b9c4d2 62% 100%); box-shadow: none; }
+.p3-block.silver .left, .p3-block.silver .right, .p3-block.silver .back { background: linear-gradient(180deg, #b3bfcc 0 62%, #8d9aab 62% 100%); }
+.p3-block.silver .top { background: #ffffff; box-shadow: inset 0 -8px 0 #e3e9f0; }
+.p3-block.bronze .front { background: linear-gradient(180deg, #f39a5b 0 62%, #d0703a 62% 100%); box-shadow: none; }
+.p3-block.bronze .left, .p3-block.bronze .right, .p3-block.bronze .back { background: linear-gradient(180deg, #cc6e36 0 62%, #a95427 62% 100%); }
+.p3-block.bronze .top { background: #ffbb87; box-shadow: inset 0 -8px 0 #f39a5b; }
+.p3-num { color: #fff; text-shadow: none; -webkit-text-stroke: 5px var(--ink); paint-order: stroke fill; font-weight: 900; filter: drop-shadow(0 5px 0 var(--ink)); }
+.p3-block.gold .p3-num { color: #fff6cf; } .p3-block.silver .p3-num { color: #ffffff; } .p3-block.bronze .p3-num { color: #ffe1c9; }
+@media (max-width: 640px) { .podium3d { --line-w: 3px; } .p3-num { -webkit-text-stroke-width: 3.5px; filter: drop-shadow(0 3px 0 var(--ink)); } }
+.p3-shadow { background: radial-gradient(closest-side, rgba(21, 18, 31, .45), transparent); }
+/* cartes : contour épais façon BD, rebond plus marqué */
+.p3-spin .cimg { border: var(--line-w) solid var(--ink); border-radius: 12px; }
+.r1 .p3-spin .cimg { box-shadow: 0 0 0 4px #ffd23f, 0 10px 0 -2px var(--ink); }
+.r2 .p3-spin .cimg { box-shadow: 0 0 0 4px #e9eff6, 0 10px 0 -2px var(--ink); }
+.r3 .p3-spin .cimg { box-shadow: 0 0 0 4px #f39a5b, 0 10px 0 -2px var(--ink); }
+.p3-holo { border-radius: 10px; opacity: .35; }
+@keyframes p3-sway { 0%, 100% { transform: translateY(0) rotateY(-16deg) rotate(-2deg); } 50% { transform: translateY(-16px) rotateY(16deg) rotate(2deg); } }
+.p3-card { animation-timing-function: cubic-bezier(.3, 1.6, .5, 1); }
+.p3-crown path, .p3-crown circle { stroke: var(--ink); stroke-width: 4; }
+.p3-crown { filter: drop-shadow(0 4px 0 var(--ink)); }
+/* plaques arrondies et contour */
+.p3-plate { border: var(--line-w) solid var(--ink); border-radius: 18px; background: #241f36; box-shadow: 0 6px 0 var(--ink); }
+.r1 .p3-plate { background: #3a2c10; } .r2 .p3-plate { background: #2b3140; } .r3 .p3-plate { background: #3a2216; }
+/* seulement trois projecteurs : or, argent, bronze */
+.p3-backdrop, .p3-rays, .p3-sparks { display: none !important; }
+.p3-light { width: calc(var(--w) * 1.7); height: 460px; filter: blur(2px); opacity: .9; animation: none; clip-path: polygon(42% 0, 58% 0, 100% 100%, 0 100%); }
+.r1 .p3-light { background: linear-gradient(180deg, rgba(255, 210, 63, 0), rgba(255, 210, 63, .55) 75%, rgba(255, 210, 63, .12)); }
+.r2 .p3-light { background: linear-gradient(180deg, rgba(225, 235, 248, 0), rgba(225, 235, 248, .45) 75%, rgba(225, 235, 248, .1)); }
+.r3 .p3-light { background: linear-gradient(180deg, rgba(243, 154, 91, 0), rgba(243, 154, 91, .45) 75%, rgba(243, 154, 91, .1)); }
+.podium3d, .u-pokemon .podium3d, .u-onepiece .podium3d { background: linear-gradient(180deg, #110e1d, #07060d); }
+.p3-floor { background: radial-gradient(circle, rgba(255,255,255,.07) 0 30%, transparent 55%); }

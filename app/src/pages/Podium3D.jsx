@@ -38,7 +38,6 @@ function Spot({ r, rank, delay }) {
         <small><GameTag game={r.c.game} /> {r.c.number}{r.c.variant ? ' · ' + r.c.variant : ''}</small>
         <span className="p3-price"><Price card={r.c} /></span>
       </div>
-      {rank === 1 && <div className="p3-sparks" aria-hidden="true">{Array.from({ length: 14 }, (_, i) => <i key={i} style={{ '--x': (i * 37) % 100, '--t': 2 + (i % 5) * 0.6 + 's', '--dl': (i * 0.35) % 3 + 's' }} />)}</div>}
     </div>
   );
 }
@@ -66,7 +65,6 @@ export default function Podium3D({ first, second, third }) {
   }, []);
   return (
     <div className="podium3d" ref={ref}>
-      <div className="p3-backdrop" aria-hidden="true"><i /><i /><i /><b className="p3-rays" /></div>
       <div className="p3-scene">
         <div className="p3-floor" aria-hidden="true" />
         <div className="p3-row">
