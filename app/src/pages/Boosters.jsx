@@ -106,8 +106,18 @@ function Emblem({ game }) {
 }
 
 // ---- Le booster (V1) : inclinaison, reflet, languette à déchirer ----
+// Vraie illustration du booster si elle est fournie : db/packs/<code>.webp, .png ou .jpg
+const PACK_EXT = ['webp', 'png', 'jpg'];
+function useRealPack(code) {
+  const [state, setState] = useState({ i: 0, ok: false });
+  useEffect(() => setState({ i: 0, ok: false }), [code]);
+  const src = state.i < PACK_EXT.length ? `db/packs/${code.toLowerCase()}.${PACK_EXT[state.i]}` : null;
+  return { src, ok: state.ok, onLoad: () => setState((x) => ({ ...x, ok: true })), onError: () => setState((x) => ({ i: x.i + 1, ok: false })) };
+}
+
 function Booster({ prod, onOpen, opening, locked }) {
   const ref = useRef(null);
+  const real = useRealPack(prod.code);
   const drag = useRef(null);
   const [tear, setTear] = useState(0);
   const move = (e) => { const el = ref.current; if (!el || opening) return; const r = el.getBoundingClientRect(); const x = (e.clientX - r.left) / r.width, y = (e.clientY - r.top) / r.height; el.style.setProperty('--ry', ((x - 0.5) * 22).toFixed(1) + 'deg'); el.style.setProperty('--rx', ((0.5 - y) * 16).toFixed(1) + 'deg'); el.style.setProperty('--mx', x * 100 + '%'); el.style.setProperty('--my', y * 100 + '%'); };
@@ -118,7 +128,8 @@ function Booster({ prod, onOpen, opening, locked }) {
   useEffect(() => { if (!opening) setTear(0); }, [opening]);
   return (
     <div className={'booster-zone' + (opening ? ' is-opening' : '')}>
-      <div ref={ref} className="booster" data-game={prod.game} onPointerMove={move} onPointerLeave={leave} style={{ '--tear': tear }}>
+      <div ref={ref} className={'booster' + (real.ok ? ' real' : '')} data-game={prod.game} onPointerMove={move} onPointerLeave={leave} style={{ '--tear': tear }}>
+        {real.src && <img className="booster-real" src={real.src} alt={'Booster ' + prod.name} onLoad={real.onLoad} onError={real.onError} draggable="false" />}
         <div className="booster-body">
           {prod.cover && <img src={img(prod.cover.image, 'large')} alt="" className="booster-art" referrerPolicy="no-referrer" draggable="false" onError={(e) => (e.currentTarget.style.display = 'none')} />}
           <div className="booster-shine" aria-hidden="true" />

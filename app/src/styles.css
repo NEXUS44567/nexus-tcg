@@ -1013,3 +1013,9 @@ main { max-width: 1180px; margin: 0 auto; padding: 0 16px; }
 .pack-stats small { color: var(--faint); font-size: .74rem; }
 @media (max-width: 720px) { .booster { width: 220px; height: 356px; } .booster-code { font-size: 3.4rem; } .reveal-banner { font-size: 1.25rem; } }
 @media (prefers-reduced-motion: reduce) { .booster, .booster-shine, .reveal-inner, .reveal-holo, .summary-card, .strip-card, .reveal-caption, .reveal-banner, .btn.pulse, .reveal-front, .strike, .pack-stage2 { animation: none !important; } .reveal-card.is-front .reveal-inner { transform: rotateY(180deg); } }
+.booster-real { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; z-index: 1; display: none; filter: drop-shadow(0 30px 40px rgba(0,0,0,.55)); }
+.booster.real .booster-real { display: block; }
+.booster.real .booster-body { background: none !important; box-shadow: none; -webkit-mask: none; mask: none; }
+.booster.real .booster-art, .booster.real .booster-label { display: none; }
+.booster.real .booster-shine { z-index: 2; mix-blend-mode: overlay; opacity: .45; -webkit-mask: linear-gradient(#000 0 0); }
+.booster.real .booster-flap, .booster.real .booster-tear { z-index: 3; }
