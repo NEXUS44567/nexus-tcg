@@ -31,6 +31,7 @@ export async function encodeBinder({ name, cover, game, entries }) {
 }
 export async function decodeBinder(s) {
   const kind = s[0], body = unb64(s.slice(1));
+  if (kind === 'z' && typeof DecompressionStream !== 'function') throw new Error('navigateur trop ancien');
   const raw = kind === 'z' ? await pipe(body, new DecompressionStream('deflate-raw')) : body;
   const [name, cover, game, list] = JSON.parse(new TextDecoder().decode(raw));
   if (!GAMES[game] || !Array.isArray(list)) throw new Error('lien invalide');
@@ -40,7 +41,7 @@ export async function decodeBinder(s) {
 function useWide() {
   const q = '(min-width: 860px)';
   const [w, setW] = useState(() => matchMedia(q).matches);
-  useEffect(() => { const m = matchMedia(q), f = () => setW(m.matches); m.addEventListener('change', f); return () => m.removeEventListener('change', f); }, []);
+  useEffect(() => { const m = matchMedia(q), f = () => setW(m.matches); if (m.addEventListener) { m.addEventListener('change', f); return () => m.removeEventListener('change', f); } m.addListener(f); return () => m.removeListener(f); }, []);
   return w;
 }
 
@@ -60,7 +61,7 @@ function Pocket({ x, onOpen, readOnly }) {
   );
   return readOnly
     ? <a className="bd-pocket" href={cardHref(x.c)}>{inner}</a>
-    : <button className="bd-pocket" onClick={() => onOpen?.(x)}>{inner}</button>;
+    : <div className="bd-pocket" role="button" tabIndex={0} onClick={() => onOpen?.(x)} onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onOpen?.(x); } }}>{inner}</div>;
 }
 
 function Page({ items, n, side, anim, onOpen, readOnly }) {
@@ -118,8 +119,9 @@ export function ShowBinder({ items, name, cover, game, stats, onOpen, readOnly, 
   return (
     <div className="bd-wrap" ref={ref}>
       <div className={'bd-book' + (wide ? ' wide' : '')} style={{ '--leather': color }}
-        onPointerDown={(e) => { touch.current = { x: e.clientX, y: e.clientY }; }}
-        onPointerUp={(e) => { const t = touch.current; touch.current = null; if (!t) return; const dx = e.clientX - t.x, dy = e.clientY - t.y; if (Math.abs(dx) > 60 && Math.abs(dx) > Math.abs(dy) * 1.5) go(dx < 0 ? 1 : -1); }}>
+        onTouchStart={(e) => { const t = e.touches[0]; touch.current = { x: t.clientX, y: t.clientY, swiped: false }; }}
+        onTouchEnd={(e) => { const t = touch.current; if (!t) return; const p = e.changedTouches[0]; const dx = p.clientX - t.x, dy = p.clientY - t.y; if (Math.abs(dx) > 50 && Math.abs(dx) > Math.abs(dy) * 1.4) { t.swiped = true; go(dx < 0 ? 1 : -1); setTimeout(() => { touch.current = null; }, 350); } else touch.current = null; }}
+        onClickCapture={(e) => { if (touch.current?.swiped) { e.stopPropagation(); e.preventDefault(); } }}>
         <div className="bd-leaf" key={cur + (wide ? 'w' : 'n')}>
           <Page items={slice(left)} n={left + 1} side={wide ? 'left' : 'single'} onOpen={onOpen} readOnly={readOnly} anim={!wide ? anim : anim === 'prev' ? 'prev' : null} />
           {wide && <Page items={slice(left + 1)} n={left + 2} side="right" onOpen={onOpen} readOnly={readOnly} anim={anim === 'next' ? 'next' : null} />}
@@ -189,7 +191,7 @@ export function SharedBinderPage({ code }) {
   }, [d.ready, res]);
   useEffect(() => { if (res?.name != null) document.title = (res.name || 'Classeur') + ' · NEXUS TCG'; }, [res]);
   if (!res || !d.ready) return <div className="page"><Loading /></div>;
-  if (res.error) return <div className="page"><h1 className="page-title">Ce lien de classeur ne marche pas</h1><p className="muted">Il est peut-être incomplet. Demande à la personne de te le renvoyer.</p><a className="btn primary" href={href('/collection')}>Créer mon classeur</a></div>;
+  if (res.error) return <div className="page"><h1 className="page-title">Ce lien de classeur ne marche pas</h1><p className="muted">{res.error === 'navigateur trop ancien' ? 'Ton navigateur est trop ancien pour lire ce lien : mets-le à jour (iOS 16.4 ou plus récent, Chrome, Firefox…).' : 'Il est peut-être incomplet. Demande à la personne de te le renvoyer.'}</p><a className="btn primary" href={href('/collection')}>Créer mon classeur</a></div>;
   let total = 0, count = 0;
   for (const x of items) { count += x.e.qty; total += (eurOf(x.c, d.P, d.fx) || 0) * condOf(x.e.cond).factor * x.e.qty; }
   const stats = { count, unique: items.length, total };

@@ -1491,3 +1491,28 @@ main#contenu:not(.chooser-main) { animation: uv-arrive .45s ease-out; }
 .ok-msg { color: #7cd36b; font-weight: 700; margin: 0; }
 .binder-share-page .row.center { justify-content: center; margin-top: 1rem; }
 @media (prefers-reduced-motion: reduce) { .bd-book, .bd-page { animation: none !important; } .bd-cover { transition: none; } }
+/* Classeur : correctifs mobile (Safari) — pochettes sans aspect-ratio sur bouton, survol seulement à la souris,
+   pages qui glissent au lieu de pivoter en 3D, titre doré sans filtre sur texte détouré */
+.bd-pocket { aspect-ratio: auto; height: auto; -webkit-tap-highlight-color: transparent; outline-offset: 2px; }
+.bd-pocket.empty::before { content: ""; display: block; padding-top: calc(88 / 63 * 100%); }
+.bd-pocket .cimg { width: 100%; height: auto; aspect-ratio: 63 / 88; }
+.bd-pocket .cimg img { display: block; }
+.bd-pocket:not(.empty):hover, .bd-pocket:not(.empty):focus-visible { transform: none; box-shadow: none; }
+@media (hover: hover) and (pointer: fine) {
+  .bd-pocket:not(.empty):hover, .bd-pocket:not(.empty):focus-visible { transform: translateY(-4px) scale(1.04); box-shadow: 0 14px 22px -8px #000; }
+}
+.bd-pocket:not(.empty):active { transform: scale(.97); }
+.bd-cover:hover { transform: none; }
+@media (hover: hover) and (pointer: fine) { .bd-cover:hover { transform: perspective(1400px) rotateY(-10deg); } }
+.bd-cover-title { background: none; -webkit-background-clip: border-box; background-clip: border-box; color: #f6d77a; -webkit-text-fill-color: #f6d77a; filter: none; text-shadow: 0 1px 0 #fff3c4, 0 2px 0 #8a5a0a, 0 3px 4px rgba(0,0,0,.6); }
+.bd-page { -webkit-backface-visibility: hidden; }
+.bd-book:not(.wide) { animation: bd-open-m .4s ease-out; padding-left: 36px; }
+@keyframes bd-open-m { from { opacity: 0; transform: scale(.96); } }
+.bd-page.single.turn-next { transform-origin: center; animation: bd-slide-next .35s ease-out; }
+.bd-page.single.turn-prev { transform-origin: center; animation: bd-slide-prev .35s ease-out; }
+@keyframes bd-slide-next { from { opacity: 0; transform: translateX(40px); } }
+@keyframes bd-slide-prev { from { opacity: 0; transform: translateX(-40px); } }
+.bd-book:not(.wide) .bd-leaf { perspective: none; }
+.bd-book:not(.wide) .bd-rings { left: 4px; width: 28px; }
+.bd-book:not(.wide) .bd-rings i { width: 30px; height: 12px; border-width: 3px; }
+@media (max-width: 380px) { .bd-book:not(.wide) { padding: 10px 10px 10px 30px; } .bd-page { padding: 7px; } .bd-grid { gap: 5px; } .bd-rings i { width: 24px !important; } }
