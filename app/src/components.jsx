@@ -303,61 +303,84 @@ function SpeedLines({ cx = 100, cy = 100, r0 = 70, r1 = 98, n = 28, color = INK 
   return <g stroke={color} strokeLinecap="round">{Array.from({ length: n }, (_, k) => { const a = (k / n) * Math.PI * 2 + (k % 2) * 0.05; const [x0, y0] = pt(cx, cy, r0 + (k % 3) * 4, a); const [x1, y1] = pt(cx, cy, r1, a); return <line key={k} x1={x0} y1={y0} x2={x1} y2={y1} strokeWidth={k % 3 ? 2 : 3.5} />; })}</g>;
 }
 
-// One Piece : médaillon d'aventure, rose des vents et sabres croisés, trame de points sur fond rouge
+// One Piece : boussole ronde à pointes (rose des vents en couronne), cadran crème, sabres et aiguille
 export function PirateEmblem({ size = 44, className = 'emblem' }) {
   const g = useIds();
+  const spikes = [];
+  for (let k = 0; k < 16; k++) {
+    const a = -Math.PI / 2 + (k * Math.PI) / 8;
+    const long = k % 4 === 0, mid = k % 2 === 0;
+    const R = long ? 99 : mid ? 90 : 84, w = long ? 0.2 : mid ? 0.17 : 0.13;
+    const [tx, ty] = pt(100, 100, R, a), [lx, ly] = pt(100, 100, 70, a - w), [rx, ry] = pt(100, 100, 70, a + w), [cx, cy] = pt(100, 100, 66, a);
+    spikes.push({ k, long, mid, d: `M${lx} ${ly}L${tx} ${ty}L${rx} ${ry}Z`, half: `M${cx} ${cy}L${tx} ${ty}L${rx} ${ry}Z` });
+  }
   const sabre = (a) => (
-    <g transform={`rotate(${a} 100 104)`}>
-      <path d="M100 26c7 22 9 64 5 104h-10c-4-40-2-82 5-104z" fill="#e8eef5" stroke={INK} strokeWidth="5" strokeLinejoin="round" />
-      <path d="M100 34c3 20 4 56 2 92" stroke="#9fb0c2" strokeWidth="4" fill="none" strokeLinecap="round" />
-      <path d="M78 130h44a6 6 0 0 1 0 12H78a6 6 0 0 1 0-12z" fill="#ffd23f" stroke={INK} strokeWidth="5" />
-      <rect x="93" y="142" width="14" height="26" rx="5" fill="#7a3b1c" stroke={INK} strokeWidth="5" />
-      <circle cx="100" cy="174" r="8" fill="#ffd23f" stroke={INK} strokeWidth="5" />
+    <g transform={`rotate(${a} 100 100)`}>
+      <path d="M100 42c5 16 6 46 3 74h-6c-3-28-2-58 3-74z" fill="#e8eef5" stroke={INK} strokeWidth="4" strokeLinejoin="round" />
+      <path d="M84 116h32a5 5 0 0 1 0 10H84a5 5 0 0 1 0-10z" fill="#ffd23f" stroke={INK} strokeWidth="4" />
+      <rect x="95" y="126" width="10" height="18" rx="4" fill="#7a3b1c" stroke={INK} strokeWidth="4" />
+      <circle cx="100" cy="148" r="6" fill="#ffd23f" stroke={INK} strokeWidth="4" />
     </g>
   );
   return (
     <svg viewBox="0 0 200 200" width={size} height={size} className={className} aria-hidden="true">
       <defs><Halftone g={g} color="#ff8a7a" /></defs>
-      <polygon points={starPts(100, 100, 99, 84, 16)} fill="#ffd23f" stroke={INK} strokeWidth="5" strokeLinejoin="round" />
-      <circle cx="100" cy="100" r="78" fill="#e2302b" stroke={INK} strokeWidth="6" />
-      <circle cx="100" cy="100" r="78" fill={`url(#${g('dots')})`} opacity=".55" />
-      <path d="M42 136a78 78 0 0 0 116 0 70 70 0 0 1-116 0z" fill="#a81c1a" opacity=".7" />
-      <circle cx="100" cy="100" r="66" fill="none" stroke="#fff3c8" strokeWidth="4" strokeDasharray="2 9" strokeLinecap="round" />
-      {sabre(-40)}{sabre(40)}
-      <circle cx="100" cy="100" r="42" fill="#fff8e6" stroke={INK} strokeWidth="6" />
-      <path d="M68 118a42 42 0 0 0 64 0 36 36 0 0 1-64 0z" fill="#f0dcae" />
-      <polygon points={starPts(100, 100, 36, 9, 4)} fill="#ffffff" stroke={INK} strokeWidth="4.5" strokeLinejoin="round" />
-      <path d={`M100 64 L109 100 L100 100 Z M100 136 L91 100 L100 100 Z M64 100 L100 91 L100 100 Z M136 100 L100 109 L100 100 Z`} fill="#e2302b" />
-      <polygon points={starPts(100, 100, 20, 6, 4, -Math.PI / 4)} fill="#ffd23f" stroke={INK} strokeWidth="4" strokeLinejoin="round" />
-      <circle cx="100" cy="100" r="6" fill={INK} />
-      <path d="M50 60c10-14 26-24 44-27" stroke="#fff" strokeWidth="6" fill="none" strokeLinecap="round" opacity=".85" />
-      <path d="M156 40l4 10 10 4-10 4-4 10-4-10-10-4 10-4z" fill="#fff" stroke={INK} strokeWidth="3" strokeLinejoin="round" />
+      {spikes.filter((x) => !x.mid).map((x) => <g key={x.k}><path d={x.d} fill="#e2302b" stroke={INK} strokeWidth="4.5" strokeLinejoin="round" /><path d={x.half} fill="#a81c1a" /></g>)}
+      {spikes.filter((x) => x.mid && !x.long).map((x) => <g key={x.k}><path d={x.d} fill="#ffffff" stroke={INK} strokeWidth="4.5" strokeLinejoin="round" /><path d={x.half} fill="#d9dee6" /></g>)}
+      {spikes.filter((x) => x.long).map((x) => <g key={x.k}><path d={x.d} fill="#ffd23f" stroke={INK} strokeWidth="5" strokeLinejoin="round" /><path d={x.half} fill="#f0a800" /></g>)}
+      <circle cx="100" cy="100" r="70" fill="#e2302b" stroke={INK} strokeWidth="6" />
+      <circle cx="100" cy="100" r="70" fill={`url(#${g('dots')})`} opacity=".55" />
+      <circle cx="100" cy="100" r="58" fill="#fff8e6" stroke={INK} strokeWidth="5" />
+      <path d="M48 118a58 58 0 0 0 104 0 52 52 0 0 1-104 0z" fill="#f0dcae" />
+      {Array.from({ length: 24 }, (_, k) => { const a = (k / 24) * Math.PI * 2; const [x0, y0] = pt(100, 100, 52, a); const [x1, y1] = pt(100, 100, k % 6 === 0 ? 44 : 48, a); return <line key={k} x1={x0} y1={y0} x2={x1} y2={y1} stroke={INK} strokeWidth={k % 6 === 0 ? 3.5 : 2} strokeLinecap="round" />; })}
+      {sabre(-42)}{sabre(42)}
+      <path d="M100 50 L111 100 L100 100 Z" fill="#e2302b" stroke={INK} strokeWidth="4" strokeLinejoin="round" />
+      <path d="M100 50 L89 100 L100 100 Z" fill="#a81c1a" stroke={INK} strokeWidth="4" strokeLinejoin="round" />
+      <path d="M100 150 L89 100 L100 100 Z" fill="#ffffff" stroke={INK} strokeWidth="4" strokeLinejoin="round" />
+      <path d="M100 150 L111 100 L100 100 Z" fill="#cfd6df" stroke={INK} strokeWidth="4" strokeLinejoin="round" />
+      <circle cx="100" cy="100" r="9" fill="#ffd23f" stroke={INK} strokeWidth="4" />
+      <text x="100" y="27" textAnchor="middle" dominantBaseline="middle" fontSize="20" fontWeight="900" fill="#fff" stroke={INK} strokeWidth="4" paintOrder="stroke" fontFamily="Bricolage Grotesque, system-ui, sans-serif">N</text>
+      <path d="M58 62c8-10 20-17 33-20" stroke="#fff" strokeWidth="5" fill="none" strokeLinecap="round" opacity=".9" />
     </svg>
   );
 }
 
-// Pokémon : écusson hexagonal bleu, étoile d'énergie jaune et flamme, traits de vitesse façon manga
+// Pokémon : médaillon rond à quatre énergies (flamme, éclair, goutte d'eau, feuille) autour d'une étoile
 export function EnergyEmblem({ size = 44, className = 'emblem' }) {
   const g = useIds();
-  const hex = (r) => Array.from({ length: 6 }, (_, k) => pt(100, 100, r, -Math.PI / 2 + (k * Math.PI) / 3).map((v) => v.toFixed(1)).join(',')).join(' ');
+  const quad = (a0, color) => { const [x0, y0] = pt(100, 100, 72, a0), [x1, y1] = pt(100, 100, 72, a0 + Math.PI / 2); return <path d={`M100 100L${x0} ${y0}A72 72 0 0 1 ${x1} ${y1}Z`} fill={color} />; };
   return (
     <svg viewBox="0 0 200 200" width={size} height={size} className={className} aria-hidden="true">
-      <defs><Halftone g={g} color="#6fa8ff" /><clipPath id={g('clip')}><polygon points={hex(80)} /></clipPath></defs>
-      <polygon points={hex(97)} fill="#ffd23f" stroke={INK} strokeWidth="6" strokeLinejoin="round" />
-      <polygon points={hex(97)} fill="none" stroke="#fff6c0" strokeWidth="3" strokeLinejoin="round" transform="translate(100 100) scale(.93) translate(-100 -100)" />
-      <polygon points={hex(80)} fill="#2457d6" stroke={INK} strokeWidth="6" strokeLinejoin="round" />
+      <defs><Halftone g={g} color="#ffffff" /><clipPath id={g('clip')}><circle cx="100" cy="100" r="72" /></clipPath></defs>
+      <circle cx="100" cy="100" r="97" fill="#ffd23f" stroke={INK} strokeWidth="6" />
+      <circle cx="100" cy="100" r="88" fill="none" stroke="#fff6c0" strokeWidth="3" strokeDasharray="3 8" strokeLinecap="round" />
+      <path d="M22 132a84 84 0 0 0 156 0 90 90 0 0 1-156 0z" fill="#f0a800" />
       <g clipPath={`url(#${g('clip')})`}>
-        <rect x="0" y="0" width="200" height="200" fill={`url(#${g('dots')})`} opacity=".6" />
-        <path d="M20 130 L180 70 L180 200 L20 200z" fill="#163a9e" opacity=".75" />
-        <SpeedLines r0={58} r1={100} n={30} color="#bcd6ff" />
+        {quad(-Math.PI, '#ff7a5c')}{quad(-Math.PI / 2, '#ffe066')}{quad(0, '#7cd36b')}{quad(Math.PI / 2, '#6fb4ff')}
+        <circle cx="100" cy="100" r="72" fill={`url(#${g('dots')})`} opacity=".35" />
+        <path d="M28 100h144M100 28v144" stroke={INK} strokeWidth="5" />
       </g>
-      <polygon points={starPts(100, 104, 62, 27, 5)} fill="#ffd23f" stroke={INK} strokeWidth="6" strokeLinejoin="round" />
-      <polygon points={starPts(100, 104, 62, 27, 5)} fill="#f0a800" clipPath="none" opacity="0" />
-      <path d="M100 42 L116 84 L100 104 Z M159 85 L127 115 L100 104 Z" fill="#f0a800" opacity=".9" />
-      <path d="M100 68c8 14 26 22 26 44 0 15-12 26-26 26s-26-11-26-26c0-12 7-19 12-27 1 8 5 13 10 14-3-12 0-22 4-31z" fill="#ff5a1f" stroke={INK} strokeWidth="5.5" strokeLinejoin="round" />
-      <path d="M100 100c5 7 12 11 12 21 0 7-5 12-12 12s-12-5-12-12c0-6 3-9 6-13 1 3 2 6 5 6-1-6 0-10 1-14z" fill="#ffe27a" stroke={INK} strokeWidth="3.5" strokeLinejoin="round" />
-      <path d="M44 74c6-12 16-20 28-24" stroke="#fff" strokeWidth="6" fill="none" strokeLinecap="round" opacity=".9" />
-      <path d="M160 132l3 8 8 3-8 3-3 8-3-8-8-3 8-3z" fill="#fff" stroke={INK} strokeWidth="3" strokeLinejoin="round" />
+      <circle cx="100" cy="100" r="72" fill="none" stroke={INK} strokeWidth="6" />
+      {/* flamme, en haut à gauche */}
+      <g transform="translate(68 66)">
+        <path d="M0 -26c6 11 20 17 20 33 0 12-9 20-20 20s-20-8-20-20c0-9 5-14 9-20 1 6 4 10 8 11-2-9 0-17 3-24z" fill="#ff4a1c" stroke={INK} strokeWidth="5" strokeLinejoin="round" />
+        <path d="M0 2c4 5 9 8 9 15 0 5-4 9-9 9s-9-4-9-9c0-4 2-7 4-9 1 2 2 4 4 4-1-4 0-7 1-10z" fill="#ffd23f" stroke={INK} strokeWidth="3" strokeLinejoin="round" />
+      </g>
+      {/* éclair, en haut à droite */}
+      <path d="M140 38 116 74h14l-8 26 26-38h-15l9-24z" fill="#ffd23f" stroke={INK} strokeWidth="5" strokeLinejoin="round" />
+      {/* goutte d'eau, en bas à gauche */}
+      <g transform="translate(68 134)">
+        <path d="M0 -26C9 -12 19 -2 19 9c0 11-9 19-19 19S-19 20-19 9c0-11 10-21 19-35z" fill="#3aa0ff" stroke={INK} strokeWidth="5" strokeLinejoin="round" />
+        <path d="M-9 6c0-6 4-11 8-16" stroke="#e6f5ff" strokeWidth="4" fill="none" strokeLinecap="round" />
+      </g>
+      {/* feuille, en bas à droite */}
+      <g transform="translate(132 134) rotate(-35)">
+        <path d="M0 -28C18 -18 22 4 0 28C-22 4 -18 -18 0 -28z" fill="#34b84a" stroke={INK} strokeWidth="5" strokeLinejoin="round" />
+        <path d="M0 -20V26M0 -2l-8 -7M0 8l8 -7" stroke={INK} strokeWidth="3.5" strokeLinecap="round" fill="none" />
+      </g>
+      <circle cx="100" cy="100" r="17" fill="#ffffff" stroke={INK} strokeWidth="5" />
+      <polygon points={starPts(100, 100, 11, 5, 5)} fill="#ffd23f" stroke={INK} strokeWidth="2.5" strokeLinejoin="round" />
+      <path d="M44 62c7-12 18-21 31-26" stroke="#fff" strokeWidth="6" fill="none" strokeLinecap="round" opacity=".9" />
     </svg>
   );
 }
