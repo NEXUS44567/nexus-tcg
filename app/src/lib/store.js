@@ -8,6 +8,7 @@ const DEFAULT = {
   compare: [],             // clés (max 4)
   packs: { energy: 10, refillAt: 0, opened: 0, best: null, virtual: {}, log: [] },
   recent: [],              // cartes consultées
+  binder: { name: '', cover: 'rouge' }, // classeur de présentation
   notified: {},            // alertes déjà signalées : key → date
   universe: null,          // dernier univers visité
   wallet: {},              // univers → { coins, day, today, opened }

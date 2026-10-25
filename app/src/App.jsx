@@ -6,6 +6,7 @@ import { Icon, SearchBox, Logo, PirateEmblem, EnergyEmblem } from './components.
 import Home from './pages/Home.jsx';
 import CardPage from './pages/Card.jsx';
 import CollectionPage from './pages/Collection.jsx';
+import { SharedBinderPage } from './pages/Binder.jsx';
 import BoostersPage, { VirtualCollection, ShopPage } from './pages/Boosters.jsx';
 import ScannerPage from './pages/Scanner.jsx';
 import UniversePage from './pages/Universe.jsx';
@@ -46,6 +47,7 @@ export default function App() {
     case 'classement': page = <RankingPage />; break;
     case 'extensions': page = <SetsPage game={p[1] || universe} />; break;
     case 'extension': page = <SetPage game={p[1]} code={p[2]} />; break;
+    case 'classeur': page = <SharedBinderPage code={p[1] || ''} key={p[1]} />; break;
     case 'collection': page = <CollectionPage key={universe} />; break;
     case 'boosters': page = p[1] === 'collection' ? <VirtualCollection key={universe} /> : <BoostersPage key={universe} />; break;
     case 'admin': page = <AdminPage code={p[1] || ''} />; break;

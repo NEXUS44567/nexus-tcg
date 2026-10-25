@@ -3,6 +3,7 @@ import { useData, useAsync, href, cardHref } from '../lib/hooks.js';
 import { useStore, updateEntry, removeEntry, CONDITIONS, condOf, exportData, importData, useUniverse } from '../lib/store.js';
 import { UNIV_HOME } from '../lib/hooks.js';
 import { eurOf, history, fmtEur, fmtDate, fmtNum, fmtPct, GAMES } from '../lib/data.js';
+import { ShowBinder, ShareModal } from './Binder.jsx';
 import { CardImage, PriceChart, Section, Loading, Empty, Icon, GameTag, Delta, Seg, Modal, Price } from '../components.jsx';
 
 export function resolve(d, key) { const [g, ...r] = key.split(':'); return d.cats?.[g]?.byId.get(r.join(':')) || null; }
@@ -38,6 +39,8 @@ export default function CollectionPage() {
   const [q, setQ] = useState('');
   const [edit, setEdit] = useState(null);
   const [msg, setMsg] = useState('');
+  const [sharing, setSharing] = useState(false);
+  const binder = useStore((s) => s.binder);
   const file = useRef();
 
   const items = useMemo(() => {
@@ -80,7 +83,7 @@ export default function CollectionPage() {
 
   return (
     <div className="page collection-page">
-      <h1 className="page-title">Ma collection {GAMES[game].label}</h1>
+      <div className="coll-head"><h1 className="page-title">Ma collection {GAMES[game].label}</h1>{coll.length > 0 && <button className="btn primary" onClick={() => setSharing(true)}><Icon name="ext" size={18} />Partager mon classeur</button>}</div>
       {otherCount > 0 && <p className="muted">Tu as aussi {otherCount} carte{otherCount > 1 ? 's' : ''} {GAMES[other].label} : <a className="link" href={href('/collection?u=' + other)}>voir ma collection {GAMES[other].label}</a></p>}
       {coll.length === 0 ? (
         <Empty icon="album" title="Ta collection est vide" action={<div className="row"><a className="btn primary" href={href('/scanner')}><Icon name="scan" size={18} />Scanner une carte</a><a className="btn ghost" href={href('/')}><Icon name="search" size={18} />Chercher une carte</a></div>}>
@@ -105,7 +108,7 @@ export default function CollectionPage() {
             {view !== 'extensions' && <input className="filter" value={q} onChange={(e) => setQ(e.target.value)} placeholder="Filtrer…" aria-label="Filtrer" />}
           </div>
 
-          {view === 'classeur' && <Binder items={items} onOpen={setEdit} />}
+          {view === 'classeur' && <ShowBinder items={items} name={binder.name} cover={binder.cover} game={game} stats={V} onOpen={setEdit} />}
           {view === 'grille' && <div className="grid tiles">{items.map((x) => <CollTile key={x.e.uid} x={x} onOpen={() => setEdit(x)} />)}</div>}
           {view === 'liste' && <CollList items={items} onOpen={setEdit} />}
           {view === 'extensions' && <SetProgress coll={coll} game={game} />}
@@ -121,6 +124,7 @@ export default function CollectionPage() {
         </>
       )}
       <EntryModal x={edit} onClose={() => setEdit(null)} />
+      <ShareModal open={sharing} onClose={() => setSharing(false)} game={game} entries={items.length && !q.trim() ? items.map((x) => x.e) : coll} />
     </div>
   );
 }
@@ -134,28 +138,6 @@ function CollTile({ x, onOpen }) {
       <div className="tile-img"><CardImage card={x.c} />{x.e.qty > 1 && <span className="qty">×{x.e.qty}</span>}<span className={'cond-badge c-' + cond.id}>{x.e.grade != null ? x.e.grade.toLocaleString('fr-FR') : cond.short}</span></div>
       <div className="tile-body"><div className="tile-name">{x.c.name}</div><div className="tile-meta"><GameTag game={x.c.game} /> {x.c.number}</div><div className="tile-price">{eur != null ? fmtEur(eur * cond.factor) : <span className="price none">Pas de prix</span>}</div></div>
     </button>
-  );
-}
-
-function Binder({ items, onOpen }) {
-  const [page, setPage] = useState(0);
-  const per = 9;
-  const pages = Math.max(1, Math.ceil(items.length / per));
-  const p = Math.min(page, pages - 1);
-  const slots = items.slice(p * per, p * per + per);
-  return (
-    <div className="binder">
-      <div className="binder-page" key={p}>
-        {Array.from({ length: per }, (_, i) => slots[i] ? (
-          <button key={i} className="pocket" onClick={() => onOpen(slots[i])}><CardImage card={slots[i].c} />{slots[i].e.qty > 1 && <span className="qty">×{slots[i].e.qty}</span>}</button>
-        ) : <div key={i} className="pocket empty" />)}
-      </div>
-      <div className="binder-nav">
-        <button className="btn ghost" disabled={p === 0} onClick={() => setPage(p - 1)}>‹ Page précédente</button>
-        <span>Page {p + 1} / {pages}</span>
-        <button className="btn ghost" disabled={p >= pages - 1} onClick={() => setPage(p + 1)}>Page suivante ›</button>
-      </div>
-    </div>
   );
 }
 
