@@ -3,6 +3,8 @@ import { useData, href, cardHref } from '../lib/hooks.js';
 import { useStore, update, getState, useUniverse, claimDaily, spendCoins } from '../lib/store.js';
 import { fmtNum, img, GAMES } from '../lib/data.js';
 import { buildProduct, openPack, TIER_STYLE, PRICE, CURRENCY } from '../lib/packs.js';
+import { League } from './League.jsx';
+import { seasonNow } from '../lib/league.js';
 import { CardImage, Icon, Loading, Seg, Modal, PirateEmblem, EnergyEmblem } from '../components.jsx';
 
 // Animations reprises de la V1 : booster qui flotte et brille, languette à déchirer, Haki (One Piece)
@@ -227,6 +229,13 @@ export default function BoostersPage({ focus }) {
       const w = s.wallet[game];
       w.opened = (w.opened || 0) + packsList.length; w.openedToday = (w.openedToday || 0) + packsList.length;
       for (const pulls of packsList) for (const x of pulls) s.packs.virtual[x.card.key] = (s.packs.virtual[x.card.key] || 0) + 1;
+      // saison de classement : cartes obtenues pendant les 30 jours en cours
+      const sn = seasonNow();
+      if (sn.started) {
+        if (!s.season || s.season.n !== sn.n) s.season = { n: sn.n, cards: {}, packs: {} };
+        for (const pulls of packsList) for (const x of pulls) s.season.cards[x.card.key] = 1;
+        s.season.packs[game] = (s.season.packs[game] || 0) + packsList.length;
+      }
       const head = packsList.map((p) => p[p.length - 1]).sort((a, b) => levelOf(b) - levelOf(a))[0];
       if (head && (!w.best || levelOf(head) >= (w.best.lv ?? 0))) w.best = { key: head.card.key, name: head.card.name, rarity: rarLabel(head), lv: levelOf(head) };
     });
@@ -394,6 +403,7 @@ export default function BoostersPage({ focus }) {
         {wallet?.best && <a href={href('/carte/' + encodeURIComponent(wallet.best.key))}><span>Meilleur tirage</span><b>{wallet.best.name}</b><small>{wallet.best.rarity}</small></a>}
       </div>
 
+      <League prod={prod} />
       <VirtualSet prod={prod} />
 
       <Modal open={odds} onClose={() => setOdds(false)} title={'Taux · ' + prod.name}>

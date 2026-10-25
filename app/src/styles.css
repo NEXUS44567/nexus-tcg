@@ -1516,3 +1516,42 @@ main#contenu:not(.chooser-main) { animation: uv-arrive .45s ease-out; }
 .bd-book:not(.wide) .bd-rings { left: 4px; width: 28px; }
 .bd-book:not(.wide) .bd-rings i { width: 30px; height: 12px; border-width: 3px; }
 @media (max-width: 380px) { .bd-book:not(.wide) { padding: 10px 10px 10px 30px; } .bd-page { padding: 7px; } .bd-grid { gap: 5px; } .bd-rings i { width: 24px !important; } }
+
+/* ---------- Classement des collectionneurs (saisons de 30 jours) ---------- */
+.league { --lg: #ffd23f; border-radius: 22px; padding: clamp(1rem, 3vw, 1.6rem); background: radial-gradient(ellipse 80% 60% at 100% 0, rgba(255, 210, 63, .12), transparent 60%), var(--panel); border: 1px solid var(--line-2); display: grid; gap: 1rem; }
+.league.onepiece { --lg: #ff4d5e; background: radial-gradient(ellipse 80% 60% at 100% 0, rgba(255, 60, 80, .14), transparent 60%), var(--panel); }
+.lg-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 1rem; flex-wrap: wrap; }
+.lg-head h2 { margin: .2rem 0 .3rem; }
+.lg-head p { margin: 0; max-width: 52ch; }
+.lg-count { display: flex; gap: .4rem; }
+.lg-unit { display: grid; justify-items: center; min-width: 58px; padding: .5rem .35rem .4rem; border-radius: 12px; background: #0b0a12; border: 1px solid rgba(255,255,255,.08); box-shadow: inset 0 -3px 0 rgba(0,0,0,.4); }
+.lg-unit b { font: 900 1.7rem/1 var(--display); color: var(--lg); font-variant-numeric: tabular-nums; }
+.lg-unit small { font-size: .62rem; letter-spacing: .12em; text-transform: uppercase; color: var(--faint); margin-top: .2rem; }
+.lg-count.urgent .lg-unit b { animation: lg-pulse 1s ease-in-out infinite; }
+@keyframes lg-pulse { 50% { opacity: .55; } }
+@media (max-width: 560px) { .lg-count { width: 100%; } .lg-unit { flex: 1; min-width: 0; } .lg-unit b { font-size: 1.4rem; } }
+.lg-me { display: grid; grid-template-columns: 1.4fr 1fr; gap: .8rem; }
+@media (max-width: 640px) { .lg-me { grid-template-columns: 1fr; } }
+.lg-me > div { padding: .9rem 1rem; border-radius: 16px; background: var(--bg-2); border: 1px solid var(--line); display: grid; gap: .3rem; align-content: start; }
+.lg-me-score > b { font: 900 1.8rem/1 var(--display); }
+.lg-me-score .progress i { background: linear-gradient(90deg, var(--lg), #fff3b0); }
+.lg-rank { font: 900 2.2rem/1 var(--display); color: var(--lg); }
+.lg-join label { font-weight: 700; font-size: .9rem; }
+.lg-join .row { flex-wrap: nowrap; }
+.lg-join input { flex: 1; min-width: 0; }
+.lg-board ol { list-style: none; margin: 0; padding: 0; display: grid; gap: .35rem; }
+.lg-board li { display: grid; grid-template-columns: 2.2rem minmax(0, 1.2fr) minmax(60px, 1fr) auto; align-items: center; gap: .7rem; padding: .55rem .8rem; border-radius: 12px; background: var(--bg-2); border: 1px solid var(--line); }
+.lg-board li.top1 { background: linear-gradient(90deg, rgba(255, 210, 63, .2), var(--bg-2) 70%); border-color: rgba(255, 210, 63, .5); }
+.lg-board li.top2 { background: linear-gradient(90deg, rgba(225, 232, 245, .16), var(--bg-2) 70%); border-color: rgba(225, 232, 245, .4); }
+.lg-board li.top3 { background: linear-gradient(90deg, rgba(243, 154, 91, .18), var(--bg-2) 70%); border-color: rgba(243, 154, 91, .45); }
+.lg-board li.me { outline: 2px solid var(--lg); outline-offset: 1px; }
+.lg-pos { font: 900 1.05rem/1 var(--display); text-align: center; color: var(--muted); }
+.lg-board li.top .lg-pos { font-size: 1.35rem; }
+.lg-name { font-weight: 800; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.lg-name em { font-style: normal; color: var(--lg); font-weight: 700; font-size: .85em; }
+.lg-bar { height: 8px; border-radius: 99px; background: rgba(255,255,255,.08); overflow: hidden; }
+.lg-bar i { display: block; height: 100%; border-radius: inherit; background: linear-gradient(90deg, var(--lg), #fff3b0); }
+.lg-val { display: grid; justify-items: end; line-height: 1.1; }
+.lg-val small { color: var(--faint); font-size: .7rem; }
+@media (max-width: 480px) { .lg-board li { grid-template-columns: 1.8rem minmax(0, 1fr) auto; } .lg-bar { display: none; } }
+.lg-board > .btn { margin-top: .6rem; }
