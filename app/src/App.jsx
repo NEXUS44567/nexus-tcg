@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { useRoute, useData, href, cardHref, UNIV_HOME } from './lib/hooks.js';
 import { useStore, update, useUniverse, tryAdmin } from './lib/store.js';
 import { fmtEur, GAMES } from './lib/data.js';
@@ -26,6 +26,7 @@ export default function App() {
   const watchN = useStore((s) => Object.keys(s.watch).length);
   const last = useStore((s) => s.universe);
   const [searchOpen, setSearchOpen] = useState(false);
+  const topRef = useRef(null), tabRef = useRef(null);
   const p = route.parts;
   const isChooser = p.length === 0;
 
@@ -65,7 +66,8 @@ export default function App() {
       <header className="topbar">
         <a className="logo" href={href('/')} aria-label="NEXUS TCG, changer d’univers"><Logo /><span>NEXUS<small>TCG</small></span></a>
         <a className={'univ-pill ' + universe} href={href(UNIV_HOME[universe])}>{universe === 'onepiece' ? <PirateEmblem size={20} className="" /> : <EnergyEmblem size={20} className="" />} {GAMES[universe].label}</a>
-        <nav className="topnav" aria-label="Navigation principale">
+        <nav className="topnav" aria-label="Navigation principale" ref={topRef}>
+          <NavBolt navRef={topRef} edge="bottom" path={route.path} />
           {nav.slice(1).map(([to, l, i]) => <a key={to} href={href(to)} className={active(to) ? 'on' : ''}><Icon name={i} size={18} />{l}</a>)}
           <a href={href('/comparateur')} className={active('/comparateur') ? 'on' : ''}><Icon name="compare" size={18} />Comparer{compare > 0 && <span className="badge">{compare}</span>}</a>
           <a href={href('/suivis')} className={active('/suivis') ? 'on' : ''}><Icon name="bell" size={18} />Alertes{watchN > 0 && <span className="badge">{watchN}</span>}</a>
@@ -92,7 +94,8 @@ export default function App() {
           <a href={href('/boosters/collection')}>Collection virtuelle</a>
         </nav>
       </footer>
-      <nav className="tabbar" aria-label="Navigation">
+      <nav className="tabbar" aria-label="Navigation" ref={tabRef}>
+        <NavBolt navRef={tabRef} edge="top" path={route.path} />
         {nav.map(([to, l, i]) => <a key={to} href={href(to)} className={active(to) ? 'on' : ''}><Icon name={i} size={22} /><span>{l}</span></a>)}
       </nav>
     </div>
@@ -143,5 +146,46 @@ function AdminPage({ code }) {
         </>
       )}
     </div>
+  );
+}
+
+// Petit éclair qui file de l'ancienne section à la nouvelle dans la barre de navigation (V1)
+function boltPath(a, b) {
+  const n = Math.max(4, Math.round(Math.hypot(b.x - a.x, b.y - a.y) / 12));
+  const pts = [a]; let sgn = Math.random() < 0.5 ? 1 : -1;
+  for (let i = 1; i < n; i++) { if (Math.random() < 0.8) sgn = -sgn; const t = (i + (Math.random() - 0.5) * 0.4) / n; const off = sgn * (1.5 + Math.random() * 2.5); pts.push({ x: a.x + (b.x - a.x) * t, y: a.y + off }); }
+  pts.push(b);
+  const f = (v) => v.toFixed(1);
+  let d = `M${f(pts[0].x)} ${f(pts[0].y)}`;
+  for (let i = 1; i < pts.length - 1; i++) { const m = { x: (pts[i].x + pts[i + 1].x) / 2, y: (pts[i].y + pts[i + 1].y) / 2 }; d += ` Q${f(pts[i].x)} ${f(pts[i].y)} ${f(m.x)} ${f(m.y)}`; }
+  return d + ` L${f(b.x)} ${f(b.y)}`;
+}
+function NavBolt({ navRef, edge, path }) {
+  const last = useRef(null);
+  const [bolt, setBolt] = useState(null);
+  useLayoutEffect(() => {
+    let raf = 0, tries = 0, timer = 0;
+    const run = () => {
+      const nav = navRef.current, link = nav?.querySelector('a.on'), r = nav?.getBoundingClientRect();
+      if (!nav || !r || !r.width || !link) { if (++tries < 60) raf = requestAnimationFrame(run); else if (!link) last.current = null; return; }
+      const b = link.getBoundingClientRect();
+      const pos = { x: b.left - r.left + b.width / 2, y: edge === 'top' ? 3 : r.height - 3 };
+      const prev = last.current; last.current = pos;
+      if (!prev || Math.abs(prev.x - pos.x) < 2 || matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+      const key = Date.now();
+      setBolt({ d: boltPath(prev, pos), end: pos, key });
+      timer = setTimeout(() => setBolt((x) => (x?.key === key ? null : x)), 900);
+    };
+    run();
+    return () => { cancelAnimationFrame(raf); clearTimeout(timer); };
+  }, [path]);
+  if (!bolt) return null;
+  return (
+    <svg className="nav-bolt" aria-hidden="true" key={bolt.key}>
+      <path className="bolt-glow" d={bolt.d} pathLength="1" />
+      <path className="bolt-red" d={bolt.d} pathLength="1" />
+      <path className="bolt-core" d={bolt.d} pathLength="1" />
+      <circle className="bolt-spark" cx={bolt.end.x} cy={bolt.end.y} r="2.4" />
+    </svg>
   );
 }
