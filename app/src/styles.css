@@ -1294,6 +1294,68 @@ main { max-width: 1180px; margin: 0 auto; padding: 0 16px; }
 .p3-stage .p3-plate small { display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin: .1rem 0; }
 .p3-stage .p3-price { margin-top: .1rem; }
 
+/* ---------- Podium : rendu réaliste (métal poli, estrade laquée, projecteurs volumétriques) ---------- */
+.podium3d { --line-w: 0px; perspective: 1300px;
+  background: radial-gradient(ellipse 60% 45% at 50% 18%, rgba(255, 236, 190, .10), transparent 70%), radial-gradient(ellipse 120% 80% at 50% 120%, rgba(0,0,0,.0), #000 75%), linear-gradient(180deg, #16131f 0%, #0b0a12 55%, #050409 100%); }
+.podium3d::after { content: ""; position: absolute; inset: 0; pointer-events: none; z-index: 5; border-radius: inherit; box-shadow: inset 0 0 120px 30px rgba(0,0,0,.75); }
+.p3-block .f { border: 0; }
+.p3-block .front { border-radius: 0 0 6px 6px; }
+.p3-block .left, .p3-block .right, .p3-block .back { border-radius: 0 0 4px 4px; }
+.p3-block .top { border-radius: 6px; }
+/* métal brossé + reflet spéculaire */
+.p3-block .front::after { inset: -30% -80%; height: auto; border-radius: 0; background: linear-gradient(100deg, transparent 38%, rgba(255,255,255,.18) 45%, rgba(255,255,255,.55) 49%, rgba(255,255,255,.18) 53%, transparent 60%); animation: metal-sheen 6s ease-in-out infinite; }
+.p3-block .front::before { content: ""; position: absolute; inset: 0; pointer-events: none; background: repeating-linear-gradient(90deg, rgba(255,255,255,.025) 0 1px, rgba(0,0,0,.02) 1px 4px); box-shadow: inset 0 3px 0 rgba(255,255,255,.55), inset 0 -18px 26px -10px rgba(0,0,0,.45), inset 4px 0 6px -4px rgba(255,255,255,.4), inset -4px 0 6px -4px rgba(0,0,0,.35); }
+.p3-block.gold .front { background: linear-gradient(180deg, #fff1b8 0%, #f2c74e 10%, #d9a124 34%, #a8700e 62%, #7a4d06 84%, #c08a22 100%); }
+.p3-block.gold .left, .p3-block.gold .right, .p3-block.gold .back { background: linear-gradient(180deg, #c99224 0%, #8e5c0a 50%, #4d3004 100%); }
+.p3-block.gold .top { background: radial-gradient(ellipse 70% 60% at 45% 40%, #fff7d6, #f3cd5c 40%, #c38d1c 80%, #94640e); box-shadow: inset 0 0 0 2px rgba(255, 244, 200, .6), inset 0 -6px 10px rgba(80, 50, 0, .35); }
+.p3-block.silver .front { background: linear-gradient(180deg, #ffffff 0%, #e4e9ef 10%, #b8c1cc 34%, #8792a0 62%, #59626e 84%, #a3adb9 100%); }
+.p3-block.silver .left, .p3-block.silver .right, .p3-block.silver .back { background: linear-gradient(180deg, #a7b1bd 0%, #6a7480 50%, #353c45 100%); }
+.p3-block.silver .top { background: radial-gradient(ellipse 70% 60% at 45% 40%, #ffffff, #dfe5ec 40%, #a5afbb 80%, #78828e); box-shadow: inset 0 0 0 2px rgba(255,255,255,.7), inset 0 -6px 10px rgba(30, 40, 50, .3); }
+.p3-block.bronze .front { background: linear-gradient(180deg, #ffd5b0 0%, #e59a5e 10%, #c0723a 34%, #8e4c20 62%, #5e2f10 84%, #a6602e 100%); }
+.p3-block.bronze .left, .p3-block.bronze .right, .p3-block.bronze .back { background: linear-gradient(180deg, #b0632e 0%, #723812 50%, #3d1c07 100%); }
+.p3-block.bronze .top { background: radial-gradient(ellipse 70% 60% at 45% 40%, #ffe3c8, #e8a46c 40%, #b06a34 80%, #7e451c); box-shadow: inset 0 0 0 2px rgba(255, 225, 195, .55), inset 0 -6px 10px rgba(60, 25, 5, .35); }
+/* chiffres gravés dans le métal */
+.p3-num { -webkit-text-stroke: 0; filter: none; font-weight: 800; color: rgba(0,0,0,.28); text-shadow: 0 1px 0 rgba(255,255,255,.55), 0 -1px 0 rgba(0,0,0,.45), 0 0 1px rgba(0,0,0,.3); font-variation-settings: "wdth" 78; }
+.p3-block.gold .p3-num { color: rgba(90, 55, 0, .45); } .p3-block.silver .p3-num { color: rgba(40, 48, 58, .42); } .p3-block.bronze .p3-num { color: rgba(60, 25, 5, .45); }
+@media (max-width: 640px) { .p3-num { -webkit-text-stroke-width: 0; filter: none; } }
+.p3-shadow { width: 78%; height: 56%; background: radial-gradient(closest-side, rgba(0,0,0,.55), rgba(0,0,0,.2) 60%, transparent); filter: blur(2px); }
+/* cartes : cadre fin, vraie ombre portée, reflet */
+.p3-spin .cimg { border: 0; border-radius: 8px; }
+.r1 .p3-spin .cimg { box-shadow: 0 0 0 1.5px rgba(255, 226, 140, .9), 0 0 26px rgba(255, 205, 90, .45), 0 18px 30px -8px rgba(0,0,0,.85); }
+.r2 .p3-spin .cimg { box-shadow: 0 0 0 1.5px rgba(235, 242, 250, .85), 0 0 20px rgba(220, 230, 250, .3), 0 16px 26px -8px rgba(0,0,0,.85); }
+.r3 .p3-spin .cimg { box-shadow: 0 0 0 1.5px rgba(240, 170, 120, .85), 0 0 20px rgba(240, 150, 90, .3), 0 16px 26px -8px rgba(0,0,0,.85); }
+.p3-holo { border-radius: 8px; opacity: .4; background: linear-gradient(115deg, transparent 32%, rgba(255,255,255,.5) 46%, rgba(255,255,255,.1) 52%, transparent 60%); background-size: 260% 260%; }
+@keyframes p3-sway { 0%, 100% { transform: translateY(0) rotateY(-14deg) rotateX(3deg); } 50% { transform: translateY(-10px) rotateY(14deg) rotateX(-1deg); } }
+.p3-card { animation-timing-function: cubic-bezier(.2, 1.1, .3, 1); }
+.p3-crown { filter: drop-shadow(0 3px 4px rgba(0,0,0,.6)) drop-shadow(0 0 10px rgba(255, 210, 90, .55)); }
+.p3-crown path, .p3-crown circle { fill: #e8b53a; stroke: #8a5a0a; stroke-width: 2; }
+/* estrade en laque noire avec filet doré */
+.p3-stage .sf { border: 0; }
+.p3-stage .front { border-radius: 0 0 8px 8px; background: linear-gradient(180deg, #2a2633 0%, #17151d 18%, #0e0d12 70%, #050407 100%); box-shadow: inset 0 2px 0 rgba(230, 190, 110, .75), inset 0 4px 0 rgba(0,0,0,.6), inset 0 -2px 0 rgba(230, 190, 110, .35), inset 0 -30px 40px -20px rgba(0,0,0,.8); }
+.p3-stage .back { background: #0a090d; }
+.p3-stage .left, .p3-stage .right { border-radius: 0 0 6px 6px; background: linear-gradient(180deg, #1c1a22, #0a090d 60%, #030204); box-shadow: inset 0 2px 0 rgba(230, 190, 110, .5); }
+.p3-stage .top { border-radius: 8px; background: radial-gradient(ellipse 80% 70% at 50% 40%, #2c2836, #15131b 70%, #0b0a0f); box-shadow: inset 0 0 0 2px rgba(230, 190, 110, .55), inset 0 0 0 5px rgba(0,0,0,.5), inset 0 0 40px rgba(0,0,0,.6); }
+.p3-stage .top .spot { filter: blur(10px); opacity: .9; height: 90%; }
+.p3-stage .top .s1 { background: radial-gradient(closest-side, rgba(255, 214, 120, .75), rgba(255, 200, 90, .2) 60%, transparent); }
+.p3-stage .top .s2 { background: radial-gradient(closest-side, rgba(230, 238, 255, .6), rgba(220, 230, 255, .15) 60%, transparent); }
+.p3-stage .top .s3 { background: radial-gradient(closest-side, rgba(245, 165, 110, .6), rgba(240, 150, 90, .15) 60%, transparent); }
+/* plaques en métal gravé, vissées */
+.p3-stage .p3-plate { border: 0; border-radius: 6px; box-shadow: inset 0 1px 0 rgba(255,255,255,.7), inset 0 -1px 0 rgba(0,0,0,.35), 0 2px 4px rgba(0,0,0,.7); position: relative; }
+.p3-stage .p3-plate::before, .p3-stage .p3-plate::after { content: ""; position: absolute; top: 50%; width: 5px; height: 5px; margin-top: -2.5px; border-radius: 50%; background: radial-gradient(circle at 35% 35%, rgba(255,255,255,.8), rgba(0,0,0,.45) 70%); }
+.p3-stage .p3-plate::before { left: 5px; } .p3-stage .p3-plate::after { right: 5px; }
+.p3-stage .p3-plate.r1 { background: linear-gradient(180deg, #f9dc84, #d9a63a 50%, #b9861f); }
+.p3-stage .p3-plate.r2 { background: linear-gradient(180deg, #f4f7fa, #c3ccd6 50%, #a2adba); }
+.p3-stage .p3-plate.r3 { background: linear-gradient(180deg, #f2b886, #c97c45 50%, #a6602e); }
+.p3-stage .p3-plate b, .p3-stage .p3-plate .price { text-shadow: 0 1px 0 rgba(255,255,255,.45); }
+.p3-stage .p3-plate:hover { transform: none; filter: brightness(1.08); }
+/* projecteurs volumétriques : source lumineuse + cône diffus */
+.p3-light { filter: blur(8px); opacity: .75; clip-path: polygon(46% 0, 54% 0, 100% 100%, 0 100%); width: calc(var(--w) * 1.9); }
+.r1 .p3-light { background: linear-gradient(180deg, rgba(255, 228, 160, .55), rgba(255, 214, 120, .28) 45%, rgba(255, 214, 120, .08) 85%, transparent); }
+.r2 .p3-light { background: linear-gradient(180deg, rgba(235, 242, 255, .5), rgba(225, 235, 252, .2) 45%, rgba(225, 235, 252, .06) 85%, transparent); }
+.r3 .p3-light { background: linear-gradient(180deg, rgba(255, 196, 150, .5), rgba(243, 160, 100, .2) 45%, rgba(243, 160, 100, .06) 85%, transparent); }
+/* sol brillant avec reflets des projecteurs */
+.p3-floor { background: radial-gradient(circle, rgba(255, 225, 160, .16) 0, rgba(255, 225, 160, .05) 18%, transparent 40%), radial-gradient(circle, #1a1722 0, #0c0b10 30%, transparent 55%); }
+
 /* Éclairs de navigation (V1) */
 .topnav { position: relative; }
 .nav-bolt { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; pointer-events: none; z-index: 3; }
