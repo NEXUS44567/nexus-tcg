@@ -17,6 +17,16 @@ function sfx(kind) {
       for (let i = 0; i < d.length; i++) d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / d.length, 2);
       const s = ctx.createBufferSource(); s.buffer = buf; const f = ctx.createBiquadFilter(); f.type = 'highpass'; f.frequency.value = 1800;
       const g = ctx.createGain(); g.gain.value = 0.35; s.connect(f).connect(g).connect(ctx.destination); s.start(t);
+    } else if (kind === 'haki' || kind === 'rumble') {
+      const len = kind === 'haki' ? 1.6 : 0.9;
+      const o = ctx.createOscillator(), g = ctx.createGain(); o.type = 'sawtooth';
+      o.frequency.setValueAtTime(kind === 'haki' ? 90 : 70, t); o.frequency.exponentialRampToValueAtTime(32, t + len);
+      const lp = ctx.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = 260;
+      g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(kind === 'haki' ? 0.5 : 0.25, t + 0.06); g.gain.exponentialRampToValueAtTime(0.0001, t + len);
+      o.connect(lp).connect(g).connect(ctx.destination); o.start(t); o.stop(t + len + 0.05);
+      const buf = ctx.createBuffer(1, ctx.sampleRate * 0.5, ctx.sampleRate), d = buf.getChannelData(0);
+      for (let i = 0; i < d.length; i++) d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / d.length, 3) * (Math.random() < 0.08 ? 1 : 0.3);
+      const n = ctx.createBufferSource(); n.buffer = buf; const ng = ctx.createGain(); ng.gain.value = kind === 'haki' ? 0.35 : 0.15; n.connect(ng).connect(ctx.destination); n.start(t + 0.02);
     } else {
       const notes = kind === 'flip' ? [520] : kind === 'rare' ? [660, 880, 1320] : [440, 660, 990, 1320, 1760];
       notes.forEach((fr, i) => {
@@ -95,7 +105,7 @@ export default function BoostersPage({ focus }) {
           <div className="pack-stats">
             <div><span>Aujourd’hui</span><b>{fmtNum(wallet?.openedToday || 0)}</b></div>
             <div><span>Au total</span><b>{fmtNum(wallet?.opened || 0)}</b></div>
-            {wallet?.best && <a href={href('/carte/' + encodeURIComponent(wallet.best.key))}><span>Meilleur tirage</span><b>{wallet.best.name} · {fmtEur(wallet.best.eur)}</b></a>}
+            {wallet?.best && <a href={href('/carte/' + encodeURIComponent(wallet.best.key))}><span>Meilleur tirage</span><b>{wallet.best.name}</b></a>}
           </div>
         </div>
       </div>
@@ -128,15 +138,15 @@ function VirtualSet({ prod }) {
         <div><div className="kicker">Collection virtuelle</div><h2>{prod.name}</h2></div>
         <Seg value={filter} onChange={setFilter} label="Filtre" options={[['all', 'Toutes'], ['have', 'Obtenues'], ['missing', 'À découvrir']]} />
       </header>
-      <div className="vc-progress"><div className="progress big"><i style={{ width: (have.length / Math.max(1, cards.length)) * 100 + '%' }} /></div><b>{have.length} / {cards.length}</b><span className="muted">cartes obtenues{prod.game === 'onepiece' ? ' (parallèles comprises)' : ''} · {Math.round((have.length / Math.max(1, cards.length)) * 100)} % · valeur {fmtEur(value)}</span></div>
+      <div className="vc-progress"><div className="progress big"><i style={{ width: (have.length / Math.max(1, cards.length)) * 100 + '%' }} /></div><b>{have.length} / {cards.length}</b><span className="muted">cartes obtenues{prod.game === 'onepiece' ? ' (parallèles comprises)' : ''} · {Math.round((have.length / Math.max(1, cards.length)) * 100)} %</span></div>
       <div className="grid tiles vc">
         {shown.map((c) => virtual[c.key] ? (
-          <a key={c.key} className="tile got" href={cardHref(c)}><div className="tile-img"><CardImage card={c} />{virtual[c.key] > 1 && <span className="qty">×{virtual[c.key]}</span>}<span className="got-badge">Obtenue</span></div><div className="tile-body"><div className="tile-name">{c.name}</div><div className="tile-meta">{c.number} · {c.rarity}{c.variant ? ' · ' + c.variant.toLowerCase() : ''}</div><div className="tile-price"><Price card={c} /></div></div></a>
+          <a key={c.key} className="tile got" href={cardHref(c)}><div className="tile-img"><CardImage card={c} />{virtual[c.key] > 1 && <span className="qty">×{virtual[c.key]}</span>}<span className="got-badge">Obtenue</span></div><div className="tile-body"><div className="tile-name">{c.name}</div><div className="tile-meta">{c.number} · {c.rarity}{c.variant ? ' · ' + c.variant.toLowerCase() : ''}</div></div></a>
         ) : (
           <div key={c.key} className="tile missing"><div className="tile-img"><CardImage card={c} /><span className="q">?</span><span className="miss-badge">À découvrir</span></div><div className="tile-body"><div className="tile-name">{c.name}</div><div className="tile-meta">{c.number} · {c.rarity}{c.variant ? ' · ' + c.variant.toLowerCase() : ''}</div></div></div>
         ))}
       </div>
-      <p className="source-note">Cartes virtuelles : aucune carte physique, aucune valeur monétaire. La valeur affichée est celle des vraies cartes au prix du jour.</p>
+      <p className="source-note">Cartes virtuelles : aucune carte physique, aucune valeur monétaire. Touche une carte obtenue pour voir sa fiche.</p>
     </section>
   );
 }
@@ -215,7 +225,9 @@ function Opening({ prod, count, nonce, onClose, onAgain, coins }) {
   const next = () => {
     if (!flipped) {
       setFlipped(true);
-      if (curTier >= 3) { sfx('epic'); vibrate([30, 40, 60]); } else if (curTier >= 2) { sfx('rare'); vibrate(25); } else sfx('flip');
+      if (curTier >= 4) { sfx(game === 'onepiece' ? 'haki' : 'rumble'); setTimeout(() => sfx('epic'), 450); vibrate([60, 40, 120, 40, 200]); }
+      else if (curTier >= 3) { sfx('rumble'); setTimeout(() => sfx('epic'), 250); vibrate([30, 40, 60]); }
+      else if (curTier >= 2) { sfx('rare'); vibrate(25); } else sfx('flip');
       return;
     }
     if (idx + 1 >= pulls.length) { setStage(packs.length > 1 && pi + 1 < packs.length ? 'between' : 'summary'); return; }
@@ -228,12 +240,13 @@ function Opening({ prod, count, nonce, onClose, onAgain, coins }) {
 
   const values = pulls.map((x) => eurOf(x.card, d.P, d.fx));
   const all = (stage === 'summary' ? packs.flat() : pulls).map((x) => ({ x, v: eurOf(x.card, d.P, d.fx) }));
-  const total = all.reduce((s, y) => s + (y.v || 0), 0);
+  const byTier = (a, b) => (TIER_STYLE[b.x.tier] ?? 0) - (TIER_STYLE[a.x.tier] ?? 0);
+  const hits = all.filter((y) => (TIER_STYLE[y.x.tier] ?? 0) >= 2).length;
   const newCount = new Set(all.filter((y) => newKeys.has(y.x.card.key)).map((y) => y.x.card.key)).size;
   const left = wallet?.coins ?? coins;
 
   return (
-    <div className={'opening ' + game + ' stage-' + stage + ' tier-' + (stage === 'reveal' && flipped ? curTier : 0)}>
+    <div className={'opening ' + game + ' stage-' + stage + ' tier-' + (stage === 'reveal' && flipped ? curTier : 0) + (stage === 'reveal' && !flipped && curTier >= 3 ? ' tension t' + curTier : '')}>
       <div className="op-bg" aria-hidden="true" />
       <header className="op-head">
         <button className="btn ghost" onClick={onClose}>‹ Boosters</button>
@@ -261,14 +274,15 @@ function Opening({ prod, count, nonce, onClose, onAgain, coins }) {
             {pulls.slice(idx + 1, idx + 4).map((x, i) => <div key={idx + 1 + i} className="op-back stacked" style={{ '--i': i + 1 }}><CardBack /></div>)}
             <FlipCard key={pi + '-' + idx} pull={curP} flipped={flipped} tier={curTier} isNew={newKeys.has(curP.card.key)} eur={values[idx]} />
           </div>
-          <p className="op-hint">{flipped ? (idx + 1 >= pulls.length ? 'Touche pour continuer' : 'Touche pour la carte suivante') : curTier >= 3 ? 'Quelque chose brille… touche pour retourner' : 'Touche pour retourner'}</p>
+          <p className="op-hint">{flipped ? (idx + 1 >= pulls.length ? 'Touche pour continuer' : 'Touche pour la carte suivante') : curTier >= 4 ? (game === 'onepiece' ? 'Une pression écrasante se fait sentir… touche pour retourner' : 'Une énergie légendaire s’éveille… touche pour retourner') : curTier >= 3 ? 'Quelque chose brille… touche pour retourner' : 'Touche pour retourner'}</p>
+          {flipped && curTier >= 1 && <RevealFx key={pi + '-' + idx} game={game} tier={curTier} />}
         </div>
       )}
 
       {stage === 'between' && (
         <div className="op-summary">
-          <div className="sum-head"><span className="kicker">Booster {pi + 1} sur {packs.length}</span><b className="sum-total">{fmtEur(total)}</b></div>
-          <div className="sum-grid">{all.sort((a, b) => (b.v || 0) - (a.v || 0)).map(({ x, v }, i) => <a key={i} className={'sum-card t' + (TIER_STYLE[x.tier] ?? 0)} href={cardHref(x.card)}><CardImage card={x.card} />{newKeys.has(x.card.key) && <span className="new">Nouvelle</span>}<span className="sc-name">{x.card.name}</span><span className="sc-val">{v != null ? fmtEur(v) : '—'}</span></a>)}</div>
+          <div className="sum-head"><span className="kicker">Booster {pi + 1} sur {packs.length}</span><b className="sum-total">{hits ? hits + ' carte' + (hits > 1 ? 's' : '') + ' rare' + (hits > 1 ? 's' : '') + ' !' : 'Booster ouvert'}</b></div>
+          <div className="sum-grid">{all.sort(byTier).map(({ x }, i) => <a key={i} className={'sum-card t' + (TIER_STYLE[x.tier] ?? 0)} href={cardHref(x.card)}><CardImage card={x.card} />{newKeys.has(x.card.key) && <span className="new">Nouvelle</span>}<span className="sc-name">{x.card.name}</span><span className={'sc-rar t' + (TIER_STYLE[x.tier] ?? 0)}>{x.label}</span></a>)}</div>
           <div className="row center"><button className="btn primary big" onClick={nextPack}><Icon name="pack" size={20} />Booster suivant ({pi + 2}/{packs.length})</button><button className="btn ghost" onClick={() => setStage('summary')}>Tout révéler</button></div>
         </div>
       )}
@@ -276,21 +290,21 @@ function Opening({ prod, count, nonce, onClose, onAgain, coins }) {
       {stage === 'summary' && (
         <div className="op-summary">
           <div className="sum-head">
-            <span className="kicker">{packs.length > 1 ? `Display de ${packs.length} boosters` : 'Ton booster'} · valeur au prix du jour</span>
-            <b className="sum-total">{fmtEur(total)}</b>
+            <span className="kicker">{packs.length > 1 ? `Display de ${packs.length} boosters` : 'Ton booster'}</span>
+            <b className="sum-total">{hits ? hits + ' carte' + (hits > 1 ? 's' : '') + ' rare' + (hits > 1 ? 's' : '') + ' !' : all.length + ' cartes'}</b>
             <span>{newCount} nouvelle{newCount > 1 ? 's' : ''} carte{newCount > 1 ? 's' : ''} pour ta collection virtuelle</span>
           </div>
           <div className="sum-grid">
-            {all.sort((a, b) => (b.v || 0) - (a.v || 0)).slice(0, packs.length > 1 ? 36 : 12).map(({ x, v }, i) => (
+            {all.sort(byTier).slice(0, packs.length > 1 ? 36 : 12).map(({ x }, i) => (
               <a key={i} className={'sum-card t' + (TIER_STYLE[x.tier] ?? 0)} href={cardHref(x.card)}>
                 <CardImage card={x.card} />
                 {newKeys.has(x.card.key) && <span className="new">Nouvelle</span>}
                 <span className="sc-name">{x.card.name}</span>
-                <span className="sc-val">{v != null ? fmtEur(v) : '—'}</span>
+                <span className={'sc-rar t' + (TIER_STYLE[x.tier] ?? 0)}>{x.label}</span>
               </a>
             ))}
           </div>
-          {packs.length > 1 && all.length > 36 && <p className="muted center">Les 36 meilleures cartes sur {all.length} sont affichées ; toutes sont dans ta collection virtuelle.</p>}
+          {packs.length > 1 && all.length > 36 && <p className="muted center">Les 36 plus rares sur {all.length} sont affichées ; toutes sont dans ta collection virtuelle.</p>}
           <div className="row center">
             <button className="btn primary big" disabled={left < PRICE.booster} onClick={() => onAgain(1)}><Icon name="pack" size={20} />Rouvrir · {PRICE.booster} {cur.name}</button>
             <button className="btn ghost" disabled={left < PRICE.display} onClick={() => onAgain(12)}>Display · {fmtNum(PRICE.display)}</button>
@@ -320,7 +334,7 @@ function FlipCard({ pull, flipped, tier, isNew, eur }) {
   return (
     <div className={'flip t' + tier + (flipped ? ' flipped' : '')} ref={ref}>
       <div className="flip-inner">
-        <div className="flip-face back"><CardBack />{tier >= 3 && <span className="aura" />}</div>
+        <div className="flip-face back"><CardBack />{tier >= 3 && <span className="aura" />}{tier >= 3 && !flipped && <Crackle game={pull.card.game} strong={tier >= 4} />}</div>
         <div className="flip-face front">
           <CardImage card={pull.card} size="large" eager />
           {tier >= 2 && <span className="holo" />}
@@ -331,10 +345,76 @@ function FlipCard({ pull, flipped, tier, isNew, eur }) {
           <span className={'rar t' + tier}>{pull.label}</span>
           {isNew && <span className="new">Nouvelle</span>}
           <b>{pull.card.name}</b>
-          <span className="fv">{eur != null ? fmtEur(eur) : 'Pas de prix relevé'}</span>
         </div>
       )}
-      {flipped && tier >= 3 && <div className="burst" aria-hidden="true">{Array.from({ length: 18 }, (_, i) => <i key={i} style={{ '--a': i * 20 + 'deg', '--d': 80 + (i % 3) * 30 + 'px' }} />)}</div>}
+      {flipped && tier >= 2 && <div className="burst" aria-hidden="true">{Array.from({ length: tier >= 4 ? 28 : 18 }, (_, i) => <i key={i} style={{ '--a': (i * 360) / (tier >= 4 ? 28 : 18) + 'deg', '--d': 80 + (i % 3) * 30 + (tier >= 4 ? 60 : 0) + 'px' }} />)}</div>}
+    </div>
+  );
+}
+
+// ---- Effets de révélation ----
+// Éclair en zigzag de (x0, y0) vers (x1, y1), avec des branches
+function bolt(x0, y0, x1, y1, jag, segs = 9) {
+  let d = `M${x0.toFixed(1)} ${y0.toFixed(1)}`;
+  const pts = [];
+  for (let i = 1; i <= segs; i++) {
+    const t = i / segs;
+    const nx = -(y1 - y0), ny = x1 - x0, len = Math.hypot(nx, ny) || 1;
+    const off = i === segs ? 0 : (Math.random() - 0.5) * jag;
+    const x = x0 + (x1 - x0) * t + (nx / len) * off, y = y0 + (y1 - y0) * t + (ny / len) * off;
+    pts.push([x, y]);
+    d += ` L${x.toFixed(1)} ${y.toFixed(1)}`;
+  }
+  return { d, pts };
+}
+function useBolts(n, r0, r1, jag, branch = true) {
+  return useMemo(() => {
+    const out = [];
+    for (let i = 0; i < n; i++) {
+      const a = (i / n) * Math.PI * 2 + (Math.random() - 0.5) * 0.5;
+      const rr = r1 * (0.7 + Math.random() * 0.45);
+      const b = bolt(Math.cos(a) * r0, Math.sin(a) * r0, Math.cos(a) * rr, Math.sin(a) * rr, jag);
+      out.push({ d: b.d, w: 2 + Math.random() * 3, delay: Math.random() * 0.25 });
+      if (branch && Math.random() < 0.7) {
+        const [bx, by] = b.pts[Math.floor(b.pts.length / 2)];
+        const ba = a + (Math.random() < 0.5 ? -1 : 1) * (0.4 + Math.random() * 0.5);
+        const bl = rr * 0.35;
+        out.push({ d: bolt(bx, by, bx + Math.cos(ba) * bl, by + Math.sin(ba) * bl, jag * 0.6, 5).d, w: 1.2 + Math.random() * 1.5, delay: 0.1 + Math.random() * 0.3 });
+      }
+    }
+    return out;
+  }, []);
+}
+
+function Crackle({ game, strong }) {
+  const bolts = useBolts(strong ? 10 : 6, 150, 230, 26, false);
+  return (
+    <svg className={'crackle ' + game + (strong ? ' strong' : '')} viewBox="-260 -320 520 640" aria-hidden="true">
+      {bolts.map((b, i) => <path key={i} d={b.d} pathLength="1" style={{ '--w': b.w, '--dl': b.delay * 3 + 's' }} />)}
+    </svg>
+  );
+}
+
+function RevealFx({ game, tier }) {
+  const big = tier >= 4;
+  const bolts = useBolts(big ? 16 : tier >= 3 ? 9 : 0, big ? 120 : 140, big ? 900 : 420, big ? 90 : 50);
+  const orbs = useMemo(() => Array.from({ length: tier >= 3 ? 26 : 12 }, () => ({ x: Math.random() * 100, s: 4 + Math.random() * 10, d: 1.2 + Math.random() * 1.6, dl: Math.random() * 0.6 })), []);
+  const op = game === 'onepiece';
+  const title = big ? (op ? 'HAKI DES ROIS' : 'ÉNERGIE LÉGENDAIRE') : tier >= 3 ? (op ? 'HAKI DE L’ARMEMENT' : 'ÉNERGIE RARE') : null;
+  return (
+    <div className={'fx ' + game + ' fx' + tier} aria-hidden="true">
+      {tier >= 2 && <div className="fx-flash" />}
+      {big && <div className="fx-dark" />}
+      {!op && tier >= 3 && <div className="fx-rays" />}
+      {op && tier >= 3 && <div className="fx-aura" />}
+      {Array.from({ length: big ? 4 : tier >= 2 ? 2 : 1 }, (_, i) => <span key={i} className="fx-ring" style={{ '--dl': i * 0.18 + 's' }} />)}
+      {bolts.length > 0 && (
+        <svg className="fx-bolts" viewBox="-1000 -1000 2000 2000" preserveAspectRatio="xMidYMid slice">
+          {bolts.map((b, i) => <path key={i} d={b.d} pathLength="1" style={{ '--w': b.w * (big ? 2.2 : 1.4), '--dl': b.delay + 's' }} />)}
+        </svg>
+      )}
+      {(!op || tier >= 3) && <div className="fx-orbs">{orbs.map((o, i) => <i key={i} style={{ left: o.x + '%', '--s': o.s + 'px', '--d': o.d + 's', '--dl': o.dl + 's' }} />)}</div>}
+      {title && <div className="fx-title"><span>{title}</span></div>}
     </div>
   );
 }
