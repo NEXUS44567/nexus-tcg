@@ -1,0 +1,11 @@
+{
+  "name": "nexus-tcg",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite app",
+    "build": "node scripts/build-site.mjs",
+    "catalog": "node scripts/build-catalog.mjs",
+    "prices": "node scripts/fetch-prices.mjs"
+  }
+}

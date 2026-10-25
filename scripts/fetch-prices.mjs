@@ -270,7 +270,8 @@ function market(cats, all, fx) {
         const [eur, , a7, a30] = v;
         if (v[6] !== 'cm' || eur == null || a7 == null || a30 == null) continue;
         if (Math.abs(eur - a7) / a7 > 0.5) continue; // moyenne 7 j trop éloignée de la tendance : peu d'échanges
-        if (eur >= 5 && a30 > 0 && a7 !== a30) week.push([id, a30, a7, round(((a7 - a30) / a30) * 100), 'cm']);
+        if (v[1] != null && Math.abs(v[1] - a7) / a7 > 0.6) continue; // moyenne 1 j incohérente
+        if (eur >= 10 && a30 >= 10 && a7 !== a30) week.push([id, a30, a7, round(((a7 - a30) / a30) * 100), 'cm']);
       }
     }
     const sortUp = (a, b) => b[3] - a[3];

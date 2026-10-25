@@ -43,7 +43,7 @@ for (const f of files) {
     if (!g) continue;
     const set = s.set;
     if (!g.sets.has(set.code)) {
-      g.sets.set(set.code, { code: set.code, name: set.name, series: set.series || '', date: set.releaseDate || null, logo: pack(set.logo), count: 0 });
+      g.sets.set(set.code, { code: set.code, name: set.name, series: set.series || '', date: set.releaseDate || null, logo: pack(set.logo), printed: set.printedTotal || null, count: 0 });
     }
     const meta = g.sets.get(set.code);
     for (const c of s.cards) {
@@ -86,7 +86,7 @@ for (const [name, g] of Object.entries(games)) {
     game: name,
     builtAt: new Date().toISOString(),
     fields: ['id', 'name', 'set', 'number', 'rarity', 'image', 'variant', 'type', 'name_fr'],
-    sets: sets.map((s) => [s.code, s.name, s.series, s.date, s.count, s.logo]),
+    sets: sets.map((s) => [s.code, s.name, s.series, s.date, s.count, s.logo, s.printed]),
     cards: g.cards,
   };
   fs.writeFileSync(path.join(OUT, name + '.json'), JSON.stringify(out));
