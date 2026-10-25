@@ -1019,3 +1019,7 @@ main { max-width: 1180px; margin: 0 auto; padding: 0 16px; }
 .booster.real .booster-art, .booster.real .booster-label { display: none; }
 .booster.real .booster-shine { z-index: 2; mix-blend-mode: overlay; opacity: .45; -webkit-mask: linear-gradient(#000 0 0); }
 .booster.real .booster-flap, .booster.real .booster-tear { z-index: 3; }
+.booster.real { height: auto; aspect-ratio: 57 / 100; }
+.booster.real .booster-real { object-fit: cover; border-radius: 6px; }
+.booster.real .booster-body { border-radius: 6px; z-index: 2; }
+.booster.real .booster-shine { opacity: .22; mix-blend-mode: soft-light; }

@@ -79,7 +79,7 @@ export default function App() {
       <footer className="footer">
         <div>
           <b>NEXUS TCG</b> · prix des cartes One Piece et Pokémon, relevés chaque jour.
-          <p>Prix : TCGplayer via optcgapi.com (One Piece) et Cardmarket / TCGplayer via tcgdex (Pokémon). Pokédex : PokéAPI. Images : optcgapi.com, pokemontcg.io, Scrydex, PokéAPI sprites. Site de fan indépendant, non affilié à Bandai, Toei Animation, Nintendo, Creatures, GAME FREAK ou The Pokémon Company. One Piece © Eiichiro Oda / Shueisha, Toei Animation. Pokémon © Nintendo / Creatures / GAME FREAK.</p>
+          <p>Prix : TCGplayer via optcgapi.com (One Piece) et Cardmarket / TCGplayer via tcgdex (Pokémon). Pokédex : PokéAPI. Images : optcgapi.com, pokemontcg.io, Scrydex, PokéAPI sprites. Illustrations des boosters © Bandai et © The Pokémon Company. Site de fan indépendant, non affilié à Bandai, Toei Animation, Nintendo, Creatures, GAME FREAK ou The Pokémon Company. One Piece © Eiichiro Oda / Shueisha, Toei Animation. Pokémon © Nintendo / Creatures / GAME FREAK.</p>
         </div>
         <nav>
           <a href={href('/')}>Changer d’univers</a>
