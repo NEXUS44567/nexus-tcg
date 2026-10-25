@@ -111,20 +111,22 @@ function useRealPack(code) {
   return { src, ok: state.ok, onLoad: () => setState((x) => ({ ...x, ok: true })), onError: () => setState((x) => ({ i: x.i + 1, ok: false })) };
 }
 
-function Booster({ prod, onOpen, opening, locked }) {
+function Booster({ prod, onOpen, opening, locked, ready, onPick }) {
   const ref = useRef(null);
   const real = useRealPack(prod.code);
   const drag = useRef(null);
   const [tear, setTear] = useState(0);
   const move = (e) => { const el = ref.current; if (!el || opening) return; const r = el.getBoundingClientRect(); const x = (e.clientX - r.left) / r.width, y = (e.clientY - r.top) / r.height; el.style.setProperty('--ry', ((x - 0.5) * 22).toFixed(1) + 'deg'); el.style.setProperty('--rx', ((0.5 - y) * 16).toFixed(1) + 'deg'); el.style.setProperty('--mx', x * 100 + '%'); el.style.setProperty('--my', y * 100 + '%'); };
   const leave = () => { const el = ref.current; if (el) { el.style.setProperty('--rx', '0deg'); el.style.setProperty('--ry', '0deg'); } };
-  const down = (e) => { if (locked || opening) return; const r = ref.current.getBoundingClientRect(); drag.current = { x: e.clientX, w: r.width }; e.target.setPointerCapture?.(e.pointerId); };
-  const dmove = (e) => { if (!drag.current) return; const f = Math.max(0, Math.min(1, (e.clientX - drag.current.x) / (drag.current.w * 0.8))); setTear(f); if (f >= 0.6) { drag.current = null; setTear(1); onOpen(); } };
+  const down = (e) => { if (locked || opening || !ready) return; const r = ref.current.getBoundingClientRect(); drag.current = { x: e.clientX, w: r.width }; e.currentTarget.setPointerCapture?.(e.pointerId); };
+  const dmove = (e) => { move(e); if (!drag.current) return; const f = Math.max(0, Math.min(1, Math.abs(e.clientX - drag.current.x) / (drag.current.w * 0.75))); setTear(f); if (f >= 0.7) { drag.current = null; setTear(1); onOpen(); } };
   const up = () => { if (drag.current) { drag.current = null; setTear(0); } };
   useEffect(() => { if (!opening) setTear(0); }, [opening]);
   return (
-    <div className={'booster-zone' + (opening ? ' is-opening' : '')}>
-      <div ref={ref} className={'booster' + (real.ok ? ' real' : '')} data-game={prod.game} onPointerMove={move} onPointerLeave={leave} style={{ '--tear': tear }}>
+    <div className={'booster-zone' + (opening ? ' is-opening' : '') + (ready ? ' is-ready' : '')}>
+      {opening && <Emerge game={prod.game} n={prod.size} />}
+      <div ref={ref} className={'booster' + (real.ok ? ' real' : '')} data-game={prod.game} onPointerMove={dmove} onPointerLeave={leave} onPointerDown={down} onPointerUp={up} onPointerCancel={up}
+        onClick={() => !ready && !opening && onPick?.()} role={ready ? 'presentation' : 'button'} aria-label={ready ? undefined : 'Ouvrir un booster ' + prod.name} style={{ '--tear': tear }}>
         {real.src && <img className="booster-real" src={real.src} alt={'Booster ' + prod.name} onLoad={real.onLoad} onError={real.onError} draggable="false" />}
         <div className="booster-body">
           {prod.cover && <img src={img(prod.cover.image, 'large')} alt="" className="booster-art" referrerPolicy="no-referrer" draggable="false" onError={(e) => (e.currentTarget.style.display = 'none')} />}
@@ -138,11 +140,20 @@ function Booster({ prod, onOpen, opening, locked }) {
           </div>
         </div>
         <div className="booster-flap" aria-hidden="true" />
-        <div className="booster-tear" role="presentation" onPointerDown={down} onPointerMove={dmove} onPointerUp={up} onPointerCancel={up}>
-          <span>{locked ? 'Solde insuffisant' : 'Glissez pour déchirer →'}</span>
+        <div className="booster-tear" aria-hidden="true">
+          <span>{locked ? 'Solde insuffisant' : ready ? 'Glisse pour déchirer →' : 'Touche pour ouvrir'}</span>
           <i style={{ width: tear * 100 + '%' }} />
         </div>
       </div>
+    </div>
+  );
+}
+
+// Les cartes sortent du booster pendant l'ouverture
+function Emerge({ game, n }) {
+  return (
+    <div className="emerge" aria-hidden="true" style={{ '--n': n }}>
+      {Array.from({ length: n }, (_, i) => <span key={i} className={'emerge-card back-' + game} style={{ '--i': i, '--o': i - (n - 1) / 2 }}><CardBackArt game={game} /></span>)}
     </div>
   );
 }
@@ -190,7 +201,7 @@ export default function BoostersPage({ focus }) {
   const wallet = useStore((s) => s.wallet?.[game]);
   const muted = useStore((s) => !!s.muted);
   const admin = useStore((s) => !!s.admin);
-  const [phase, setPhase] = useState('pack'); // pack → opening → reveal → summary
+  const [phase, setPhase] = useState('pack'); // pack → ready → opening → reveal → summary
   const [pack, setPack] = useState(null);     // { pulls, fresh:Set<index> }
   const [bulk, setBulk] = useState(null);     // { packs:[{pulls}], fresh }
   const [m, setM] = useState(0);
@@ -222,17 +233,31 @@ export default function BoostersPage({ focus }) {
     return fresh;
   };
 
+  // 1) Achat : le booster s'affiche seul, au centre de l'écran
   const openOne = useCallback(() => {
-    if (!prod || phase === 'opening') return;
+    if (!prod || phase === 'opening' || phase === 'ready') return;
     if (!spendCoins(game, PRICE.booster)) { setNoFunds(true); return; }
-    setNoFunds(false); setBulk(null);
+    setNoFunds(false); setBulk(null); setPack(null); setM(0); setCharging(false);
+    setNonce((n) => n + 1);
+    setPhase('ready');
+  }, [prod, phase, game]);
+  // Annuler avant de déchirer : on rend les Berrys / Pokéballs
+  const cancelReady = () => { if (!getState().admin) update((s) => { s.wallet[game].coins += PRICE.booster; }); setPhase('pack'); };
+  // 2) Déchirage : éclairs, puis les cartes sortent du booster
+  const tearOpen = useCallback(() => {
+    if (!prod || phase !== 'ready') return;
     const pulls = openPack(prod);
     const [fresh] = record([pulls]);
-    setPack({ pulls, fresh }); setM(0); setCharging(false); setNonce((n) => n + 1);
+    setPack({ pulls, fresh });
     SFX.tear(); game === 'onepiece' ? SFX.haki() : SFX.thunder(); vibrate([40, 30, 80]);
     setPhase('opening');
-    later(() => setPhase('reveal'), 950);
+    later(() => setPhase('reveal'), 2000);
   }, [prod, phase, game]);
+  useEffect(() => {
+    const on = phase !== 'pack';
+    document.body.classList.toggle('modal-open', on);
+    return () => document.body.classList.remove('modal-open');
+  }, [phase]);
 
   const openDisplay = () => {
     if (!prod) return;
@@ -289,15 +314,24 @@ export default function BoostersPage({ focus }) {
         {gain > 0 && <span className="gain">+{fmtNum(gain)} {cur.name} reçus depuis ta dernière visite</span>}
       </div>
 
-      <section className={`pack-stage2 phase-${phase} game-${game}`} ref={stageRef}>
+      {phase !== 'pack' && <div className={'focus-bg game-' + game} aria-hidden="true" />}
+      <section className={`pack-stage2 phase-${phase} game-${game}` + (phase !== 'pack' ? ' focus' : '')} ref={stageRef}>
+        {phase !== 'pack' && phase !== 'opening' && <button className="icon-btn focus-close" onClick={() => (phase === 'ready' ? cancelReady() : (setPhase('pack'), setPack(null), setBulk(null)))} aria-label="Fermer"><Icon name="x" /></button>}
         {phase === 'opening' && <Strike key={nonce} game={game} />}
-        {(phase === 'pack' || phase === 'opening') && (
+        {phase === 'pack' && (
           <>
-            <Booster prod={prod} onOpen={openOne} opening={phase === 'opening'} locked={locked} />
-            {phase === 'pack' && actions(false)}
-            {phase === 'pack' && (noFunds || locked) && <p className="notice">Solde insuffisant : il faut {PRICE.booster} {cur.name} pour ouvrir un booster (tu en as {fmtNum(wallet?.coins ?? 0)}). Reviens demain pour le bonus quotidien, ou passe par la <a className="link" href={href('/boutique')}>boutique</a>.</p>}
+            <Booster prod={prod} onPick={openOne} locked={locked} />
+            {actions(false)}
+            {(noFunds || locked) && <p className="notice">Solde insuffisant : il faut {PRICE.booster} {cur.name} pour ouvrir un booster (tu en as {fmtNum(wallet?.coins ?? 0)}). Reviens demain pour le bonus quotidien, ou passe par la <a className="link" href={href('/boutique')}>boutique</a>.</p>}
             <p className="small faint">{prod.composition} <button className="link small" onClick={() => setOdds(true)}>Voir les taux</button></p>
           </>
+        )}
+        {(phase === 'ready' || phase === 'opening') && (
+          <div className="focus-pack">
+            <p className="focus-title">{phase === 'ready' ? prod.name : '\u00a0'}</p>
+            <Booster key={nonce} prod={prod} onOpen={tearOpen} ready={phase === 'ready'} opening={phase === 'opening'} />
+            <p className={'swipe-hint' + (phase === 'opening' ? ' gone' : '')}><span className="swipe-hand" aria-hidden="true">👆</span>Fais glisser ton doigt sur le booster pour l’ouvrir</p>
+          </div>
         )}
 
         {phase === 'reveal' && pack && (

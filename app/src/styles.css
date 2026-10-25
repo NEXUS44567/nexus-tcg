@@ -1045,3 +1045,57 @@ main { max-width: 1180px; margin: 0 auto; padding: 0 16px; }
 .logo { color: #f6c445; }
 .uv-logo { color: #f6c445; text-shadow: 0 2px 10px rgba(0,0,0,.45); }
 .reveal-table > .reveal-hint{position:absolute;top:calc(100% + .9rem);left:50%;transform:translateX(-50%);width:max-content;max-width:80vw}
+
+/* ---------- Ouverture centrée : le booster seul à l'écran, glisser pour déchirer ---------- */
+.focus-bg { position: fixed; inset: 0; z-index: 140; background: radial-gradient(ellipse at 50% 40%, rgba(255, 90, 60, .28), #07070d 70%); animation: fadein .3s ease-out; }
+.focus-bg.game-pokemon { background: radial-gradient(ellipse at 50% 40%, rgba(255, 210, 63, .25), rgba(30, 60, 160, .2) 45%, #05070f 75%); }
+.pack-stage2.focus { position: fixed; inset: 0; z-index: 150; margin: 0; border-radius: 0; min-height: 100dvh; overflow-y: auto; overscroll-behavior: contain; justify-content: center; padding: max(56px, env(safe-area-inset-top)) 12px calc(28px + env(safe-area-inset-bottom)); background: transparent; }
+.pack-stage2.focus.phase-summary, .pack-stage2.focus.phase-reveal { justify-content: flex-start; }
+.focus-close { position: fixed; top: max(10px, env(safe-area-inset-top)); right: 10px; z-index: 160; background: rgba(0,0,0,.45); color: #fff; }
+.focus-pack { display: grid; justify-items: center; gap: .6rem; margin: auto 0; }
+.focus-title { margin: 0; font: 800 1.1rem/1.2 var(--display); color: var(--muted); letter-spacing: .06em; text-transform: uppercase; text-align: center; }
+.focus-pack .booster-zone { padding: 2.5rem 1rem 1rem; }
+.focus-pack .booster { width: min(300px, 74vw); height: auto; aspect-ratio: 260 / 420; touch-action: none; cursor: grab; }
+.focus-pack .booster.real { aspect-ratio: 57 / 100; }
+.focus-pack .booster:active { cursor: grabbing; }
+.booster-zone.is-ready .booster { animation: ready-float 3s ease-in-out infinite; }
+@keyframes ready-float { 0%, 100% { translate: 0 0; } 50% { translate: 0 -8px; } }
+.booster-zone.is-ready .booster-tear { background: repeating-linear-gradient(90deg, rgba(255,255,255,.4) 0 6px, transparent 6px 11px); animation: tear-blink 1.4s ease-in-out infinite; }
+@keyframes tear-blink { 50% { box-shadow: 0 0 18px rgba(255,255,255,.7); } }
+.booster-zone:not(.is-ready):not(.is-opening) .booster { cursor: pointer; }
+.swipe-hint { display: flex; align-items: center; gap: .5rem; margin: .6rem 0 0; color: #fff; font-weight: 700; text-align: center; text-shadow: 0 2px 8px #000; transition: opacity .3s; }
+.swipe-hint.gone { opacity: 0; }
+.swipe-hand { display: inline-block; font-size: 1.5rem; animation: swipe 1.6s ease-in-out infinite; }
+@keyframes swipe { 0% { transform: translateX(-18px) rotate(-10deg); opacity: 0; } 20% { opacity: 1; } 70% { transform: translateX(22px) rotate(8deg); opacity: 1; } 100% { transform: translateX(26px); opacity: 0; } }
+
+/* Ouverture : le booster tremble, le haut part, les cartes sortent puis le booster tombe */
+.booster-zone { position: relative; }
+.booster-zone.is-opening .booster { animation: pack-burst 1.9s cubic-bezier(.45, 0, .55, 1) forwards; z-index: 2; }
+.booster-zone.is-opening .booster-flap { animation: flap-off .55s .3s ease-in forwards; }
+@keyframes pack-burst {
+  0% { transform: rotateX(var(--rx)) rotateY(var(--ry)); filter: brightness(1); }
+  6% { transform: rotate(-3deg) scale(1.02); } 12% { transform: rotate(3deg) scale(1.03); } 18% { transform: rotate(-2deg) scale(1.04); filter: brightness(1.35); }
+  24% { transform: rotate(1deg) scale(1.04); } 30% { transform: scale(1.03); filter: brightness(1.15); }
+  62% { transform: translateY(0) scale(1); opacity: 1; filter: brightness(1); }
+  100% { transform: translateY(70%) scale(.85) rotate(4deg); opacity: 0; }
+}
+.booster-zone.is-opening::after { content: ""; position: absolute; left: 50%; top: 2.5rem; width: 140%; height: 60%; transform: translate(-50%, -40%); background: radial-gradient(ellipse at 50% 60%, rgba(255,255,255,.85), rgba(255, 220, 120, .35) 30%, transparent 65%); opacity: 0; animation: top-light 1.4s .3s ease-out forwards; pointer-events: none; z-index: 3; }
+@keyframes top-light { 0% { opacity: 0; } 20% { opacity: 1; } 100% { opacity: 0; } }
+.emerge { position: absolute; inset: 2.5rem 1rem 1rem; z-index: 1; pointer-events: none; }
+.emerge-card { position: absolute; left: 50%; top: 50%; width: 72%; aspect-ratio: 63 / 88; border-radius: 12px; overflow: hidden; display: grid; place-items: center; opacity: 0;
+  animation: emerge 1.6s calc(.4s + var(--i) * .07s) cubic-bezier(.25, .8, .25, 1) forwards; }
+.emerge-card.back-onepiece { background: radial-gradient(circle at 50% 42%, #6e1218, #24060a 72%); box-shadow: inset 0 0 0 4px #c9a95c, inset 0 0 0 8px #24060a, 0 10px 24px #0008; }
+.emerge-card.back-pokemon { background: radial-gradient(circle at 50% 42%, #1f4fbf, #0a1440 72%); box-shadow: inset 0 0 0 4px #c9d3e0, inset 0 0 0 8px #0a1440, 0 10px 24px #0008; }
+.emerge-card .cb-word { display: none; }
+@keyframes emerge {
+  0% { opacity: 0; transform: translate(-50%, -30%) rotate(0); }
+  10% { opacity: 1; }
+  45% { opacity: 1; transform: translate(calc(-50% + var(--o) * 16px), -118%) rotate(calc(var(--o) * 8deg)); }
+  68% { transform: translate(calc(-50% + var(--o) * 22px), -122%) rotate(calc(var(--o) * 11deg)); }
+  100% { opacity: 1; transform: translate(-50%, -50%) rotate(calc(var(--o) * 1.2deg)) scale(1.05); }
+}
+.pack-stage2.focus .reveal-table { margin-top: 2.2rem; }
+@media (prefers-reduced-motion: reduce) { .emerge-card { animation: none; opacity: 1; transform: translate(-50%, -50%); } }
+.focus-bg { background: radial-gradient(ellipse at 50% 40%, rgba(255, 90, 60, .28), transparent 70%), #07070d; }
+.focus-bg.game-pokemon { background: radial-gradient(ellipse at 50% 40%, rgba(255, 210, 63, .25), rgba(30, 60, 160, .2) 45%, transparent 75%), #05070f; }
+.booster-zone.is-opening .booster-tear span { opacity: 0; }
