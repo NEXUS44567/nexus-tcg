@@ -4,6 +4,11 @@ on:
   schedule:
     - cron: '17 5 * * *'   # chaque jour vers 6 h 17 (heure de Paris en hiver)
   workflow_dispatch:
+    inputs:
+      only:
+        description: 'Jeux à relever (onepiece,pokemon) — vide = tous'
+        required: false
+        default: ''
 
 permissions:
   contents: write
@@ -16,7 +21,7 @@ concurrency:
 jobs:
   prices:
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 45
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -25,6 +30,7 @@ jobs:
       - name: Relever les prix
         env:
           POKEMONTCG_API_KEY: ${{ secrets.POKEMONTCG_API_KEY }}
+          ONLY: ${{ github.event.inputs.only }}
         run: node scripts/fetch-prices.mjs
       - name: Enregistrer le relevé
         run: |

@@ -82,38 +82,102 @@ async function onePiece(catalog, fx) {
 }
 
 // ---------- Pokémon ----------
-async function pokemon(catalog) {
-  const ids = new Set(catalog.cards.map((c) => c[0]));
+function pokemonItem(cm, tpMarket) {
+  const eur = num(cm.trendPrice ?? cm.trend) ?? num(cm.averageSellPrice ?? cm.avg) ?? num(cm.avg7) ?? num(cm.avg30);
+  if (eur == null && tpMarket == null) return null;
+  return [round(eur), round(num(cm.avg1)), round(num(cm.avg7)), round(num(cm.avg30)), round(num(cm.lowPrice ?? cm.low)), round(tpMarket)];
+}
+
+async function pokemonTcgIo(ids) {
   const items = {};
   const headers = process.env.POKEMONTCG_API_KEY ? { 'X-Api-Key': process.env.POKEMONTCG_API_KEY } : {};
-  let page = 1, total = Infinity, seen = 0, matched = 0, latest = null;
+  let page = 1, total = Infinity, matched = 0, latest = null;
   while ((page - 1) * 250 < total && page < 200) {
-    const u = `https://api.pokemontcg.io/v2/cards?page=${page}&pageSize=250&select=id,cardmarket,tcgplayer&orderBy=id`;
+    const u = `https://api.pokemontcg.io/v2/cards?page=${page}&pageSize=250&select=id,cardmarket,tcgplayer`;
     let j;
     try { j = await getJSON(u, { headers, tries: 5 }); } catch (e) { log('pokemontcg échec page', page, e.message); if (page === 1) throw e; break; }
     total = j.totalCount ?? 0;
     if (page === 1) log('pokemontcg total', total, 'exemple', JSON.stringify(j.data?.[0]).slice(0, 500));
     for (const c of j.data || []) {
-      seen++;
       if (!ids.has(c.id)) continue;
-      const cm = c.cardmarket?.prices || {};
       const tp = c.tcgplayer?.prices || {};
       const tpMarket = Math.max(0, ...Object.values(tp).map((p) => num(p?.market) || 0)) || null;
-      const eur = num(cm.trendPrice) ?? num(cm.averageSellPrice) ?? num(cm.avg7) ?? num(cm.avg30);
-      if (eur == null && tpMarket == null) continue;
-      items[c.id] = [round(eur), round(num(cm.avg1)), round(num(cm.avg7)), round(num(cm.avg30)), round(num(cm.lowPrice)), round(tpMarket)];
-      matched++;
-      const d = c.cardmarket?.updatedAt;
-      if (d && (!latest || d > latest)) latest = d;
+      const it = pokemonItem(c.cardmarket?.prices || {}, tpMarket);
+      if (!it) continue;
+      items[c.id] = it; matched++;
+      const d = c.cardmarket?.updatedAt; if (d && (!latest || d > latest)) latest = d;
     }
     page++;
     await sleep(headers['X-Api-Key'] ? 300 : 2100);
   }
-  log('Pokémon : cartes vues', seen, 'avec prix', matched);
+  return { items, latest, name: 'Cardmarket (tendance) et TCGplayer via api.pokemontcg.io', url: 'https://pokemontcg.io' };
+}
+
+const norm = (s) => String(s || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/&/g, 'and').replace(/[^a-z0-9]+/g, '');
+
+async function pool(list, n, fn) {
+  let i = 0;
+  await Promise.all(Array.from({ length: n }, async () => { while (i < list.length) { const k = i++; await fn(list[k], k); } }));
+}
+
+async function tcgdex(catalog) {
+  const B = 'https://api.tcgdex.net/v2/en';
+  const sets = await getJSON(B + '/sets');
+  log('tcgdex sets', sets.length);
+  // Associer chaque extension du catalogue à une extension tcgdex : par identifiant proche, puis par nom
+  const byName = new Map();
+  for (const s of sets) { const k = norm(s.name); if (!byName.has(k)) byName.set(k, []); byName.get(k).push(s); }
+  const byId = new Map(sets.map((s) => [s.id.toLowerCase(), s]));
+  const idGuess = (code) => [code, code.replace(/^sv(\d)$/, 'sv0$1'), code.replace(/^sv(\d)pt5$/, 'sv0$1.5'), code.replace(/^sv(\d+)pt5$/, 'sv$1.5'), code.replace(/^swsh(\d+)pt5$/, 'swsh$1.5'), code.replace(/^me(\d)$/, 'me0$1'), code.replace(/^me(\d)pt5$/, 'me0$1.5'), code.replace(/pt5$/, '.5')];
+  const mapped = [];
+  for (const [code, name, , , count] of catalog.sets) {
+    let t = null;
+    for (const g of idGuess(code)) { if (byId.has(g.toLowerCase())) { t = byId.get(g.toLowerCase()); break; } }
+    if (!t) { const c = byName.get(norm(name)) || []; t = c.length === 1 ? c[0] : c.find((x) => (x.cardCount?.total ?? 0) === count) || c[0] || null; }
+    if (t) mapped.push([code, t.id]); else log('tcgdex : extension non trouvée', code, name);
+  }
+  log('tcgdex extensions associées', mapped.length, '/', catalog.sets.length);
+  const ourBySet = new Map();
+  for (const c of catalog.cards) { if (!ourBySet.has(c[2])) ourBySet.set(c[2], new Map()); ourBySet.get(c[2]).set(String(c[3]).replace(/^0+(?=\d)/, '').toLowerCase(), c[0]); }
+  const jobs = [];
+  await pool(mapped, 6, async ([code, tid]) => {
+    try {
+      const s = await getJSON(B + '/sets/' + encodeURIComponent(tid), { tries: 3 });
+      const ours = ourBySet.get(code) || new Map();
+      for (const c of s.cards || []) { const our = ours.get(String(c.localId).replace(/^0+(?=\d)/, '').toLowerCase()); if (our) jobs.push([our, c.id]); }
+    } catch (e) { log('tcgdex set', tid, e.message); }
+  });
+  log('tcgdex cartes à relever', jobs.length);
+  const items = {};
+  let latest = null, done = 0, fails = 0, sample = false;
+  await pool(jobs, 12, async ([our, tid]) => {
+    try {
+      const c = await getJSON(B + '/cards/' + encodeURIComponent(tid), { tries: 3 });
+      const pr = c.pricing || {};
+      if (!sample && pr.cardmarket) { sample = true; log('exemple tcgdex', JSON.stringify(pr).slice(0, 600)); }
+      const cm = pr.cardmarket || {};
+      const tp = pr.tcgplayer || {};
+      const tpMarket = Math.max(0, ...Object.values(tp).map((p) => (p && typeof p === 'object' ? num(p.marketPrice ?? p.market) || 0 : 0))) || null;
+      const it = pokemonItem(cm, tpMarket);
+      if (it) { items[our] = it; const d = cm.updated; if (d && (!latest || d > latest)) latest = d; }
+    } catch { fails++; }
+    if (++done % 2000 === 0) log('tcgdex', done, '/', jobs.length, 'échecs', fails);
+  });
+  log('tcgdex terminé, prix', Object.keys(items).length, 'échecs', fails);
+  return { items, latest, name: 'Cardmarket (tendance) et TCGplayer via api.tcgdex.net', url: 'https://tcgdex.dev' };
+}
+
+async function pokemon(catalog) {
+  const ids = new Set(catalog.cards.map((c) => c[0]));
+  let r = null;
+  try { r = await pokemonTcgIo(ids); log('pokemontcg prix', Object.keys(r.items).length); } catch (e) { log('pokemontcg indisponible :', e.message); }
+  if (!r || Object.keys(r.items).length < 1000) {
+    try { const t = await tcgdex(catalog); if (!r || Object.keys(t.items).length > Object.keys(r.items).length) r = t; } catch (e) { log('tcgdex indisponible :', e.message); if (!r) throw e; }
+  }
   return {
-    game: 'pokemon', updatedAt: now.toISOString(), sourceDate: latest,
-    source: { name: 'Cardmarket (tendance) et TCGplayer via api.pokemontcg.io', url: 'https://pokemontcg.io', currency: 'EUR' },
-    fields: ['eur_trend', 'eur_avg1', 'eur_avg7', 'eur_avg30', 'eur_low', 'usd_tcgplayer'], items,
+    game: 'pokemon', updatedAt: now.toISOString(), sourceDate: r.latest,
+    source: { name: r.name, url: r.url, currency: 'EUR' },
+    fields: ['eur_trend', 'eur_avg1', 'eur_avg7', 'eur_avg30', 'eur_low', 'usd_tcgplayer'], items: r.items,
   };
 }
 
@@ -191,7 +255,9 @@ const fx = await usdToEur();
 log('taux USD→EUR', fx);
 const all = {};
 const failures = [];
+const only = process.env.ONLY ? process.env.ONLY.split(',') : null;
 for (const [game, fn] of [['onepiece', onePiece], ['pokemon', pokemon]]) {
+  if (only && !only.includes(game)) { all[game] = readJSON(path.join(DB, 'prices', game + '.json'), { game, items: {}, source: null, sourceDate: null }); continue; }
   try {
     const res = await fn(cats[game], fx);
     if (Object.keys(res.items).length < 50) throw new Error('trop peu de prix relevés (' + Object.keys(res.items).length + ')');
