@@ -147,13 +147,24 @@ function Booster({ prod, onOpen, opening, locked }) {
   );
 }
 
+// Dos des cartes : l'emblème de l'univers
+function CardBackArt({ game }) {
+  return (
+    <span className="cb-art">
+      <span className="cb-ring" />
+      {game === 'onepiece' ? <PirateEmblem size={120} className="cb-emblem" /> : <EnergyEmblem size={120} className="cb-emblem" />}
+      <span className="cb-word">NEXUS</span>
+    </span>
+  );
+}
+
 // ---- Carte révélée (V1) ----
 function RevealCard({ x, phase, isNew }) {
   const lv = levelOf(x);
   return (
     <div className={`reveal-card lv-${lv} is-${phase}`}>
       <div className="reveal-inner">
-        <div className="reveal-back" aria-hidden="true"><i>N</i></div>
+        <div className={'reveal-back back-' + x.card.game} aria-hidden="true"><CardBackArt game={x.card.game} /></div>
         <div className="reveal-front">
           <CardImage card={x.card} size="large" eager />
           {lv >= 2 && <span className="reveal-holo" aria-hidden="true" />}
@@ -296,7 +307,7 @@ export default function BoostersPage({ focus }) {
               {charging && upcoming ? <RevealCard key={'c' + m} x={upcoming} phase="charging" />
                 : shown ? <RevealCard key={'f' + m} x={shown} phase="front" isNew={pack.fresh.has(m - 1)} />
                 : <span className="reveal-hint">Touche le paquet pour retourner la première carte</span>}
-              {left > 0 && !charging && <span className="deck" aria-hidden="true">{Array.from({ length: Math.min(6, left) }, (_, i) => <i key={i} style={{ '--d': i }} />)}<b>{left}</b></span>}
+              {left > 0 && !charging && <span className="deck" aria-hidden="true">{Array.from({ length: Math.min(6, left) }, (_, i) => <i key={i} className={'back-' + game} style={{ '--d': i }}><CardBackArt game={game} /></i>)}<b>{left}</b></span>}
             </button>
             <div className="row center">
               <button className="btn primary" onClick={next} disabled={charging}>{upcoming ? 'Carte suivante' : 'Voir le résumé'}</button>

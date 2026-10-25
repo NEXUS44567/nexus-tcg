@@ -278,13 +278,14 @@ export function SourceNote({ game }) {
 
 export { fmtEur, fmtUsd, fmtPct, fmtDate };
 
-export function Logo() {
+// Logo du site : deux cartes et un N, en une seule couleur
+export const LOGO_COLOR = '#f6c445';
+export function Logo({ size = 34, color = LOGO_COLOR }) {
   return (
-    <svg viewBox="0 0 40 40" width="34" height="34" aria-hidden="true">
-      <defs><linearGradient id="lg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stopColor="#ff5a3c" /><stop offset=".5" stopColor="#ffcb05" /><stop offset="1" stopColor="#4cc9f0" /></linearGradient></defs>
-      <rect x="9" y="4" width="20" height="28" rx="3" transform="rotate(-12 19 18)" fill="none" stroke="url(#lg)" strokeWidth="2.5" />
-      <rect x="12" y="8" width="20" height="28" rx="3" transform="rotate(8 22 22)" fill="url(#lg)" opacity=".9" />
-      <path d="M17 27V15l8 12V15" stroke="#0b0e1a" strokeWidth="2.6" fill="none" strokeLinecap="round" strokeLinejoin="round" transform="rotate(8 22 22)" />
+    <svg viewBox="0 0 40 40" width={size} height={size} aria-hidden="true">
+      <rect x="7" y="5" width="20" height="28" rx="3.5" transform="rotate(-12 17 19)" fill="none" stroke={color} strokeWidth="2.6" />
+      <rect x="12" y="7" width="21" height="29" rx="3.5" transform="rotate(7 22 21)" fill={color} />
+      <path d="M17.5 27.5V15.5l7.5 12V15.5" stroke="#0b0e1a" strokeWidth="3" fill="none" strokeLinecap="round" strokeLinejoin="round" transform="rotate(7 22 21)" />
     </svg>
   );
 }
