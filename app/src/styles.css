@@ -1295,7 +1295,7 @@ main { max-width: 1180px; margin: 0 auto; padding: 0 16px; }
 .p3-stage .p3-price { margin-top: .1rem; }
 
 /* Éclairs de navigation (V1) */
-.topnav, .tabbar { position: relative; }
+.topnav { position: relative; }
 .nav-bolt { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; pointer-events: none; z-index: 3; }
 .nav-bolt path { fill: none; stroke-linecap: round; stroke-linejoin: round; stroke-dasharray: 1; stroke-dashoffset: 1; animation: bolt-draw .22s ease-out forwards, bolt-fade .45s .32s ease-in forwards; }
 .nav-bolt .bolt-glow { stroke: #ff1a2e; stroke-width: 4.5; filter: blur(2.5px); opacity: .85; }
