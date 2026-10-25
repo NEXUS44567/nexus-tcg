@@ -5,8 +5,8 @@ import { img, fmtEur, fmtNum } from '../lib/data.js';
 import { Logo } from '../components.jsx';
 
 const SIDES = {
-  onepiece: { to: '/op', title: 'ONE PIECE', sub: 'CARD GAME', chips: ['Extensions et parallèles', 'L’équipage', 'Boosters', 'Ma collection'] },
-  pokemon: { to: '/pk', title: 'POKÉMON', sub: 'TRADING CARD GAME', chips: ['Extensions', 'Pokédex', 'Boosters', 'Ma collection'] },
+  onepiece: { to: '/op', title: 'ONE PIECE', sub: 'CARD GAME', chips: ['Extensions et parallèles', 'L’équipage', 'Packs en Berrys', 'Ma collection'] },
+  pokemon: { to: '/pk', title: 'POKÉMON', sub: 'TRADING CARD GAME', chips: ['Extensions', 'Pokédex', 'Packs en Pokéballs', 'Ma collection'] },
 };
 
 function Wheel() {

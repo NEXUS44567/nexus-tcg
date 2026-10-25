@@ -45,33 +45,34 @@ export const TIER_STYLE = {
   C: 0, UC: 0, U: 0, CUR: 1, R: 1, L: 2, SR: 2, DR: 2, PAR: 3, UR: 3, SH: 3, IR: 3, SEC: 4, SP: 4, SIR: 4, ACE: 3, HR: 5, PAR2: 5, TR: 5, LEG: 4,
 };
 
-export function buildProducts(cats, P, fx) {
-  const out = [];
-  const op = cats.onepiece;
-  const opSets = op.setList.filter((s) => /Booster|Extra/.test(s.series)).slice(0, 4);
-  for (const s of opSets) {
-    const cards = op.cards.filter((c) => c.set === s.code);
+// Un seul booster par univers : la dernière extension principale, 7 cartes par booster
+// One Piece : 3 communes, 1 peu commune, 1 rare, 1 bonus, 1 carte de tête
+// Pokémon   : 3 communes, 1 peu commune, 1 emplacement libre (reverse), 1 bonus, 1 carte de tête
+export const PRICE = { booster: 200, display: 2000, displayPacks: 12, daily: 200, start: 1000 };
+export const CURRENCY = { onepiece: { name: 'Berrys', one: 'Berry', sym: '฿' }, pokemon: { name: 'Pokéballs', one: 'Pokéball', sym: '◓' } };
+const OP_HEAD = [['R', 'Rare', 40], ['SR', 'Super rare', 30], ['L', 'Leader', 15], ['PAR', 'Illustration parallèle', 9], ['SEC', 'Secrète', 3.5], ['SP', 'SP', 1.5], ['PAR2', 'Parallèle spéciale (manga, alternative)', 0.6], ['TR', 'Treasure Rare', 0.4]];
+const OP_BONUS = [['CU', 'Commune ou peu commune', 70], ['R', 'Rare', 20], ['PARLOW', 'Parallèle de commune', 10]];
+const PK_HEAD = [['R', 'Rare', 62], ['DR', 'Double rare', 22], ['UR', 'Ultra rare', 8], ['SH', 'Shiny', 4], ['IR', 'Illustration rare', 2.5], ['HR', 'Hyper rare', 1.5]];
+const PK_BONUS = [['CUR', 'Reverse', 82], ['IR', 'Illustration rare', 12], ['SIR', 'Illustration spéciale', 3.5], ['ACE', 'ACE SPEC / Méga attaque', 2.5]];
+
+export function buildProduct(game, cats, P, fx) {
+  const g = cats[game];
+  if (game === 'onepiece') {
+    const s = g.setList.find((x) => /Booster/.test(x.series) && /^OP/.test(x.code));
+    const cards = g.cards.filter((c) => c.set === s.code);
     const pools = onePiecePools(cards);
-    if (pools.C.length < 7 || pools.R.length < 1) continue;
-    out.push({ id: 'op-' + s.code, game: 'onepiece', set: s, name: s.name, code: s.code, size: 12, cost: 1, cover: topCard(cards, P, fx), pools, kind: 'booster',
-      odds: OP_HIT.filter(([k]) => pools[k].length).map(([k, l, w]) => [l, w]) });
+    pools.CU = [...pools.C, ...pools.UC];
+    pools.PARLOW = cards.filter((c) => c.variant && ['C', 'UC'].includes(c.rarity));
+    return { id: 'op-' + s.code, game, set: s, name: s.name, code: s.code, size: 7, cover: topCard(cards, P, fx), pools, cards,
+      composition: '3 communes, 1 peu commune, 1 rare, 1 bonus et 1 carte de tête.',
+      odds: [['Carte de tête', OP_HEAD.filter(([k]) => pools[k]?.length)], ['Bonus', OP_BONUS.filter(([k]) => pools[k]?.length)]] };
   }
-  const pk = cats.pokemon;
-  const pkSets = pk.setList.filter((s) => s.count >= 80).filter((s) => { const p = pokemonPools(pk.cards.filter((c) => c.set === s.code)); return p.C.length >= 4 && p.U.length >= 3 && p.R.length; }).slice(0, 4);
-  for (const s of pkSets) {
-    const cards = pk.cards.filter((c) => c.set === s.code);
-    const pools = pokemonPools(cards);
-    out.push({ id: 'pk-' + s.code, game: 'pokemon', set: s, name: s.name, code: s.code, size: 10, cost: 1, cover: topCard(cards, P, fx), pools, kind: 'booster', logo: s.logo,
-      odds: [...PK_RARE.filter(([k]) => pools[k].length).map(([k, l, w]) => [l, w]), ...PK_REV.slice(1).filter(([k]) => pools[k].length).map(([k, l, w]) => [l + ' (emplacement reverse)', w])] });
-  }
-  // Boosters Légende : 5 cartes tirées parmi les 300 plus chères du jeu
-  for (const g of ['onepiece', 'pokemon']) {
-    const priced = cats[g].cards.map((c) => [eurOf(c, P, fx), c]).filter((x) => x[0] != null && !(g === 'pokemon' && P.pokemon.items[x[1].id]?.[6] === 'x')).sort((a, b) => b[0] - a[0]).slice(0, 300);
-    if (priced.length < 50) continue;
-    out.push({ id: 'leg-' + g, game: g, name: 'Légende ' + (g === 'onepiece' ? 'One Piece' : 'Pokémon'), code: 'LÉGENDE', size: 5, cost: 3, kind: 'legend', cover: priced[0][1], pool: priced,
-      odds: [['Une carte du top 10', 2], ['Du top 11 au top 50', 18], ['Du top 51 au top 300', 80]] });
-  }
-  return out;
+  const s = g.setList.filter((x) => x.count >= 80).find((x) => { const p = pokemonPools(g.cards.filter((c) => c.set === x.code)); return p.C.length >= 3 && p.U.length >= 1 && p.R.length; });
+  const cards = g.cards.filter((c) => c.set === s.code);
+  const pools = pokemonPools(cards);
+  return { id: 'pk-' + s.code, game, set: s, name: s.name, code: s.code, size: 7, cover: topCard(cards, P, fx), pools, cards, logo: s.logo,
+    composition: '3 communes, 1 peu commune, 1 emplacement libre (reverse), 1 bonus et 1 carte de tête.',
+    odds: [['Carte de tête', PK_HEAD.filter(([k]) => pools[k]?.length)], ['Bonus', PK_BONUS.filter(([k]) => pools[k]?.length)]] };
 }
 
 function topCard(cards, P, fx) {
@@ -80,35 +81,29 @@ function topCard(cards, P, fx) {
   return best || cards[0];
 }
 
+function slot(table, pools, out) {
+  const e = weighted(table.map(([k, , w]) => [k, w, pools[k]]));
+  if (!e) return;
+  const row = table.find((x) => x[0] === e[0]);
+  out.push({ card: pick(pools[e[0]]), tier: e[0], label: row[1] });
+}
+
 export function openPack(prod) {
   const out = [];
-  const add = (c, tier, label) => out.push({ card: c, tier, label });
-  if (prod.kind === 'legend') {
-    const top = prod.pool;
-    for (let i = 0; i < prod.size; i++) {
-      const r = Math.random() * 100;
-      const range = r < 2 ? top.slice(0, 10) : r < 20 ? top.slice(10, 50) : top.slice(50);
-      const [, c] = pick(range.length ? range : top);
-      add(c, 'LEG', 'Légende');
-    }
-    return out;
-  }
   const p = prod.pools;
+  const add = (pool, tier, label) => pool?.length && out.push({ card: pick(pool), tier, label });
   if (prod.game === 'onepiece') {
-    for (let i = 0; i < 7; i++) add(pick(p.C), 'C', 'Commune');
-    for (let i = 0; i < 3; i++) add(pick(p.UC.length ? p.UC : p.C), 'UC', 'Peu commune');
-    add(pick(p.R), 'R', 'Rare');
-    const [k] = weighted(OP_HIT.map(([key, , w]) => [key, w, p[key]])) || ['R'];
-    const hit = OP_HIT.find((x) => x[0] === k);
-    add(pick(p[k]), k, hit?.[1] || 'Rare');
+    for (let i = 0; i < 3; i++) add(p.C, 'C', 'Commune');
+    add(p.UC.length ? p.UC : p.C, 'UC', 'Peu commune');
+    add(p.R, 'R', 'Rare');
+    slot(OP_BONUS, p, out);
+    slot(OP_HEAD, p, out);
   } else {
-    for (let i = 0; i < 4; i++) add(pick(p.C), 'C', 'Commune');
-    for (let i = 0; i < 3; i++) add(pick(p.U), 'U', 'Peu commune');
-    add(pick(p.CUR), 'CUR', 'Reverse');
-    const rev = weighted(PK_REV.map(([k, l, w]) => [k, w, p[k]]));
-    add(pick(p[rev[0]]), rev[0], PK_REV.find((x) => x[0] === rev[0])[1]);
-    const rare = weighted(PK_RARE.map(([k, l, w]) => [k, w, p[k]]));
-    add(pick(p[rare[0]]), rare[0], PK_RARE.find((x) => x[0] === rare[0])[1]);
+    for (let i = 0; i < 3; i++) add(p.C, 'C', 'Commune');
+    add(p.U, 'U', 'Peu commune');
+    add(p.CUR, 'CUR', 'Reverse');
+    slot(PK_BONUS, p, out);
+    slot(PK_HEAD, p, out);
   }
   return out;
 }

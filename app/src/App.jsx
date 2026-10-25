@@ -6,7 +6,7 @@ import { Icon, SearchBox, Logo } from './components.jsx';
 import Home from './pages/Home.jsx';
 import CardPage from './pages/Card.jsx';
 import CollectionPage from './pages/Collection.jsx';
-import BoostersPage, { VirtualCollection } from './pages/Boosters.jsx';
+import BoostersPage, { VirtualCollection, ShopPage } from './pages/Boosters.jsx';
 import ScannerPage from './pages/Scanner.jsx';
 import UniversePage from './pages/Universe.jsx';
 import PokedexPage, { PokemonPage } from './pages/Pokedex.jsx';
@@ -47,6 +47,7 @@ export default function App() {
     case 'extension': page = <SetPage game={p[1]} code={p[2]} />; break;
     case 'collection': page = <CollectionPage key={universe} />; break;
     case 'boosters': page = p[1] === 'collection' ? <VirtualCollection key={universe} /> : <BoostersPage key={universe} />; break;
+    case 'boutique': page = <ShopPage key={universe} />; break;
     case 'scanner': page = <ScannerPage />; break;
     case 'pokedex': page = p[1] ? <PokemonPage id={p[1]} /> : <PokedexPage />; break;
     case 'equipage': page = p[1] ? <MemberPage slug={p[1]} /> : <EquipagePage />; break;

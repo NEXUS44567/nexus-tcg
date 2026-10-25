@@ -10,6 +10,7 @@ const DEFAULT = {
   recent: [],              // cartes consultées
   notified: {},            // alertes déjà signalées : key → date
   universe: null,          // dernier univers visité
+  wallet: {},              // univers → { coins, day, today, opened }
 };
 
 function read() {
@@ -118,4 +119,29 @@ export function useUniverse() {
   const r = useRoute();
   const last = useStore((s) => s.universe);
   return universeOf(r, last);
+}
+
+// ---- Berrys (One Piece) et Pokéballs (Pokémon) : 1 000 au départ, +200 par jour, même les jours d'absence ----
+const dayKey = (t = new Date()) => t.getFullYear() + '-' + String(t.getMonth() + 1).padStart(2, '0') + '-' + String(t.getDate()).padStart(2, '0');
+const dayDiff = (a, b) => Math.round((new Date(b + 'T12:00') - new Date(a + 'T12:00')) / 86400000);
+export function claimDaily(game, start = 1000, daily = 200) {
+  const today = dayKey();
+  const w = state.wallet?.[game];
+  if (w && w.day === today) return 0;
+  let gained = 0;
+  update((s) => {
+    s.wallet ||= {};
+    const cur = s.wallet[game];
+    if (!cur) { s.wallet[game] = { coins: start, day: today, openedToday: 0, opened: 0, best: null }; return; }
+    const days = Math.max(0, Math.min(30, dayDiff(cur.day, today)));
+    gained = days * daily;
+    cur.coins += gained; cur.day = today; cur.openedToday = 0; cur.lastGain = gained;
+  });
+  return gained;
+}
+export function spendCoins(game, amount) {
+  const w = state.wallet?.[game];
+  if (!w || w.coins < amount) return false;
+  update((s) => { s.wallet[game].coins -= amount; });
+  return true;
 }
