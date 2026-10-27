@@ -32,4 +32,7 @@ for (const f of res.outputFiles) {
 fs.writeFileSync(path.join(ROOT, 'index.html'), html);
 fs.copyFileSync(path.join(APP, 'public-manifest.json'), path.join(ROOT, 'manifest.webmanifest'));
 fs.writeFileSync(path.join(ROOT, '404.html'), html);
+// Service worker : sa version suit celle des fichiers construits (un nouveau build vide l'ancien cache du site)
+const version = crypto.createHash('sha1').update(res.outputFiles.map((f) => f.path + f.contents.length).join('|') + html).digest('hex').slice(0, 10);
+fs.writeFileSync(path.join(ROOT, 'sw.js'), fs.readFileSync(path.join(APP, 'sw.js'), 'utf8').replace('__VERSION__', version));
 console.log('Site construit.');

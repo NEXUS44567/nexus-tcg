@@ -78,8 +78,8 @@ export default function App() {
         <nav className="topnav" aria-label="Navigation principale" ref={topRef}>
           <NavBolt navRef={topRef} edge="bottom" path={route.path} />
           {nav.slice(1).map(([to, l, i]) => <a key={to} href={href(to)} className={active(to) ? 'on' : ''}><Icon name={i} size={18} />{l}</a>)}
-          <a href={href('/comparateur')} className={active('/comparateur') ? 'on' : ''}><Icon name="compare" size={18} />Comparer{compare > 0 && <span className="badge">{compare}</span>}</a>
-          <a href={href('/suivis')} className={active('/suivis') ? 'on' : ''}><Icon name="bell" size={18} />Alertes{watchN > 0 && <span className="badge">{watchN}</span>}</a>
+          <a href={href('/comparateur')} className={active('/comparateur') ? 'on' : ''} title="Comparer"><Icon name="compare" size={18} /><span className="nl">Comparer</span>{compare > 0 && <span className="badge">{compare}</span>}</a>
+          <a href={href('/suivis')} className={active('/suivis') ? 'on' : ''} title="Alertes"><Icon name="bell" size={18} /><span className="nl">Alertes</span>{watchN > 0 && <span className="badge">{watchN}</span>}</a>
         </nav>
         <div className="top-search">{!active(UNIV_HOME[universe]) && <SearchBox placeholder={'Chercher une carte ' + GAMES[universe].label + '…'} />}</div>
         <a className="icon-btn switch" href={href(UNIV_HOME[other])} title={'Passer à ' + GAMES[other].label} aria-label={'Passer à ' + GAMES[other].label} onClick={() => update((s) => { s.universe = other; })}><Icon name="swap" /></a>

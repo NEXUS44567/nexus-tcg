@@ -167,27 +167,33 @@ export function RankingPage() {
   const d = useData();
   const game = useUniverse();
   const [n, setN] = useState(100);
+  const [ed, setEd] = useState('intl');
+  const ja = game === 'pokemon' && ed === 'ja';
   const rows = useMemo(() => {
     if (!d.ready) return [];
     const out = [];
-    for (const g of Object.keys(d.cats)) {
-      if (game !== 'all' && g !== game) continue;
-      for (const c of d.cats[g].cards) { const e = eurOf(c, d.P, d.fx); if (e != null) out.push([e, c]); }
+    for (const c of d.cats[game].cards) {
+      if ((c.lang === 'ja') !== ja) continue;
+      const e = eurOf(c, d.P, d.fx); if (e != null && priceOf(c, d.P)?.divergent !== true) out.push([e, c]);
     }
     return out.sort((a, b) => b[0] - a[0]).slice(0, n);
-  }, [d.ready, d.jp, game, n]);
+  }, [d.ready, d.jp, d.lang, game, n, ja]);
   if (!d.ready) return <div className="page"><Loading /></div>;
+  const first = ja ? 1 : 4;
   return (
     <div className="page">
-      <h1 className="page-title">Les cartes {GAMES[game].label} les plus chères</h1>
-      <Podium game={game} limit={3} />
-      <ol className="ranking big" start={4}>
-        {rows.slice(3).map(([e, c], i) => (
-          <li key={c.key}><a href={cardHref(c)}><span className="pos">{i + 4}</span><CardImage card={c} className="mini" /><span className="r-name">{c.name}<small><GameTag game={c.game} /> {c.number}{c.variant ? ' · ' + c.variant : ''} · {d.cats[c.game].sets.get(c.set)?.name}</small></span><Price card={c} /></a></li>
-        ))}
-      </ol>
+      <h1 className="page-title">Les cartes {GAMES[game].label} {ja ? 'japonaises ' : ''}les plus chères</h1>
+      {game === 'pokemon' && <Seg value={ed} onChange={(v) => { setEd(v); setN(100); }} label="Édition" options={[['intl', 'Internationales (EN / FR)'], ['ja', 'Japonaises']]} />}
+      {!ja && <Podium game={game} limit={3} />}
+      {ja && !d.jp ? <Loading /> : (
+        <ol className="ranking big" start={first}>
+          {rows.slice(first - 1).map(([e, c], i) => (
+            <li key={c.key}><a href={cardHref(c)}><span className="pos">{i + first}</span><CardImage card={c} className="mini" /><span className="r-name">{c.name}{c.lang === 'ja' && c.nameFr ? <em className="r-alt"> · {c.nameFr}</em> : null}<small><GameTag game={c.game} /> {c.number}{c.variant ? ' · ' + c.variant : ''} · {d.cats[c.game].sets.get(c.set)?.name}</small></span><Price card={c} /></a></li>
+          ))}
+        </ol>
+      )}
       {n < 500 && <div className="more"><button className="btn ghost" onClick={() => setN(n + 100)}>Afficher 100 de plus</button></div>}
-      <SourceNote game={game} />
+      <SourceNote game={game} ja={ja} />
     </div>
   );
 }

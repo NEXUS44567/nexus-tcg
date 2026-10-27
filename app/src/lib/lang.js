@@ -48,6 +48,9 @@ export async function applyLang(cats, lang) {
   }
 }
 
+// Les images TCGdex sont stockées sans domaine (« ja/SV/SV1V/001 ») : on ajoute le préfixe compris par img()
+const tcgdexImg = (u) => (!u ? '' : /^(@|https?:)/.test(u) ? u : '@t/' + u);
+
 // Cartes Pokémon japonaises : catalogue séparé, ajouté au catalogue Pokémon une fois chargé
 let jaPromise = null;
 export function loadJapanese(cats) {
@@ -56,12 +59,12 @@ export function loadJapanese(cats) {
     const g = cats.pokemon;
     for (const [code, name, series, date, count, logo, printed] of j.sets) {
       if (g.sets.has(code)) continue;
-      const s = { code, name, series, date, count, logo, printed, game: 'pokemon', lang: 'ja' };
+      const s = { code, name, series, date, count, logo: tcgdexImg(logo), printed, game: 'pokemon', lang: 'ja' };
       g.sets.set(code, s); g.setList.push(s);
     }
     for (const [id, name, set, number, rarity, image, variant, type, nameFr, nameEn] of j.cards) {
       if (g.byId.has(id)) continue;
-      const c = { id, key: 'pokemon:' + id, game: 'pokemon', lang: 'ja', name, set, number, rarity, image, variant, type, nameFr: nameFr || '', nameEn: nameEn || '' };
+      const c = { id, key: 'pokemon:' + id, game: 'pokemon', lang: 'ja', name, set, number, rarity, image: tcgdexImg(image), variant, type, nameFr: nameFr || '', nameEn: nameEn || '' };
       c.q = normalize([name, nameFr, nameEn, number, set, 'jp japonais japanese'].join(' '));
       g.cards.push(c); g.byId.set(id, c);
     }

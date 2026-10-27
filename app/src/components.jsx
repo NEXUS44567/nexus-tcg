@@ -121,7 +121,23 @@ export function Section({ title, kicker, action, children, id, className = '' })
 }
 
 export function Loading({ label = 'Chargement…' }) {
-  return <div className="loading"><span className="spinner" />{label}</div>;
+  const d = useData();
+  const [slow, setSlow] = useState(false);
+  useEffect(() => { const t = setTimeout(() => setSlow(true), 12000); return () => clearTimeout(t); }, []);
+  if (d.error) return (
+    <div className="loading error-box">
+      <Icon name="refresh" size={26} />
+      <b>Impossible de charger les données</b>
+      <span>Vérifie ta connexion, puis réessaie.</span>
+      <button className="btn primary" onClick={() => location.reload()}>Réessayer</button>
+    </div>
+  );
+  return (
+    <div className="loading">
+      <span className="spinner" />{label}
+      {slow && <small className="slow-hint">Ça prend plus de temps que d’habitude… <button className="link" onClick={() => location.reload()}>Recharger</button></small>}
+    </div>
+  );
 }
 
 export function Empty({ icon = 'album', title, children, action }) {
