@@ -92,8 +92,8 @@ export default function App() {
         <button className="icon-btn mobile-search" onClick={() => setSearchOpen(true)} aria-label="Rechercher"><Icon name="search" /></button>
       </header>
       {searchOpen && <div className="search-sheet" onPointerDown={(e) => e.target === e.currentTarget && setSearchOpen(false)}><div><SearchBox autoFocus onDone={() => setSearchOpen(false)} placeholder={'Carte ' + GAMES[universe].label + ' : nom, numéro…'} /><button className="btn ghost" onClick={() => setSearchOpen(false)}>Fermer</button></div></div>}
-      {d.ready && <AlertBanner />}
       <InstallBanner />
+      {d.ready && <AlertBanner />}
       <BackToTop />
       <main id="contenu"><div className="route-fade" key={route.path}>{page}</div></main>
       <footer className="footer">
@@ -231,10 +231,10 @@ function InstallBanner() {
   const close = () => update((s) => { s.installDismissed = true; });
   return (
     <div className="install-banner" role="region" aria-label="Installer l’application">
-      <img src="icon-192.png" alt="" width="40" height="40" />
-      <span><b>Installe NEXUS</b>{evt ? 'Ouverture en un geste, même hors ligne.' : <>Touche <b>Partager</b> puis <b>Sur l’écran d’accueil</b>.</>}</span>
-      {evt && <button className="btn primary small" onClick={async () => { evt.prompt(); try { await evt.userChoice; } catch {} setEvt(null); close(); }}>Installer</button>}
-      <button className="icon-btn" onClick={close} aria-label="Fermer"><Icon name="x" size={16} /></button>
+      <img src="icon-192.png" alt="" width="22" height="22" />
+      <span><b>Installe l’app NEXUS</b> {evt ? '· même hors ligne' : <>· <b>Partager</b> › <b>Écran d’accueil</b></>}</span>
+      {evt && <button className="ib-go" onClick={async () => { evt.prompt(); try { await evt.userChoice; } catch {} setEvt(null); close(); }}>Installer</button>}
+      <button className="ib-x" onClick={close} aria-label="Fermer"><Icon name="x" size={14} /></button>
     </div>
   );
 }

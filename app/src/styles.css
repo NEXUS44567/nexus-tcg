@@ -1710,3 +1710,13 @@ main#contenu:not(.chooser-main) { animation: uv-arrive .45s ease-out; }
 .back-top:hover { border-color: var(--gold); color: var(--gold); }
 @media (min-width: 900px) { .back-top { bottom: 22px; right: 22px; } }
 @media (prefers-reduced-motion: reduce) { .route-fade, .install-banner, .back-top { animation: none; } }
+/* bandeau d'installation : petit, sous la barre du haut */
+.install-banner { position: relative; left: auto; right: auto; bottom: auto; z-index: 1; display: flex; align-items: center; gap: .5rem; max-width: 1180px; width: calc(100% - 32px); margin: .5rem auto 0; padding: .3rem .35rem .3rem .55rem; border-radius: 999px; background: var(--panel); border: 1px solid var(--line-2); box-shadow: none; backdrop-filter: none; animation: ib-in .35s ease-out; font-size: .78rem; }
+.install-banner img { border-radius: 6px; flex: none; }
+.install-banner > span { flex: 1; display: block; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: var(--muted); font-size: .78rem; line-height: 1.2; }
+.install-banner > span > b:first-child { color: var(--text); font-size: .8rem; }
+.install-banner .ib-go { flex: none; padding: .28rem .7rem; border-radius: 999px; border: 0; background: var(--gold); color: #1a1200; font: 800 .74rem/1 var(--body); cursor: pointer; }
+.install-banner .ib-x { flex: none; display: grid; place-items: center; width: 24px; height: 24px; border-radius: 50%; border: 0; background: transparent; color: var(--faint); cursor: pointer; }
+.install-banner .ib-x:hover { color: var(--text); background: var(--panel-2); }
+@keyframes ib-in { from { opacity: 0; transform: translateY(-6px); } }
+@media (min-width: 900px) { .install-banner { bottom: auto; left: auto; right: auto; } }
