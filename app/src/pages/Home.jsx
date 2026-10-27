@@ -47,7 +47,7 @@ export function Movers({ game = 'all', limit = 6 }) {
     for (const g of Object.keys(cats)) {
       if (game !== 'all' && g !== game) continue;
       for (const [id, from, to, pct] of M?.games?.[g]?.[per]?.[dir] || []) {
-        if (!(from >= 0.5 && to / from <= 5 && from / to <= 5)) continue; // erreur ponctuelle d'une source, pas un vrai mouvement
+        const k = per === 'day' ? 3 : 5; if (!(from >= 0.5 && to / from <= k && from / to <= k)) continue; // erreur ponctuelle d'une source, pas un vrai mouvement
         const c = cats[g].byId.get(id); if (c) out.push({ c, from, to, pct });
       }
     }

@@ -258,16 +258,14 @@ async function pokemon(catalog, fx) {
 // (ex. 0,02 € renvoyé un jour pour une carte à 900 €) : on l'efface plutôt que de fausser courbes et mouvements.
 function cleanSeries(s) {
   let n = 0;
-  for (let i = 0; i < s.length; i++) {
-    const v = s[i]; if (v == null) continue;
-    let a = null, b = null;
-    for (let j = i - 1; j >= 0; j--) if (s[j] != null) { a = s[j]; break; }
-    for (let j = i + 1; j < s.length; j++) if (s[j] != null) { b = s[j]; break; }
-    const out = (x, k) => x != null && (v > x * k || v < x / k);
-    if ((a != null && b != null && out(a, 6) && out(b, 6)) || (a == null && b != null && out(b, 20)) || (b == null && a != null && out(a, 20) && false)) { s[i] = null; n++; }
-  }
+  const near = (i, dir) => { for (let j = i + dir; j >= 0 && j < s.length; j += dir) if (s[j] != null) return s[j]; return null; };
+  const out = (v, x, k) => x != null && (v > x * k || v < x / k);
+  // 1) valeurs encadrées par deux relevés cohérents entre eux, d'abord ; 2) puis les bords
+  for (let i = 0; i < s.length; i++) { const v = s[i]; if (v == null) continue; const a = near(i, -1), b = near(i, 1); if (a != null && b != null && out(v, a, 6) && out(v, b, 6)) { s[i] = null; n++; } }
+  for (let i = 0; i < s.length; i++) { const v = s[i]; if (v == null) continue; const a = near(i, -1), b = near(i, 1); if (a == null && b != null) { const c = (() => { let k = 0; for (let j = i + 1; j < s.length; j++) if (s[j] != null && ++k === 2) return s[j]; return null; })(); if (out(v, b, 20) && (c == null || !out(b, c, 6))) { s[i] = null; n++; } } }
   return n;
 }
+
 function updateHistory(game, catalog, prices) {
   const bySet = new Map();
   for (const c of catalog.cards) { if (!bySet.has(c[2])) bySet.set(c[2], []); bySet.get(c[2]).push(c[0]); }
@@ -314,8 +312,8 @@ function market(cats, all, fx) {
       for (const [id, s] of Object.entries(h.p)) {
         if (prices.items[id]?.[6] === 'x') continue;
         const [a, b] = lastTwo(s);
-        const sane = (x, y) => x >= 0.5 && y / x <= 5 && x / y <= 5; // écarts plausibles en un jour / une semaine
-        if (a != null && b != null && b >= 5 && a !== b && sane(a, b)) day.push([id, a, b, round(((b - a) / a) * 100)]);
+        const sane = (x, y, k = 5) => x >= 0.5 && y / x <= k && x / y <= k; // écarts plausibles en un jour (×3) / une semaine (×5)
+        if (a != null && b != null && b >= 5 && a !== b && sane(a, b, 3)) day.push([id, a, b, round(((b - a) / a) * 100)]);
         const n = s.length; const old = s.slice(Math.max(0, n - 8), Math.max(0, n - 6)).find((v) => v != null);
         if (old != null && b != null && b >= 5 && n >= 7 && old !== b && sane(old, b)) week.push([id, old, b, round(((b - old) / old) * 100)]);
       }
