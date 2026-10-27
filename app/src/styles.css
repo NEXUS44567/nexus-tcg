@@ -106,7 +106,7 @@ main { max-width: 1180px; margin: 0 auto; padding: 0 16px; }
 .section { margin: 2.6rem 0; }
 .section-head { display: flex; align-items: flex-end; justify-content: space-between; gap: 1rem; margin-bottom: 1rem; }
 .section-head h2 { font-size: clamp(1.45rem, 3.6vw, 2.05rem); margin: 0; }
-.tabbar { position: fixed; left: 0; right: 0; bottom: 0; z-index: 60; display: grid; grid-template-columns: repeat(5, 1fr); height: calc(var(--tabbar) + env(safe-area-inset-bottom)); padding-bottom: env(safe-area-inset-bottom); background: color-mix(in srgb, var(--bg-2) 94%, transparent); backdrop-filter: blur(14px); border-top: 1px solid var(--line); }
+.tabbar { position: fixed; left: 0; right: 0; bottom: 0; z-index: 60; display: grid; grid-template-columns: repeat(var(--tabs, 5), 1fr); height: calc(var(--tabbar) + env(safe-area-inset-bottom)); padding-bottom: env(safe-area-inset-bottom); background: color-mix(in srgb, var(--bg-2) 94%, transparent); backdrop-filter: blur(14px); border-top: 1px solid var(--line); }
 .tabbar a { display: grid; place-items: center; align-content: center; gap: 2px; color: var(--faint); font-size: .7rem; font-weight: 700; }
 .tabbar a.on { color: var(--text); }
 .tabbar a.on .icon { color: var(--gold); }
@@ -1599,3 +1599,8 @@ main#contenu:not(.chooser-main) { animation: uv-arrive .45s ease-out; }
 .set-art.big .sa-card { width: 120px; bottom: -30px; }
 .set-art.big .p0 { transform: translateX(-50%) translateX(-86px) rotate(-16deg) scale(.9); }
 .set-art.big .p2 { transform: translateX(-50%) translateX(86px) rotate(16deg) scale(.9); }
+/* barre d'onglets à 6 boutons (Extensions ajouté) */
+.tabbar { --tabs: 6; }
+.tabbar a { font-size: .64rem; letter-spacing: -.01em; min-width: 0; }
+.tabbar a > span { max-width: 100%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+@media (max-width: 360px) { .tabbar a { font-size: .58rem; } }

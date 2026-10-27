@@ -9,6 +9,7 @@ export function Icon({ name, size = 20 }) {
     home: <><path d="M3 11 12 4l9 7" /><path d="M5 10v10h14V10" /></>,
     scan: <><path d="M4 8V5a1 1 0 0 1 1-1h3M16 4h3a1 1 0 0 1 1 1v3M20 16v3a1 1 0 0 1-1 1h-3M8 20H5a1 1 0 0 1-1-1v-3" /><rect x="8" y="7" width="8" height="10" rx="1" /></>,
     pack: <><path d="M6 3h12l-1 3H7z" /><rect x="5" y="6" width="14" height="15" rx="2" /><path d="M9 11h6M9 15h4" /></>,
+    sets: <><rect x="3" y="8" width="8" height="12" rx="1.2" transform="rotate(-10 7 14)" /><rect x="13" y="8" width="8" height="12" rx="1.2" transform="rotate(10 17 14)" /><rect x="8" y="4" width="8" height="12" rx="1.2" fill="var(--bg-2)" /></>,
     album: <><rect x="5" y="3" width="15" height="18" rx="2" /><path d="M3 7.5h4M3 12h4M3 16.5h4" /><rect x="9" y="6" width="3.6" height="5" rx=".6" /><rect x="14" y="6" width="3.6" height="5" rx=".6" /><rect x="9" y="13" width="3.6" height="5" rx=".6" /><rect x="14" y="13" width="3.6" height="5" rx=".6" /></>,
     chart: <><path d="M4 19V5M4 19h16" /><path d="m7 15 4-4 3 3 5-6" /></>,
     eye: <><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z" /><circle cx="12" cy="12" r="3" /></>,

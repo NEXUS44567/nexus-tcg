@@ -16,8 +16,8 @@ import EquipagePage, { MemberPage } from './pages/Equipage.jsx';
 import { SearchPage, ComparePage, WatchPage, RankingPage, SetsPage, SetPage, checkAlerts } from './pages/Market.jsx';
 
 const NAVS = {
-  onepiece: [['/op', 'Accueil', 'home'], ['/equipage', 'Équipage', 'crew'], ['/scanner', 'Scanner', 'scan'], ['/boosters', 'Boosters', 'pack'], ['/collection', 'Collection', 'album']],
-  pokemon: [['/pk', 'Accueil', 'home'], ['/pokedex', 'Pokédex', 'dex'], ['/scanner', 'Scanner', 'scan'], ['/boosters', 'Boosters', 'pack'], ['/collection', 'Collection', 'album']],
+  onepiece: [['/op', 'Accueil', 'home'], ['/extensions', 'Extensions', 'sets'], ['/equipage', 'Équipage', 'crew'], ['/scanner', 'Scanner', 'scan'], ['/boosters', 'Boosters', 'pack'], ['/collection', 'Collection', 'album']],
+  pokemon: [['/pk', 'Accueil', 'home'], ['/extensions', 'Extensions', 'sets'], ['/pokedex', 'Pokédex', 'dex'], ['/scanner', 'Scanner', 'scan'], ['/boosters', 'Boosters', 'pack'], ['/collection', 'Collection', 'album']],
 };
 
 export default function App() {
@@ -63,7 +63,7 @@ export default function App() {
 
   const nav = NAVS[universe];
   const other = universe === 'onepiece' ? 'pokemon' : 'onepiece';
-  const active = (to) => (to === UNIV_HOME[universe] ? route.path === to : route.path.startsWith(to));
+  const active = (to) => (to === UNIV_HOME[universe] ? route.path === to : to === '/extensions' ? /^\/extensions?(\/|$)/.test(route.path) : route.path.startsWith(to));
   return (
     <div className={'shell u-' + universe} data-game={universe}>
       <a className="skip" href="#contenu">Aller au contenu</a>
