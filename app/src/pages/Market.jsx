@@ -1,7 +1,7 @@
 import React, { useMemo, useState } from 'react';
 import { useData, useAsync, href, cardHref } from '../lib/hooks.js';
 import { useStore, toggleCompare, toggleWatch, setAlert, getState, useUniverse } from '../lib/store.js';
-import { priceOf, eurOf, historyOf, search, fmtEur, fmtUsd, fmtDate, fmtNum, GAMES, img } from '../lib/data.js';
+import { CUR, toDisp, fromDisp, priceOf, eurOf, historyOf, search, fmtEur, fmtUsd, fmtDate, fmtNum, GAMES, img } from '../lib/data.js';
 import { CardImage, CardTile, PriceChart, SearchBox, Section, Loading, Empty, Icon, GameTag, Delta, Seg, Price, SourceNote, Sparkline } from '../components.jsx';
 import { Podium } from './Home.jsx';
 
@@ -149,8 +149,8 @@ export function WatchPage() {
                 <a href={cardHref(c)}><CardImage card={c} className="mini" /></a>
                 <a className="w-name" href={cardHref(c)}>{c.name}<small><GameTag game={c.game} /> {c.number}{c.variant ? ' · ' + c.variant : ''}</small></a>
                 <div className="w-price"><Price card={c} />{ch != null && <small><Delta pct={ch} small /> depuis le suivi</small>}</div>
-                <label className="w-th">Sous <input type="number" min="0" inputMode="decimal" defaultValue={w.below ?? ''} onBlur={(e) => setAlert(c.key, { below: e.target.value === '' ? null : +e.target.value })} /> €</label>
-                <label className="w-th">Au-dessus <input type="number" min="0" inputMode="decimal" defaultValue={w.above ?? ''} onBlur={(e) => setAlert(c.key, { above: e.target.value === '' ? null : +e.target.value })} /> €</label>
+                <label className="w-th">Sous <input key={CUR.code} type="number" min="0" inputMode="decimal" defaultValue={w.below != null ? Math.round(toDisp(w.below) * 100) / 100 : ''} onBlur={(e) => setAlert(c.key, { below: e.target.value === '' ? null : fromDisp(+e.target.value) })} /> {CUR.sym}</label>
+                <label className="w-th">Au-dessus <input key={CUR.code + 'a'} type="number" min="0" inputMode="decimal" defaultValue={w.above != null ? Math.round(toDisp(w.above) * 100) / 100 : ''} onBlur={(e) => setAlert(c.key, { above: e.target.value === '' ? null : fromDisp(+e.target.value) })} /> {CUR.sym}</label>
                 {hits.has(c.key) && <span className="hit-badge"><Icon name="bell" size={14} />Seuil atteint</span>}
                 <button className="icon-btn" onClick={() => toggleWatch(c.key)} aria-label="Ne plus suivre"><Icon name="trash" size={18} /></button>
               </div>

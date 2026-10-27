@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { img, priceOf, eurOf, fmtEur, fmtUsd, fmtPct, fmtDate, search, GAMES } from './lib/data.js';
+import { img, priceOf, eurOf, CUR, fmtEur, fmtUsd, fmtPct, fmtDate, search, GAMES } from './lib/data.js';
 import { useData, href, cardHref, go } from './lib/hooks.js';
 import { useStore, toggleWatch, toggleCompare, useUniverse } from './lib/store.js';
 
@@ -76,8 +76,8 @@ export function Price({ card, big }) {
   const eur = eurOf(card, P, fx);
   if (eur == null) return <span className={'price none' + (big ? ' big' : '')}>Pas de prix relevé</span>;
   return (
-    <span className={'price' + (big ? ' big' : '')} title={p.converted ? 'Prix TCGplayer en dollars converti en euros' : 'Prix Cardmarket'}>
-      {p.converted && <span className="approx">≈</span>}{fmtEur(eur)}
+    <span className={'price' + (big ? ' big' : '')} title={(p.converted ? 'Prix TCGplayer en dollars' : 'Prix Cardmarket en euros') + ((p.converted ? 'USD' : 'EUR') !== CUR.code ? ', converti en ' + CUR.name : '')}>
+      {(p.converted ? 'USD' : 'EUR') !== CUR.code && <span className="approx">≈</span>}{fmtEur(eur)}
     </span>
   );
 }
@@ -285,6 +285,7 @@ export function SourceNote({ game, ja }) {
       Source : <a href={s.url} target="_blank" rel="noreferrer">{s.name}</a> · relevé du {fmtDate(P[game].updatedAt)}
       {game === 'onepiece' && s.fx && <> · converti au taux {s.fx.usdEur.toLocaleString('fr-FR', { maximumFractionDigits: 4 })} € pour 1 $ ({s.fx.source})</>}
       {g && <> · {g.priced.toLocaleString('fr-FR')} cartes avec un prix</>}
+      {CUR.code !== 'EUR' && <> · affiché en {CUR.name} : 1 € = {CUR.rate.toLocaleString('fr-FR', { maximumFractionDigits: CUR.code === 'JPY' ? 2 : 4 })} {CUR.sym}</>}
     </p>
   );
 }

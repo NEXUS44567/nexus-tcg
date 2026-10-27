@@ -5,7 +5,7 @@ on:
     - cron: '41 3 * * 1'   # chaque lundi vers 4 h 41 (heure de Paris en hiver)
   push:
     branches: [main]
-    paths: ['scripts/build-lang.mjs', '.github/workflows/langues.yml']
+    paths: ['scripts/build-lang.mjs', 'scripts/fetch-prices.mjs', '.github/workflows/langues.yml']
   workflow_dispatch:
     inputs:
       only:

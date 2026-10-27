@@ -127,10 +127,21 @@ export function search(cats, query, { game = 'all', limit = 60, P } = {}) {
   return out.slice(0, limit).map((x) => x[1]);
 }
 
+// Devise d'affichage selon la langue choisie : FR → euros, EN → dollars, JP → yens.
+// Tous les prix restent stockés en euros ; la conversion se fait à l'affichage (taux du jour du relevé).
+export const CUR = { code: 'EUR', rate: 1, locale: 'fr-FR', name: 'euros', sym: '€' };
+export function setDisplayCurrency(lang, fx) {
+  if (lang === 'en' && fx?.usdEur) Object.assign(CUR, { code: 'USD', rate: 1 / fx.usdEur, locale: 'en-US', name: 'dollars', sym: '$' });
+  else if (lang === 'ja' && fx?.eurJpy) Object.assign(CUR, { code: 'JPY', rate: fx.eurJpy, locale: 'ja-JP', name: 'yens', sym: '¥' });
+  else Object.assign(CUR, { code: 'EUR', rate: 1, locale: 'fr-FR', name: 'euros', sym: '€' });
+}
+export const toDisp = (eur) => (eur == null ? null : eur * CUR.rate);
+export const fromDisp = (v) => (v == null ? null : v / CUR.rate);
 export const fmtEur = (n, { decimals } = {}) => {
   if (n == null || !isFinite(n)) return '—';
-  const d = decimals ?? (n >= 1000 ? 0 : 2);
-  return n.toLocaleString('fr-FR', { style: 'currency', currency: 'EUR', minimumFractionDigits: d, maximumFractionDigits: d });
+  const v = n * CUR.rate;
+  const d = CUR.code === 'JPY' ? 0 : decimals ?? (v >= 1000 ? 0 : 2);
+  return v.toLocaleString(CUR.locale, { style: 'currency', currency: CUR.code, minimumFractionDigits: d, maximumFractionDigits: d });
 };
 export const fmtUsd = (n) => (n == null ? '—' : n.toLocaleString('fr-FR', { style: 'currency', currency: 'USD', maximumFractionDigits: n >= 1000 ? 0 : 2 }));
 export const fmtPct = (n) => (n == null ? '—' : (n > 0 ? '+' : '') + n.toLocaleString('fr-FR', { maximumFractionDigits: 1 }) + ' %');

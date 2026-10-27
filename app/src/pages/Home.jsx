@@ -12,7 +12,7 @@ export function Podium({ game, limit = 10 }) {
     const out = [];
     for (const g of Object.keys(cats)) {
       if (game !== 'all' && g !== game) continue;
-      for (const [id, eur] of M?.games?.[g]?.podium || []) { const c = cats[g].byId.get(id); if (c) out.push({ c, eur }); }
+      for (const [id, eur] of M?.games?.[g]?.podium || []) { if (id.startsWith('jp-')) continue; const c = cats[g].byId.get(id); if (c) out.push({ c, eur }); }
     }
     return out.sort((a, b) => b.eur - a.eur).slice(0, limit);
   }, [cats, M, game]);
@@ -161,8 +161,8 @@ export default function Home({ game }) {
       <Section kicker="Transparence" title="D’où viennent les prix ?" className="faq">
         <div className="faq-grid">
           {game === 'onepiece'
-            ? <div><h3>One Piece</h3><p>Prix de marché TCGplayer, relevé chaque matin par optcgapi.com, converti en euros au taux du jour. Chaque version (standard, parallèle, réimpression) a son propre prix.</p><SourceNote game="onepiece" /></div>
-            : <div><h3>Pokémon</h3><p>Tendance Cardmarket en euros, avec les moyennes sur 1, 7 et 30 jours et le prix TCGplayer quand il existe. Les cartes dont les deux sources divergent fortement sont signalées.</p><SourceNote game="pokemon" /></div>}
+            ? <div><h3>One Piece</h3><p>Prix de marché TCGplayer, relevé chaque matin par optcgapi.com. Chaque version (standard, parallèle, réimpression) a son propre prix.</p><SourceNote game="onepiece" /></div>
+            : <div><h3>Pokémon</h3><p>Tendance Cardmarket, avec les moyennes sur 1, 7 et 30 jours et le prix TCGplayer quand il existe. Les cartes dont les deux sources divergent fortement sont signalées.</p><SourceNote game="pokemon" /></div>}
           <div><h3>Et si une carte n’a pas de prix ?</h3><p>On affiche « Pas de prix relevé ». Aucun prix n’est inventé ni estimé à partir d’une autre carte.</p></div>
           <div><h3>Mes données ?</h3><p>Ta collection, tes suivis et tes boosters restent dans ton navigateur. Tu peux les exporter à tout moment depuis ta collection.</p></div>
         </div>

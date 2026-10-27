@@ -42,8 +42,14 @@ async function usdToEur() {
     ['https://api.frankfurter.app/latest?from=USD&to=EUR', (j) => [j.rates?.EUR, j.date, 'BCE via frankfurter.app']],
     ['https://open.er-api.com/v6/latest/USD', (j) => [j.rates?.EUR, (j.time_last_update_utc || '').slice(0, 16), 'open.er-api.com']],
   ];
+  // Yen : pour afficher les prix en yens quand la langue choisie est le japonais
+  let eurJpy = null;
+  for (const [u, pick] of [['https://api.frankfurter.app/latest?from=EUR&to=JPY', (j) => j.rates?.JPY], ['https://open.er-api.com/v6/latest/EUR', (j) => j.rates?.JPY]]) {
+    try { const v = pick(await getJSON(u, { tries: 2 })); if (v > 0) { eurJpy = v; break; } } catch (e) { log('fx jpy', u, e.message); }
+  }
+  if (!eurJpy && prev?.eurJpy) eurJpy = prev.eurJpy;
   for (const [u, pick] of tries) {
-    try { const [rate, date, src] = pick(await getJSON(u, { tries: 2 })); if (rate > 0) return { usdEur: rate, date, source: src }; } catch (e) { log('fx', u, e.message); }
+    try { const [rate, date, src] = pick(await getJSON(u, { tries: 2 })); if (rate > 0) return { usdEur: rate, eurJpy, date, source: src }; } catch (e) { log('fx', u, e.message); }
   }
   if (prev?.usdEur) return { ...prev, stale: true };
   throw new Error('Aucun taux de change disponible');
@@ -221,8 +227,14 @@ async function pokemon(catalog, fx) {
   const ids = new Set(catalog.cards.map((c) => c[0]));
   let r = null;
   try { r = await pokemonTcgIo(ids); log('pokemontcg prix', Object.keys(r.items).length); } catch (e) { log('pokemontcg indisponible :', e.message); }
-  if (!r || Object.keys(r.items).length < 1000) {
-    try { const t = await tcgdex(catalog); if (!r || Object.keys(t.items).length > Object.keys(r.items).length) r = t; } catch (e) { log('tcgdex indisponible :', e.message); if (!r) throw e; }
+  // pokemontcg.io répond parfois partiellement : on complète les cartes manquantes avec TCGdex
+  const prevCount = Object.keys(readJSON(path.join(DB, 'prices', 'pokemon.json'), { items: {} }).items || {}).filter((k) => !k.startsWith('jp-')).length;
+  if (!r || Object.keys(r.items).length < Math.max(1000, prevCount * 0.9, catalog.cards.length * 0.8)) {
+    try {
+      const t = await tcgdex(catalog);
+      if (!r) r = t;
+      else { let added = 0; for (const [id, v] of Object.entries(t.items)) if (!r.items[id]) { r.items[id] = v; added++; } log('complément TCGdex', added); if (added) r.name += ' (complété par TCGdex)'; }
+    } catch (e) { log('tcgdex indisponible :', e.message); if (!r) throw e; }
   }
   sanitizePokemon(r.items, fx);
   try {
@@ -274,7 +286,8 @@ function market(cats, all, fx) {
     const byId = new Map(cat.cards.map((c) => [c[0], c]));
     const list = Object.entries(prices.items).filter(([, v]) => v[0] != null && v[6] !== 'x').map(([id, v]) => ({ id, eur: v[0], c: byId.get(id) })).filter((x) => x.c);
     list.sort((a, b) => b.eur - a.eur);
-    const podium = list.slice(0, 25).map((x) => [x.id, x.eur]);
+    // Podium : cartes internationales (FR / EN) seulement, sans les cartes japonaises
+    const podium = list.filter((x) => !x.id.startsWith('jp-')).slice(0, 25).map((x) => [x.id, x.eur]);
 
     const day = [], week = [];
     const histDir = path.join(DB, 'history', game);

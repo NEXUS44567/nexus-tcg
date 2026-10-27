@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { useData, useAsync, href, cardHref } from '../lib/hooks.js';
 import { useStore, addToCollection, setAlert, pushRecent, CONDITIONS } from '../lib/store.js';
-import { priceOf, eurOf, historyOf, fmtEur, fmtUsd, fmtDate, fmtPct, normalize, GAMES } from '../lib/data.js';
+import { CUR, toDisp, fromDisp, priceOf, eurOf, historyOf, fmtEur, fmtUsd, fmtDate, fmtPct, normalize, GAMES } from '../lib/data.js';
 import { CardImage, LangTag, PriceChart, WatchButton, CompareButton, Icon, GameTag, Delta, Loading, Empty, CardTile, Section, SourceNote, Seg } from '../components.jsx';
 
 export function useTilt() {
@@ -49,9 +49,11 @@ export default function CardPage({ cardKey }) {
   const others = [...siblings, ...alsoName.sort((a, b) => (eurOf(b, P, fx) || 0) - (eurOf(a, P, fx) || 0))].slice(0, 12);
   const enName = card.en?.name || card.nameEn || card.name;
   const cmQuery = encodeURIComponent(enName + ' ' + (card.game === 'onepiece' ? card.number : ''));
-  const priceLabel = card.lang === 'ja' ? 'Prix du jour · Cardmarket, version japonaise'
-    : card.game === 'onepiece' ? 'Prix TCGplayer de la version anglaise, converti en euros'
-    : p?.converted ? 'Prix TCGplayer converti en euros (toutes langues)' : 'Prix du jour · Cardmarket, toutes langues confondues';
+  const srcCur = p?.converted ? 'USD' : 'EUR';
+  const conv = srcCur !== CUR.code ? ', converti en ' + CUR.name : '';
+  const priceLabel = card.lang === 'ja' ? 'Prix du jour · Cardmarket, version japonaise' + conv
+    : card.game === 'onepiece' ? 'Prix TCGplayer de la version anglaise' + conv
+    : p?.converted ? 'Prix TCGplayer (toutes langues)' + conv : 'Prix du jour · Cardmarket, toutes langues confondues' + conv;
   const scopeNote = card.lang === 'ja' ? 'Prix des exemplaires japonais vendus sur Cardmarket (Europe), pas celui des boutiques au Japon.'
     : card.game === 'onepiece' ? 'Ce prix est celui de la version anglaise : il n’existe pas de relevé gratuit des prix français ou japonais.'
     : 'Cardmarket regroupe toutes les langues (français, anglais, allemand…) dans un même prix : il n’existe pas de relevé gratuit propre à la version française.';
@@ -78,7 +80,7 @@ export default function CardPage({ cardKey }) {
           <div className="price-box">
             <div className="pb-main">
               <span className="pb-label">{priceLabel}</span>
-              <span className="pb-value">{eur != null ? <>{p?.converted && <span className="approx">≈</span>}{fmtEur(eur)}</> : 'Pas de prix relevé'}</span>
+              <span className="pb-value">{eur != null ? <>{srcCur !== CUR.code && <span className="approx">≈</span>}{fmtEur(eur)}</> : 'Pas de prix relevé'}</span>
               {change != null && <span className="pb-change"><Delta pct={change} /> depuis le {fmtDate(points[0][0], { day: 'numeric', month: 'short' })}</span>}
             </div>
             {p && (
@@ -181,16 +183,17 @@ function AddButton({ card }) {
 
 function AlertEditor({ card, eur }) {
   const w = useStore((s) => s.watch[card.key]);
-  const [below, setBelow] = useState(w?.below ?? '');
-  const [above, setAbove] = useState(w?.above ?? '');
-  useEffect(() => { setBelow(w?.below ?? ''); setAbove(w?.above ?? ''); }, [w?.below, w?.above]);
+  const show = (v) => (v == null || v === '' ? '' : Math.round(toDisp(v) * (CUR.code === 'JPY' ? 1 : 100)) / (CUR.code === 'JPY' ? 1 : 100));
+  const [below, setBelow] = useState(show(w?.below));
+  const [above, setAbove] = useState(show(w?.above));
+  useEffect(() => { setBelow(show(w?.below)); setAbove(show(w?.above)); }, [w?.below, w?.above, CUR.code]);
   if (!w) return null;
-  const save = () => setAlert(card.key, { below: below === '' ? null : +below, above: above === '' ? null : +above, baseline: w.baseline ?? eur });
+  const save = () => setAlert(card.key, { below: below === '' ? null : fromDisp(+below), above: above === '' ? null : fromDisp(+above), baseline: w.baseline ?? eur });
   return (
     <div className="alert-editor">
       <Icon name="bell" size={18} />
-      <label>Préviens-moi sous <input type="number" min="0" step="0.5" inputMode="decimal" value={below} onChange={(e) => setBelow(e.target.value)} onBlur={save} placeholder={eur ? Math.round(eur * 0.9) : ''} /> €</label>
-      <label>ou au-dessus de <input type="number" min="0" step="0.5" inputMode="decimal" value={above} onChange={(e) => setAbove(e.target.value)} onBlur={save} placeholder={eur ? Math.round(eur * 1.1) : ''} /> €</label>
+      <label>Préviens-moi sous <input type="number" min="0" step="0.5" inputMode="decimal" value={below} onChange={(e) => setBelow(e.target.value)} onBlur={save} placeholder={eur ? Math.round(toDisp(eur) * 0.9) : ''} /> {CUR.sym}</label>
+      <label>ou au-dessus de <input type="number" min="0" step="0.5" inputMode="decimal" value={above} onChange={(e) => setAbove(e.target.value)} onBlur={save} placeholder={eur ? Math.round(toDisp(eur) * 1.1) : ''} /> {CUR.sym}</label>
       <small>Vérifié à chaque relevé quotidien, quand tu ouvres NEXUS.</small>
     </div>
   );

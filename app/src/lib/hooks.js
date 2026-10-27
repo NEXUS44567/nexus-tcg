@@ -1,5 +1,5 @@
 import { useEffect, useState, useSyncExternalStore } from 'react';
-import { allCatalogs, allPrices, market } from './data.js';
+import { allCatalogs, allPrices, market, setDisplayCurrency } from './data.js';
 import { applyLang, loadJapanese } from './lang.js';
 import { getState, onStore } from './store.js';
 
@@ -40,6 +40,7 @@ function start() {
     const fx = M?.fx?.usdEur || P.onepiece?.source?.fx?.usdEur || null;
     let lang = getState().lang || 'en';
     try { await applyLang(cats, lang); } catch {}
+    setDisplayCurrency(lang, M?.fx);
     data = { ready: true, cats, P, M, fx, lang, jp: false };
     emitData();
     // cartes japonaises Pokémon, chargées en arrière-plan
@@ -49,7 +50,7 @@ function start() {
       const l = getState().lang || 'en';
       if (l === lang) return;
       lang = l;
-      applyLang(cats, l).then(() => { if (lang === l) { data = { ...data, lang: l }; emitData(); } });
+      applyLang(cats, l).then(() => { if (lang === l) { setDisplayCurrency(l, data.M?.fx); data = { ...data, lang: l }; emitData(); } });
     });
   }).catch((e) => { data = { ready: false, error: e.message }; emitData(); });
 }
