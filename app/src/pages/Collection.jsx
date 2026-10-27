@@ -51,7 +51,7 @@ export default function CollectionPage() {
     const val = (x) => (eurOf(x.c, d.P, d.fx) || 0) * condOf(x.e.cond).factor;
     const sorters = { valeur: (a, b) => val(b) - val(a), recent: (a, b) => b.e.addedAt.localeCompare(a.e.addedAt), nom: (a, b) => a.c.name.localeCompare(b.c.name), extension: (a, b) => a.c.set.localeCompare(b.c.set) || a.c.number.localeCompare(b.c.number, 'fr', { numeric: true }) };
     return list.sort(sorters[sort]);
-  }, [d.ready, coll, game, sort, q]);
+  }, [d.ready, d.jp, d.lang, coll, game, sort, q]);
 
   const histSets = useMemo(() => [...new Set(coll.map((e) => { const c = d.ready && resolve(d, e.key); return c ? c.game + '/' + c.set : null; }).filter(Boolean))], [coll, d.ready]);
   const valueHist = useAsync(async () => {

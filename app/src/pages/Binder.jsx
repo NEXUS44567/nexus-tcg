@@ -192,7 +192,7 @@ export function SharedBinderPage({ code }) {
   const items = useMemo(() => {
     if (!d.ready || !res?.entries) return [];
     return res.entries.map((e) => { const [g, ...r] = e.key.split(':'); return { e, c: d.cats[g]?.byId.get(r.join(':')) }; }).filter((x) => x.c);
-  }, [d.ready, res]);
+  }, [d.ready, d.jp, res]);
   useEffect(() => { if (res?.name != null) document.title = (res.name || 'Classeur') + ' · NEXUS TCG'; }, [res]);
   if (!res || !d.ready) return <div className="page"><Loading /></div>;
   if (res.error) return <div className="page"><h1 className="page-title">Ce lien de classeur ne marche pas</h1><p className="muted">{res.error === 'navigateur trop ancien' ? 'Ton navigateur est trop ancien pour lire ce lien : mets-le à jour (iOS 16.4 ou plus récent, Chrome, Firefox…).' : 'Il est peut-être incomplet. Demande à la personne de te le renvoyer.'}</p><a className="btn primary" href={href('/collection')}>Créer mon classeur</a></div>;

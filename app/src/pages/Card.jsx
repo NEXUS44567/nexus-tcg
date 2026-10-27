@@ -30,8 +30,8 @@ export default function CardPage({ cardKey }) {
     if (!d.ready) return null;
     const [g, ...r] = cardKey.split(':');
     return d.cats[g]?.byId.get(r.join(':')) || null;
-  }, [d.ready, cardKey]);
-  useEffect(() => { if (card) { pushRecent(card.key); document.title = card.name + ' ' + card.number + ' · prix · NEXUS TCG'; } }, [card]);
+  }, [d.ready, d.jp, cardKey]);
+  useEffect(() => { if (card) { pushRecent(card.key); document.title = card.name + ' ' + card.number + ' · prix · NEXUS TCG'; } }, [card, d.lang]);
   const hist = useAsync(() => (card ? historyOf(card) : []), [card?.key]);
   const tilt = useTilt();
   if (!d.ready || (!card && cardKey.includes(':jp-') && !d.jp)) return <div className="page"><Loading /></div>;

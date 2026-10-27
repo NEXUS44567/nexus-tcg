@@ -15,7 +15,7 @@ export function SearchPage({ query }) {
   const game = query.u || universe;
   const [sort, setSort] = useState('pertinence');
   const [shown, setShown] = useState(60);
-  const res = useMemo(() => (d.ready ? search(d.cats, q, { game, limit: 2000, P: d.P }) : []), [d.ready, q, game]);
+  const res = useMemo(() => (d.ready ? search(d.cats, q, { game, limit: 2000, P: d.P }) : []), [d.ready, d.jp, d.lang, q, game]);
   const sorted = useMemo(() => {
     if (sort === 'pertinence') return res;
     const v = (c) => eurOf(c, d.P, d.fx) ?? -1;
@@ -175,7 +175,7 @@ export function RankingPage() {
       for (const c of d.cats[g].cards) { const e = eurOf(c, d.P, d.fx); if (e != null) out.push([e, c]); }
     }
     return out.sort((a, b) => b[0] - a[0]).slice(0, n);
-  }, [d.ready, game, n]);
+  }, [d.ready, d.jp, game, n]);
   if (!d.ready) return <div className="page"><Loading /></div>;
   return (
     <div className="page">

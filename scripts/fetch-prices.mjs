@@ -209,7 +209,7 @@ async function pokemonJaPrices(jaCatalog) {
     try {
       const c = await getJSON('https://api.tcgdex.net/v2/ja/cards/' + encodeURIComponent(id.slice(3)), { tries: 3 });
       const cm = c.pricing?.cardmarket || c.variants_detailed?.find((v) => v.pricing?.cardmarket)?.pricing?.cardmarket || null;
-      if (cm) { const it = pokemonItem(cm, null); if (it && it[0] != null) { items[id] = it; if (cm.updated && (!latest || cm.updated > latest)) latest = cm.updated; } }
+      if (cm) { const it = pokemonItem(cm, null); if (it && it[0] != null && it[3] != null && Math.abs(it[0] - it[3]) / it[3] > 0.4) it[0] = it[3]; /* marché japonais peu échangé : la tendance s'emballe, on garde la moyenne 30 j */ if (it && it[0] != null) { items[id] = it; if (cm.updated && (!latest || cm.updated > latest)) latest = cm.updated; } }
     } catch { fails++; }
     if (++done % 3000 === 0) log('JP', done, '/', ids.length, 'échecs', fails);
   });
