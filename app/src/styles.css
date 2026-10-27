@@ -1621,3 +1621,9 @@ main#contenu:not(.chooser-main) { animation: uv-arrive .45s ease-out; }
 .set-art.has-pack .sa-card { width: 56px; bottom: -48px; }
 .set-art.has-pack .sa-pack { top: 8px; height: 70%; }
 .set-card:hover .set-art.has-pack .p1 { transform: translateX(-50%) translateY(-14px) scale(1.04); }
+/* Emblèmes en image (gemme / aplats) */
+.univ-pill img { flex: none; }
+.bd-emblem { background: none; box-shadow: none; padding: 0; filter: drop-shadow(0 6px 10px rgba(0,0,0,.55)); }
+.bd-emblem img { width: 100%; height: 100%; }
+.w-emblem img { width: 100%; height: 100%; }
+.cb-emblem { object-fit: contain; }

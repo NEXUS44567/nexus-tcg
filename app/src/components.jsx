@@ -318,53 +318,19 @@ function SpeedLines({ cx = 100, cy = 100, r0 = 70, r1 = 98, n = 28, color = INK 
   return <g stroke={color} strokeLinecap="round">{Array.from({ length: n }, (_, k) => { const a = (k / n) * Math.PI * 2 + (k % 2) * 0.05; const [x0, y0] = pt(cx, cy, r0 + (k % 3) * 4, a); const [x1, y1] = pt(cx, cy, r1, a); return <line key={k} x1={x0} y1={y0} x2={x1} y2={y1} strokeWidth={k % 3 ? 2 : 3.5} />; })}</g>;
 }
 
-// One Piece : boussole ronde à 8 pointes, cadran crème et tête de mort (version simplifiée)
-export function PirateEmblem({ size = 44, className = 'emblem' }) {
-  const spikes = Array.from({ length: 8 }, (_, k) => {
-    const a = -Math.PI / 2 + (k * Math.PI) / 4, long = k % 2 === 0;
-    const [tx, ty] = pt(100, 100, long ? 98 : 86, a), [lx, ly] = pt(100, 100, 66, a - (long ? 0.24 : 0.2)), [rx, ry] = pt(100, 100, 66, a + (long ? 0.24 : 0.2));
-    return { k, long, d: `M${lx} ${ly}L${tx} ${ty}L${rx} ${ry}Z` };
-  });
-  return (
-    <svg viewBox="0 0 200 200" width={size} height={size} className={className} aria-hidden="true">
-      {spikes.map((x) => <path key={x.k} d={x.d} fill={x.long ? '#ffd23f' : '#ffffff'} stroke={INK} strokeWidth="5" strokeLinejoin="round" />)}
-      <circle cx="100" cy="100" r="68" fill="#e2302b" stroke={INK} strokeWidth="6" />
-      <circle cx="100" cy="100" r="52" fill="#fff8e6" stroke={INK} strokeWidth="5" />
-      <g transform="translate(100 99) scale(.72) translate(-100 -95)">
-        <path d="M100 62c-20 0-33 13-33 30 0 10 5 17 11 21v9c0 4 3 6 6 6h32c3 0 6-2 6-6v-9c6-4 11-11 11-21 0-17-13-30-33-30z" fill="#ffffff" stroke={INK} strokeWidth="5.5" strokeLinejoin="round" />
-        <ellipse cx="88" cy="93" rx="9" ry="10" fill={INK} />
-        <ellipse cx="112" cy="93" rx="9" ry="10" fill={INK} />
-        <path d="M100 103l-5 8h10z" fill={INK} />
-        <path d="M92 119v9M100 119v9M108 119v9" stroke={INK} strokeWidth="3.5" strokeLinecap="round" />
-      </g>
-    </svg>
-  );
+// Emblèmes des univers (images originales générées pour NEXUS, sans logo officiel) :
+// version « gemme » brillante en grand, version à aplats plus lisible en petit.
+export const EMBLEMS = {
+  onepiece: { big: 'img/op-gem-512.webp', small: 'img/op-flat-128.webp' },
+  pokemon: { big: 'img/pk-gem-512.webp', small: 'img/pk-flat-128.webp' },
+};
+function EmblemImg({ game, size, className }) {
+  const e = EMBLEMS[game];
+  const src = size >= 56 ? e.big : e.small;
+  return <img src={src} width={size} height={size} className={className} alt="" aria-hidden="true" decoding="async" draggable="false" style={{ objectFit: 'contain' }} />;
 }
-
-// Pokémon : médaillon rond à quatre énergies (flamme, éclair, goutte d'eau, feuille), version simplifiée
-export function EnergyEmblem({ size = 44, className = 'emblem' }) {
-  const g = useIds();
-  const quad = (a0, color) => { const [x0, y0] = pt(100, 100, 74, a0), [x1, y1] = pt(100, 100, 74, a0 + Math.PI / 2); return <path d={`M100 100L${x0} ${y0}A74 74 0 0 1 ${x1} ${y1}Z`} fill={color} />; };
-  return (
-    <svg viewBox="0 0 200 200" width={size} height={size} className={className} aria-hidden="true">
-      <defs><clipPath id={g('clip')}><circle cx="100" cy="100" r="74" /></clipPath></defs>
-      <circle cx="100" cy="100" r="96" fill="#ffd23f" stroke={INK} strokeWidth="6" />
-      <g clipPath={`url(#${g('clip')})`}>
-        {quad(-Math.PI, '#ff7a5c')}{quad(-Math.PI / 2, '#ffe066')}{quad(0, '#7cd36b')}{quad(Math.PI / 2, '#6fb4ff')}
-        <path d="M26 100h148M100 26v148" stroke={INK} strokeWidth="5" />
-      </g>
-      <circle cx="100" cy="100" r="74" fill="none" stroke={INK} strokeWidth="6" />
-      <path d="M68 40c6 11 19 17 19 32 0 11-9 19-19 19s-19-8-19-19c0-9 5-15 9-20 1 6 4 9 7 10-2-8 0-16 3-22z" fill="#ff4a1c" stroke={INK} strokeWidth="5" strokeLinejoin="round" />
-      <path d="M140 40 118 74h13l-7 24 24-36h-14l8-22z" fill="#ffd23f" stroke={INK} strokeWidth="5" strokeLinejoin="round" />
-      <path d="M68 108C77 121 86 131 86 141c0 10-8 18-18 18s-18-8-18-18c0-10 9-20 18-33z" fill="#3aa0ff" stroke={INK} strokeWidth="5" strokeLinejoin="round" />
-      <g transform="translate(132 134) rotate(-35)">
-        <path d="M0 -26C17 -17 20 4 0 26C-20 4 -17 -17 0 -26z" fill="#34b84a" stroke={INK} strokeWidth="5" strokeLinejoin="round" />
-        <path d="M0 -18V24" stroke={INK} strokeWidth="3.5" strokeLinecap="round" />
-      </g>
-      <circle cx="100" cy="100" r="11" fill="#ffffff" stroke={INK} strokeWidth="5" />
-    </svg>
-  );
-}
+export function PirateEmblem({ size = 44, className = 'emblem' }) { return <EmblemImg game="onepiece" size={size} className={className} />; }
+export function EnergyEmblem({ size = 44, className = 'emblem' }) { return <EmblemImg game="pokemon" size={size} className={className} />; }
 
 // Illustration d'une extension sans logo : éventail de ses trois cartes les plus chères (ou ses premières cartes)
 export function setArtCards(cards, d) {
