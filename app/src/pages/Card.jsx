@@ -34,6 +34,15 @@ export default function CardPage({ cardKey }) {
   useEffect(() => { if (card) { pushRecent(card.key); document.title = card.name + ' ' + card.number + ' · prix · NEXUS TCG'; } }, [card, d.lang]);
   const hist = useAsync(() => (card ? historyOf(card) : []), [card?.key]);
   const tilt = useTilt();
+  const [period, setPeriod] = useState('all');
+  const [shared, setShared] = useState('');
+  const rank = useMemo(() => {
+    if (!card || !d.ready) return null;
+    const mine = eurOf(card, d.P, d.fx); if (mine == null) return null;
+    let n = 1, total = 0;
+    for (const c of d.cats[card.game].cards) { if ((c.lang === 'ja') !== (card.lang === 'ja')) continue; const e = eurOf(c, d.P, d.fx); if (e == null) continue; total++; if (e > mine) n++; }
+    return { n, total };
+  }, [card?.key, d.ready, d.jp]);
   if (!d.ready || (!card && cardKey.includes(':jp-') && !d.jp)) return <div className="page"><Loading /></div>;
   if (!card) return <div className="page"><Empty icon="search" title="Carte introuvable" action={<a className="btn primary" href={href('/')}>Retour à l’accueil</a>}>Cette carte n’est pas dans le catalogue.</Empty></div>;
 
@@ -41,8 +50,10 @@ export default function CardPage({ cardKey }) {
   const set = cats[card.game].sets.get(card.set);
   const p = priceOf(card, P);
   const eur = eurOf(card, P, fx);
-  const points = hist.value || [];
+  const allPoints = hist.value || [];
+  const points = period === 'all' ? allPoints : allPoints.slice(-Number(period));
   const first = points[0]?.[1], last = points.at(-1)?.[1];
+  const hi = points.length ? Math.max(...points.map((x) => x[1])) : null, lo = points.length ? Math.min(...points.map((x) => x[1])) : null;
   const change = first && last && points.length > 1 ? ((last - first) / first) * 100 : null;
   const siblings = cats[card.game].cards.filter((c) => c.number === card.number && c.set === card.set && c.id !== card.id);
   const alsoName = card.game === 'onepiece' ? cats[card.game].cards.filter((c) => c.name === card.name && c.number !== card.number) : [];
@@ -82,6 +93,7 @@ export default function CardPage({ cardKey }) {
               <span className="pb-label">{priceLabel}</span>
               <span className="pb-value">{eur != null ? <>{srcCur !== CUR.code && <span className="approx">≈</span>}{fmtEur(eur)}</> : 'Pas de prix relevé'}</span>
               {change != null && <span className="pb-change"><Delta pct={change} /> depuis le {fmtDate(points[0][0], { day: 'numeric', month: 'short' })}</span>}
+              {rank && <a className="pb-rank" href={href('/classement?u=' + card.game)}><Icon name="trophy" size={14} />N° {rank.n.toLocaleString('fr-FR')} sur {rank.total.toLocaleString('fr-FR')} cartes {card.lang === 'ja' ? 'japonaises' : GAMES[card.game].label} avec un prix</a>}
             </div>
             {p && (
               <dl className="pb-grid">
@@ -109,14 +121,28 @@ export default function CardPage({ cardKey }) {
             <AddButton card={card} />
             <WatchButton card={card} baseline={eur} />
             <CompareButton card={card} />
+            <button className="btn ghost" onClick={async () => {
+              const url = location.href, text = `${card.name} ${card.number} · ${eur != null ? fmtEur(eur) : 'prix'} sur NEXUS TCG`;
+              if (navigator.share) { try { await navigator.share({ title: card.name, text, url }); return; } catch (e) { if (e?.name === 'AbortError') return; } }
+              try { await navigator.clipboard.writeText(url); setShared('Lien copié !'); } catch { setShared(url); }
+              setTimeout(() => setShared(''), 2500);
+            }}><Icon name="ext" size={18} />{shared || 'Partager'}</button>
           </div>
           <AlertEditor card={card} eur={eur} />
           <div className="ext-links">Voir les offres : {links.map(([l, u]) => <a key={l} href={u} target="_blank" rel="noreferrer">{l} <Icon name="ext" size={14} /></a>)}</div>
         </div>
       </div>
 
-      <Section kicker="Historique" title="Évolution du prix">
+      <Section kicker="Historique" title="Évolution du prix" action={allPoints.length > 7 ? <Seg value={period} onChange={setPeriod} label="Période" options={[['7', '7 j'], ['30', '30 j'], ['90', '90 j'], ['all', 'Tout']].filter(([v]) => v === 'all' || allPoints.length > Number(v) / 2)} /> : null}>
         {hist.loading ? <Loading /> : <PriceChart series={[{ points, color: 'var(--accent)' }]} empty={points.length === 1 ? `Premier relevé le ${fmtDate(points[0][0])} à ${fmtEur(points[0][1])}. La courbe se dessine dès demain.` : undefined} />}
+        {points.length > 1 && (
+          <div className="hist-stats">
+            <div><span>Variation</span><b><Delta pct={change} /></b></div>
+            <div><span>Plus haut</span><b>{fmtEur(hi)}</b></div>
+            <div><span>Plus bas</span><b>{fmtEur(lo)}</b></div>
+            <div><span>Relevés</span><b>{points.length} jours</b><small>depuis le {fmtDate(points[0][0], { day: 'numeric', month: 'short' })}</small></div>
+          </div>
+        )}
         {card.game === 'pokemon' && p?.avg30 && <AvgBars p={p} />}
       </Section>
 

@@ -355,12 +355,14 @@ export function setArtCards(cards, d) {
   const pick = withImg(priced).slice(0, 3);
   return pick.length >= 3 ? pick : withImg(cards).slice(0, 3);
 }
-export function SetArt({ cards, code, big }) {
+export function SetArt({ cards, code, big, logo }) {
   const order = cards.length === 3 ? [cards[1], cards[0], cards[2]] : cards;
+  const [logoOk, setLogoOk] = useState(true);
   return (
-    <div className={'set-art' + (big ? ' big' : '')} aria-hidden="true">
+    <div className={'set-art' + (big ? ' big' : '') + (logo && logoOk ? ' has-logo' : '')} aria-hidden="true">
+      {logo && logoOk && <img className="sa-logo" src={img(logo)} alt="" loading="lazy" referrerPolicy="no-referrer" onError={() => setLogoOk(false)} />}
       {order.map((c, i) => <span key={c.key} className={'sa-card p' + (order.length === 3 ? i : 1)}><CardImage card={c} /></span>)}
-      {code && <b className="sa-code">{code}</b>}
+      {code && !(logo && logoOk) && <b className="sa-code">{code}</b>}
     </div>
   );
 }

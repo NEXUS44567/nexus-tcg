@@ -151,7 +151,7 @@ export default function Home({ game }) {
         <div className="set-grid">
           {sets.map((s) => (
             <a key={s.code} className="set-card" href={href('/extension/' + game + '/' + encodeURIComponent(s.code))}>
-              {s.logo ? <img src={img(s.logo)} alt="" loading="lazy" referrerPolicy="no-referrer" onError={(e) => (e.currentTarget.style.display = 'none')} /> : <SetArt cards={setArtCards(cats[game].cards.filter((c) => c.set === s.code), d)} code={s.code} />}
+              {(() => { const a = setArtCards(cats[game].cards.filter((c) => c.set === s.code), d); return a.length ? <SetArt cards={a} code={s.code} logo={s.logo} /> : s.logo ? <img src={img(s.logo)} alt="" loading="lazy" referrerPolicy="no-referrer" onError={(e) => (e.currentTarget.style.display = 'none')} /> : <span className="set-code">{s.code}</span>; })()}
               <b>{s.name}</b><small>{s.code} · {s.count} cartes{s.date ? ' · ' + fmtDate(s.date, { month: 'short', year: 'numeric' }) : ''}</small>
             </a>
           ))}

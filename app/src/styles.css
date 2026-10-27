@@ -1665,3 +1665,34 @@ main#contenu:not(.chooser-main) { animation: uv-arrive .45s ease-out; }
 .error-box { flex-direction: column; align-items: center; text-align: center; gap: .5rem; padding: 3rem 1rem; }
 .error-box .icon { color: var(--gold); }
 .error-box b { color: var(--text); font-size: 1.1rem; }
+/* fiche carte : statistiques de l'historique et rang */
+.hist-stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: .6rem; margin-top: .8rem; }
+.hist-stats > div { display: grid; gap: .15rem; padding: .7rem .8rem; border-radius: 12px; background: var(--panel); border: 1px solid var(--line); }
+.hist-stats span { color: var(--muted); font-size: .78rem; }
+.hist-stats b { font: 800 1.1rem/1.2 var(--display); }
+.hist-stats small { color: var(--faint); font-size: .72rem; }
+.pb-rank { display: inline-flex; align-items: center; gap: .35rem; margin-top: .4rem; padding: .25rem .6rem; border-radius: 999px; background: color-mix(in srgb, var(--gold) 14%, transparent); color: var(--gold); font-size: .78rem; font-weight: 800; width: fit-content; }
+.pb-rank:hover { background: color-mix(in srgb, var(--gold) 24%, transparent); }
+/* logo d'extension (Pokémon) au-dessus de l'éventail */
+.set-art .sa-logo { position: absolute; left: 50%; top: 10px; z-index: 4; transform: translateX(-50%); height: 52px; width: auto; max-width: 80%; object-fit: contain; filter: drop-shadow(0 4px 10px rgba(0,0,0,.75)); margin: 0; }
+.set-card .set-art .sa-logo { height: 52px; width: auto; margin: 0; }
+.set-art.has-logo .sa-card { bottom: -34px; }
+.set-art.big .sa-logo { height: 78px; top: 14px; }
+.set-art.big.has-logo { height: 240px; }
+/* comparateur vide : idées */
+.compare-ideas { display: grid; gap: 1.2rem; margin-top: 1.4rem; }
+.ci-top { display: flex; align-items: center; gap: 1rem; padding: 1rem 1.2rem; border-radius: 18px; border: 1px solid color-mix(in srgb, var(--gold) 40%, var(--line)); background: linear-gradient(120deg, color-mix(in srgb, var(--gold) 14%, var(--panel)), var(--panel)); text-align: left; cursor: pointer; color: var(--text); }
+.ci-top:hover { border-color: var(--gold); }
+.ci-top > span:nth-child(2) { flex: 1; display: grid; gap: .2rem; min-width: 0; }
+.ci-top small { color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.ci-top > .icon { color: var(--gold); flex: none; }
+.ci-fan { position: relative; width: 92px; height: 70px; flex: none; }
+.ci-fan > span { position: absolute; bottom: 0; left: 50%; width: 44px; transform: translateX(-50%) translateX(calc((var(--i) - 1) * 22px)) rotate(calc((var(--i) - 1) * 12deg)); transform-origin: 50% 100%; filter: drop-shadow(0 4px 8px rgba(0,0,0,.5)); }
+.ci-fan > span:nth-child(2) { z-index: 2; }
+.ci-chips { display: flex; flex-wrap: wrap; gap: .5rem; margin-top: .5rem; }
+.ci-chip { display: flex; align-items: center; gap: .55rem; padding: .35rem .6rem .35rem .35rem; border-radius: 12px; background: var(--panel); border: 1px solid var(--line); color: var(--text); cursor: pointer; max-width: 260px; }
+.ci-chip:hover { border-color: var(--line-2); }
+.ci-chip > span { display: grid; min-width: 0; text-align: left; font-weight: 700; font-size: .85rem; }
+.ci-chip small { color: var(--faint); font-weight: 400; font-size: .72rem; }
+.ci-chip .icon { color: var(--gold); flex: none; }
+.ci-chip .cimg.mini { width: 34px; }

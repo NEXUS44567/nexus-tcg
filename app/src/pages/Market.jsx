@@ -41,6 +41,33 @@ export function SearchPage({ query }) {
 }
 
 // ---------- Comparateur ----------
+// Idées pour démarrer une comparaison : le podium de l'univers ou les cartes consultées récemment
+function CompareIdeas() {
+  const d = useData();
+  const game = useUniverse();
+  const recent = useStore((s) => s.recent);
+  const top = (d.M?.games?.[game]?.podium || []).slice(0, 3).map(([id]) => d.cats[game].byId.get(id)).filter(Boolean);
+  const rec = (recent || []).map((k) => { const [g, ...r] = k.split(':'); return d.cats[g]?.byId.get(r.join(':')); }).filter((c) => c && c.game === game).slice(0, 8);
+  const add = (list) => list.slice(0, 4).forEach((c) => toggleCompare(c.key));
+  return (
+    <div className="compare-ideas">
+      {top.length === 3 && (
+        <button className="ci-top" onClick={() => add(top)}>
+          <span className="ci-fan">{top.map((c, i) => <span key={c.key} style={{ '--i': i }}><CardImage card={c} /></span>)}</span>
+          <span><b>Comparer le podium {GAMES[game].label}</b><small>{top.map((c) => c.name).join(' · ')}</small></span>
+          <Icon name="compare" size={20} />
+        </button>
+      )}
+      {rec.length > 1 && (
+        <div className="ci-recent">
+          <span className="kicker">Tu as regardé récemment</span>
+          <div className="ci-chips">{rec.map((c) => <button key={c.key} className="ci-chip" onClick={() => toggleCompare(c.key)}><CardImage card={c} className="mini" /><span>{c.name}<small>{c.number}</small></span><Icon name="plus" size={16} /></button>)}</div>
+        </div>
+      )}
+    </div>
+  );
+}
+
 export function ComparePage() {
   const d = useData();
   const keys = useStore((s) => s.compare);
@@ -63,6 +90,7 @@ export function ComparePage() {
       <h1 className="page-title">Comparateur de prix</h1>
       <p className="lead">Jusqu’à 4 cartes côte à côte. Ajoute-les depuis leur fiche avec le bouton « Comparer », ou cherche-les ici.</p>
       {(adding || cards.length === 0) ? <div className="compare-add"><CompareSearch onPick={() => setAdding(false)} /></div> : cards.length < 4 && <button className="btn ghost" onClick={() => setAdding(true)}><Icon name="plus" size={18} />Ajouter une carte</button>}
+      {cards.length === 0 && <CompareIdeas />}
       {cards.length > 0 && (
         <>
           <div className="compare-grid" style={{ '--cols': cards.length }}>
@@ -221,11 +249,11 @@ export function SetsPage({ game }) {
           const have = cards.filter((c) => owned.has(c.key)).length;
           const top = cards.reduce((m, c) => { const e = eurOf(c, d.P, d.fx) || 0; return e > m[0] ? [e, c] : m; }, [0, null]);
           const code = s.code.replace(/^jp-/, '');
-          const art = s.logo ? null : setArtCards(cards, d);
+          const art = setArtCards(cards, d);
           return (
             <a key={s.code} className={'set-card' + (s.lang === 'ja' ? ' ja' : '')} href={href('/extension/' + game + '/' + encodeURIComponent(s.code))}>
-              {s.logo ? <img src={img(s.logo)} alt="" loading="lazy" referrerPolicy="no-referrer" onError={(e) => (e.currentTarget.style.display = 'none')} />
-                : art.length ? <SetArt cards={art} code={code} /> : <span className="set-code">{code}</span>}
+              {art.length ? <SetArt cards={art} code={code} logo={s.logo} />
+                : s.logo ? <img src={img(s.logo)} alt="" loading="lazy" referrerPolicy="no-referrer" onError={(e) => (e.currentTarget.style.display = 'none')} /> : <span className="set-code">{code}</span>}
               <b>{s.name}</b>
               <small>{s.lang === 'ja' ? 'JP · ' : ''}{code} · {s.count} cartes{s.date ? ' · ' + fmtDate(s.date, { month: 'short', year: 'numeric' }) : ''}</small>
               {top[1] && <small className="muted">Top : {top[1].name} · {fmtEur(top[0])}</small>}
@@ -252,7 +280,7 @@ export function SetPage({ game, code }) {
   return (
     <div className="page">
       <nav className="crumbs"><a href={href('/')}>Accueil</a><span>›</span><a href={href('/extensions/' + game)}>{GAMES[game].label}</a></nav>
-      {!s.logo && <SetArt cards={setArtCards(cards, d)} big />}
+      {(() => { const a = setArtCards(cards, d); return a.length ? <SetArt cards={a} logo={s.logo} big /> : null; })()}
       <h1 className="page-title">{s.name} <small className="muted">{s.lang === 'ja' ? 'JP · ' + s.code.slice(3) : s.code}</small></h1>
       <p className="muted">{s.count} cartes{s.date ? ' · sortie le ' + fmtDate(s.date) : ''} · valeur cumulée d’un exemplaire de chaque : {fmtEur(value)}</p>
       <div className="toolbar"><Seg value={sort} onChange={setSort} label="Tri" options={[['numero', 'Par numéro'], ['prix', 'Par prix']]} /></div>
