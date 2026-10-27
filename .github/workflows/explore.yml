@@ -1,0 +1,25 @@
+name: Exploration FR/JP
+on:
+  push:
+    branches: [main]
+    paths: ['scripts/explore-lang.mjs', '.github/workflows/explore.yml']
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  explore:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: node scripts/explore-lang.mjs
+      - run: |
+          git config user.name "nexus-prix"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add db/_explore
+          git commit -m "Exploration FR/JP" || exit 0
+          git pull --rebase origin main
+          git push
