@@ -1696,3 +1696,17 @@ main#contenu:not(.chooser-main) { animation: uv-arrive .45s ease-out; }
 .ci-chip small { color: var(--faint); font-weight: 400; font-size: .72rem; }
 .ci-chip .icon { color: var(--gold); flex: none; }
 .ci-chip .cimg.mini { width: 34px; }
+
+/* ---------- Finitions : transitions de page, installation, retour en haut ---------- */
+.route-fade { animation: route-in .28s ease-out; }
+@keyframes route-in { from { opacity: 0; } }
+.install-banner { position: fixed; left: 12px; right: 12px; bottom: calc(var(--tabbar) + env(safe-area-inset-bottom) + 10px); z-index: 70; display: flex; align-items: center; gap: .7rem; max-width: 520px; margin: 0 auto; padding: .6rem .6rem .6rem .7rem; border-radius: 16px; background: color-mix(in srgb, var(--panel-2) 96%, transparent); border: 1px solid var(--line-2); box-shadow: 0 16px 40px -12px rgba(0,0,0,.7); backdrop-filter: blur(10px); animation: install-in .45s cubic-bezier(.2, .9, .3, 1.2); }
+.install-banner img { border-radius: 10px; flex: none; }
+.install-banner > span { flex: 1; display: grid; font-size: .82rem; color: var(--muted); line-height: 1.3; }
+.install-banner > span > b:first-child { color: var(--text); font-size: .95rem; }
+@keyframes install-in { from { opacity: 0; transform: translateY(20px); } }
+@media (min-width: 900px) { .install-banner { bottom: 18px; left: auto; right: 18px; } }
+.back-top { position: fixed; right: 14px; bottom: calc(var(--tabbar) + env(safe-area-inset-bottom) + 14px); z-index: 65; width: 44px; height: 44px; display: grid; place-items: center; border-radius: 50%; border: 1px solid var(--line-2); background: color-mix(in srgb, var(--panel-2) 92%, transparent); color: var(--text); box-shadow: 0 10px 24px -8px rgba(0,0,0,.6); cursor: pointer; animation: install-in .3s ease-out; backdrop-filter: blur(8px); }
+.back-top:hover { border-color: var(--gold); color: var(--gold); }
+@media (min-width: 900px) { .back-top { bottom: 22px; right: 22px; } }
+@media (prefers-reduced-motion: reduce) { .route-fade, .install-banner, .back-top { animation: none; } }

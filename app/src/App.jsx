@@ -93,7 +93,9 @@ export default function App() {
       </header>
       {searchOpen && <div className="search-sheet" onPointerDown={(e) => e.target === e.currentTarget && setSearchOpen(false)}><div><SearchBox autoFocus onDone={() => setSearchOpen(false)} placeholder={'Carte ' + GAMES[universe].label + ' : nom, numéro…'} /><button className="btn ghost" onClick={() => setSearchOpen(false)}>Fermer</button></div></div>}
       {d.ready && <AlertBanner />}
-      <main id="contenu">{page}</main>
+      <InstallBanner />
+      <BackToTop />
+      <main id="contenu"><div className="route-fade" key={route.path}>{page}</div></main>
       <footer className="footer">
         <div>
           <b>NEXUS TCG</b> · prix des cartes One Piece et Pokémon, relevés chaque jour.
@@ -207,4 +209,45 @@ function NavBolt({ navRef, edge, path }) {
       <circle className="bolt-spark" cx={bolt.end.x} cy={bolt.end.y} r="2.4" />
     </svg>
   );
+}
+
+// Proposition d'installer NEXUS comme une application (Android / ordinateur : bouton natif ; iPhone : astuce Partager)
+function InstallBanner() {
+  const [evt, setEvt] = useState(null);
+  const [ios, setIos] = useState(false);
+  const dismissed = useStore((s) => !!s.installDismissed);
+  useEffect(() => {
+    const standalone = matchMedia('(display-mode: standalone)').matches || navigator.standalone;
+    if (standalone) return;
+    const f = (e) => { e.preventDefault(); setEvt(e); };
+    addEventListener('beforeinstallprompt', f);
+    const isIos = /iphone|ipad|ipod/i.test(navigator.userAgent) && !/crios|fxios/i.test(navigator.userAgent);
+    const visits = (Number(localStorage.getItem('nexus.visits') || 0) || 0) + 1;
+    try { localStorage.setItem('nexus.visits', String(visits)); } catch {}
+    if (isIos && visits >= 2) setIos(true);
+    return () => removeEventListener('beforeinstallprompt', f);
+  }, []);
+  if (dismissed || (!evt && !ios)) return null;
+  const close = () => update((s) => { s.installDismissed = true; });
+  return (
+    <div className="install-banner" role="region" aria-label="Installer l’application">
+      <img src="icon-192.png" alt="" width="40" height="40" />
+      <span><b>Installe NEXUS</b>{evt ? 'Ouverture en un geste, même hors ligne.' : <>Touche <b>Partager</b> puis <b>Sur l’écran d’accueil</b>.</>}</span>
+      {evt && <button className="btn primary small" onClick={async () => { evt.prompt(); try { await evt.userChoice; } catch {} setEvt(null); close(); }}>Installer</button>}
+      <button className="icon-btn" onClick={close} aria-label="Fermer"><Icon name="x" size={16} /></button>
+    </div>
+  );
+}
+
+// Bouton « remonter » sur les longues pages, et « / » pour chercher sur ordinateur
+function BackToTop() {
+  const [show, setShow] = useState(false);
+  useEffect(() => {
+    const f = () => setShow(scrollY > 1400);
+    const k = (e) => { if (e.key === '/' && !e.target.closest('input, textarea, select, [contenteditable]')) { const i = document.querySelector('.top-search input'); if (i && i.offsetParent) { e.preventDefault(); i.focus(); } } };
+    addEventListener('scroll', f, { passive: true }); addEventListener('keydown', k);
+    return () => { removeEventListener('scroll', f); removeEventListener('keydown', k); };
+  }, []);
+  if (!show) return null;
+  return <button className="back-top" onClick={() => scrollTo({ top: 0, behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' })} aria-label="Remonter en haut de la page"><Icon name="up" size={20} /></button>;
 }
