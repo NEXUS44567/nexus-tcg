@@ -14,11 +14,6 @@ function load(file) {
 const opLocalOk = (id) => !id.includes('_') || /_p1$/.test(id);
 
 export async function applyLang(cats, lang) {
-  // visuels officiels des boosters / displays One Piece (indépendants de la langue)
-  const packs = await load('onepiece-packs.json');
-  if (packs?.sets && cats.onepiece) for (const [code, url] of Object.entries(packs.sets)) { const s = cats.onepiece.sets.get(code); if (s) s.pack = url; }
-  // à défaut, l'illustration du booster déjà présente sur le site (ex. OP-17)
-  if (cats.onepiece) for (const s of cats.onepiece.setList) if (!s.pack && /^(OP|EB|PRB)\d+$/.test(s.code)) s.pack = 'db/packs/' + s.code.toLowerCase() + '.webp';
   const [opT, pkT] = await Promise.all([
     lang === 'en' ? null : load(`onepiece-${lang}.json`),
     lang === 'fr' ? load('pokemon-fr.json') : null,

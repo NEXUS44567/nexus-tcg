@@ -138,35 +138,6 @@ async function onePiece(lang, base, catalog) {
   if (n > 100) writeJSON(path.join(DB, 'lang', `onepiece-${lang}.json`), out);
 }
 
-// ---------- One Piece : visuels officiels des produits (booster / display) par extension ----------
-async function onePiecePacks(catalog) {
-  const BASE = 'https://en.onepiece-cardgame.com';
-  const out = { builtAt: new Date().toISOString(), source: BASE + '/products/', sets: {} };
-  const abs = (u) => (u.startsWith('http') ? u : BASE + (u.startsWith('/') ? '' : '/') + u).replace(/[?&]_=[^&]*$/, '');
-  const firstImg = (html) => {
-    const all = [...html.matchAll(/data-src="([^"]+)"/g)].map((m) => m[1]).filter((u) => /\/(products?|boosters?)\//.test(u) && /img_item\d+|package|box|pack/i.test(u));
-    return all[0] ? abs(all[0]) : null;
-  };
-  for (const [code] of catalog.sets) {
-    if (code === 'P') continue;
-    const c = code.toLowerCase();
-    let found = null;
-    for (const u of [`/products/${c}.html`, `/products/boosters/${c}.php`, `/products/decks/${c}.php`, `/products/boosters/${c}.html`]) {
-      try { const t = await get(BASE + u, { json: false, tries: 1 }); found = firstImg(t); if (found) break; } catch {}
-      await sleep(300);
-    }
-    if (!found) {
-      for (const u of [`/renewal/images/products/boosters/${c}/img_item01.webp`, `/renewal/images/products/decks/${c}/img_item01.webp`]) {
-        try { const r = await fetch(BASE + u, { method: 'HEAD', headers: { 'User-Agent': UA } }); if (r.ok) { found = BASE + u; break; } } catch {}
-      }
-    }
-    if (found) out.sets[code] = found;
-    await sleep(300);
-  }
-  log('One Piece : visuels produits', Object.keys(out.sets).length, '/', catalog.sets.length);
-  if (Object.keys(out.sets).length) writeJSON(path.join(DB, 'lang', 'onepiece-packs.json'), out);
-}
-
 const pk = readJSON(path.join(DB, 'catalog', 'pokemon.json'));
 const op = readJSON(path.join(DB, 'catalog', 'onepiece.json'));
 const tasks = [
@@ -174,7 +145,6 @@ const tasks = [
   ['pokemon-ja', () => pokemonJa()],
   ['onepiece-fr', () => onePiece('fr', 'https://fr.onepiece-cardgame.com', op)],
   ['onepiece-ja', () => onePiece('ja', 'https://www.onepiece-cardgame.com', op)],
-  ['onepiece-packs', () => onePiecePacks(op)],
 ];
 const failures = [];
 for (const [k, fn] of tasks) { if (!want(k)) continue; try { await fn(); } catch (e) { failures.push(k + ': ' + e.message); log('ÉCHEC', k, e.message); } }

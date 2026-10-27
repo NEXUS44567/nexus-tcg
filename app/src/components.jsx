@@ -373,12 +373,10 @@ export function setArtCards(cards, d) {
   const pick = withImg(priced).slice(0, 3);
   return pick.length >= 3 ? pick : withImg(cards).slice(0, 3);
 }
-export function SetArt({ cards, code, big, pack }) {
+export function SetArt({ cards, code, big }) {
   const order = cards.length === 3 ? [cards[1], cards[0], cards[2]] : cards;
-  const [packOk, setPackOk] = useState(true);
   return (
-    <div className={'set-art' + (big ? ' big' : '') + (pack && packOk ? ' has-pack' : '')} aria-hidden="true">
-      {pack && packOk && <><img className="sa-bg" src={pack} alt="" loading="lazy" referrerPolicy="no-referrer" /><img className="sa-pack" src={pack} alt="" loading="lazy" referrerPolicy="no-referrer" onError={() => setPackOk(false)} /></>}
+    <div className={'set-art' + (big ? ' big' : '')} aria-hidden="true">
       {order.map((c, i) => <span key={c.key} className={'sa-card p' + (order.length === 3 ? i : 1)}><CardImage card={c} /></span>)}
       {code && <b className="sa-code">{code}</b>}
     </div>

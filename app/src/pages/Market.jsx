@@ -219,7 +219,7 @@ export function SetsPage({ game }) {
           return (
             <a key={s.code} className={'set-card' + (s.lang === 'ja' ? ' ja' : '')} href={href('/extension/' + game + '/' + encodeURIComponent(s.code))}>
               {s.logo ? <img src={img(s.logo)} alt="" loading="lazy" referrerPolicy="no-referrer" onError={(e) => (e.currentTarget.style.display = 'none')} />
-                : art.length ? <SetArt cards={art} code={code} pack={s.pack} /> : <span className="set-code">{code}</span>}
+                : art.length ? <SetArt cards={art} code={code} /> : <span className="set-code">{code}</span>}
               <b>{s.name}</b>
               <small>{s.lang === 'ja' ? 'JP · ' : ''}{code} · {s.count} cartes{s.date ? ' · ' + fmtDate(s.date, { month: 'short', year: 'numeric' }) : ''}</small>
               {top[1] && <small className="muted">Top : {top[1].name} · {fmtEur(top[0])}</small>}
@@ -246,7 +246,7 @@ export function SetPage({ game, code }) {
   return (
     <div className="page">
       <nav className="crumbs"><a href={href('/')}>Accueil</a><span>›</span><a href={href('/extensions/' + game)}>{GAMES[game].label}</a></nav>
-      {!s.logo && <SetArt cards={setArtCards(cards, d)} pack={s.pack} big />}
+      {!s.logo && <SetArt cards={setArtCards(cards, d)} big />}
       <h1 className="page-title">{s.name} <small className="muted">{s.lang === 'ja' ? 'JP · ' + s.code.slice(3) : s.code}</small></h1>
       <p className="muted">{s.count} cartes{s.date ? ' · sortie le ' + fmtDate(s.date) : ''} · valeur cumulée d’un exemplaire de chaque : {fmtEur(value)}</p>
       <div className="toolbar"><Seg value={sort} onChange={setSort} label="Tri" options={[['numero', 'Par numéro'], ['prix', 'Par prix']]} /></div>
