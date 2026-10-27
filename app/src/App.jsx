@@ -109,6 +109,7 @@ export default function App() {
           <a href={href('/comparateur')}>Comparateur</a>
           <a href={href('/suivis')}>Alertes</a>
           <a href={href('/boosters/collection')}>Collection virtuelle</a>
+          <a href="#" onClick={(e) => { e.preventDefault(); update((s) => { s.installHidden = false; s.installForce = true; }); scrollTo({ top: 0, behavior: 'smooth' }); }}>Installer l’application</a>
         </nav>
       </footer>
       <nav className="tabbar" aria-label="Navigation" ref={tabRef}>
@@ -215,7 +216,8 @@ function NavBolt({ navRef, edge, path }) {
 function InstallBanner() {
   const [evt, setEvt] = useState(null);
   const [ios, setIos] = useState(false);
-  const dismissed = useStore((s) => !!s.installDismissed);
+  const dismissed = useStore((s) => !!s.installHidden);
+  const forced = useStore((s) => !!s.installForce);
   useEffect(() => {
     const standalone = matchMedia('(display-mode: standalone)').matches || navigator.standalone;
     if (standalone) return;
@@ -227,12 +229,13 @@ function InstallBanner() {
     if (isIos && visits >= 2) setIos(true);
     return () => removeEventListener('beforeinstallprompt', f);
   }, []);
-  if (dismissed || (!evt && !ios)) return null;
-  const close = () => update((s) => { s.installDismissed = true; });
+  if (dismissed || (!evt && !ios && !forced)) return null;
+  const close = () => update((s) => { s.installHidden = true; s.installForce = false; });
+  const iosUA = /iphone|ipad|ipod/i.test(navigator.userAgent);
   return (
     <div className="install-banner" role="region" aria-label="Installer l’application">
       <img src="icon-192.png" alt="" width="22" height="22" />
-      <span><b>Installe l’app NEXUS</b> {evt ? '· même hors ligne' : <>· <b>Partager</b> › <b>Écran d’accueil</b></>}</span>
+      <span><b>Installe l’app NEXUS</b> {evt ? '· même hors ligne' : ios || iosUA ? <>· <b>Partager</b> › <b>Écran d’accueil</b></> : <>· menu du navigateur › <b>Installer</b> ou <b>Ajouter à l’écran d’accueil</b></>}</span>
       {evt && <button className="ib-go" onClick={async () => { evt.prompt(); try { await evt.userChoice; } catch {} setEvt(null); close(); }}>Installer</button>}
       <button className="ib-x" onClick={close} aria-label="Fermer"><Icon name="x" size={14} /></button>
     </div>

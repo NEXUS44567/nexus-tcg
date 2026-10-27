@@ -1,6 +1,6 @@
 // Service worker de NEXUS TCG : le site s'ouvre instantanément après la première visite et reste
 // consultable hors ligne (derniers prix connus). Les prix sont toujours redemandés au réseau d'abord.
-const VERSION = 'efc19e6b49';
+const VERSION = '59ee066640';
 const STATIC = 'nexus-static-' + VERSION;   // fichiers du site (versionnés)
 const DATA = 'nexus-data-v1';               // catalogues et prix (réseau d'abord)
 const IMAGES = 'nexus-images-v1';           // images des cartes (cache d'abord)
