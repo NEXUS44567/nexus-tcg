@@ -32,10 +32,10 @@ async function pool(list, n, fn) { let i = 0; await Promise.all(Array.from({ len
 const norm = (s) => String(s || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/&/g, 'and').replace(/[^a-z0-9]+/g, '');
 const ent = (s) => String(s || '').replace(/&quot;/g, '"').replace(/&#0?39;|&apos;/g, "'").replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&nbsp;/g, ' ').replace(/&amp;/g, '&').replace(/<br[^>]*>/gi, ' ').replace(/<[^>]+>/g, '').replace(/\s+/g, ' ').trim();
 // « BOOSTER -LES GUERRIERS LES PLUS PUISSANTS AU MONDE- [OP-17] » → « Les guerriers les plus puissants au monde »
-function setTitle(label) {
+function setTitle(label, lang) {
   let t = label.replace(/\s*[\[【][^\]】]+[\]】]\s*$/, '').trim();
   const m = /-(.+)-\s*$/.exec(t); if (m) t = m[1].trim();
-  if (/[a-z]/.test(t) === false && /[A-Z]/.test(t)) { t = t.toLowerCase(); t = (t.charAt(0).toUpperCase() + t.slice(1)).replace(/one piece/gi, 'One Piece'); }
+  if (lang === 'fr' && /[a-z]/.test(t) === false && /[A-Z]/.test(t)) { t = t.toLowerCase(); t = (t.charAt(0).toUpperCase() + t.slice(1)).replace(/one piece/gi, 'One Piece'); }
   return t;
 }
 const T = 'https://assets.tcgdex.net/';
@@ -124,7 +124,7 @@ async function onePiece(lang, base, catalog) {
     try {
       const t = await get(base + '/cardlist/?series=' + id, { json: false });
       const code = (/[\[【]([A-Z]+)-?(\d+)[\]】]/.exec(label) || []).slice(1).join('');
-      if (code) out.sets[code] = setTitle(label);
+      if (code) out.sets[code] = setTitle(label, lang);
       for (const m of t.matchAll(/<dl class="modalCol" id="([^"]+)">[\s\S]*?<div class="cardName">([\s\S]*?)<\/div>[\s\S]*?data-src="[^"]*cardlist\/card\/[^".]+\.(\w+)/g)) {
         const cid = m[1], name = ent(m[2]);
         if (!out.ext) out.ext = m[3];
