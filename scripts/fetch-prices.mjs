@@ -180,7 +180,7 @@ function sanitizePokemon(items, fx) {
   const groups = new Map();
   for (const [id, v] of Object.entries(items)) {
     if (v[0] == null) continue;
-    const k = id.split('-')[0] + '|' + v.slice(0, 5).join(',');
+    const k = (id.startsWith('jp-') ? id.split('-').slice(0, 2).join('-') : id.split('-')[0]) + '|' + v.slice(0, 5).join(',');
     if (!groups.has(k)) groups.set(k, []);
     groups.get(k).push(id);
   }
@@ -199,6 +199,24 @@ function sanitizePokemon(items, fx) {
   return items;
 }
 
+// Cartes japonaises (catalogue db/catalog/pokemon-ja.json) : prix Cardmarket des produits japonais via TCGdex
+async function pokemonJaPrices(jaCatalog) {
+  const items = {};
+  if (!jaCatalog?.cards?.length) return { items, latest: null };
+  let latest = null, done = 0, fails = 0;
+  const ids = jaCatalog.cards.map((c) => c[0]);
+  await pool(ids, 12, async (id) => {
+    try {
+      const c = await getJSON('https://api.tcgdex.net/v2/ja/cards/' + encodeURIComponent(id.slice(3)), { tries: 3 });
+      const cm = c.pricing?.cardmarket || c.variants_detailed?.find((v) => v.pricing?.cardmarket)?.pricing?.cardmarket || null;
+      if (cm) { const it = pokemonItem(cm, null); if (it && it[0] != null) { items[id] = it; if (cm.updated && (!latest || cm.updated > latest)) latest = cm.updated; } }
+    } catch { fails++; }
+    if (++done % 3000 === 0) log('JP', done, '/', ids.length, 'échecs', fails);
+  });
+  log('Pokémon JP : prix', Object.keys(items).length, '/', ids.length, 'échecs', fails);
+  return { items, latest };
+}
+
 async function pokemon(catalog, fx) {
   const ids = new Set(catalog.cards.map((c) => c[0]));
   let r = null;
@@ -207,9 +225,15 @@ async function pokemon(catalog, fx) {
     try { const t = await tcgdex(catalog); if (!r || Object.keys(t.items).length > Object.keys(r.items).length) r = t; } catch (e) { log('tcgdex indisponible :', e.message); if (!r) throw e; }
   }
   sanitizePokemon(r.items, fx);
+  try {
+    const ja = await pokemonJaPrices(readJSON(path.join(DB, 'catalog', 'pokemon-ja.json'), null));
+    sanitizePokemon(ja.items, fx);
+    Object.assign(r.items, ja.items);
+    r.jaCount = Object.keys(ja.items).length; r.jaLatest = ja.latest;
+  } catch (e) { log('Pokémon JP indisponible :', e.message); }
   return {
     game: 'pokemon', updatedAt: now.toISOString(), sourceDate: r.latest,
-    source: { name: r.name, url: r.url, currency: 'EUR', fx },
+    source: { name: r.name, url: r.url, currency: 'EUR', fx, ja: r.jaCount ? { name: 'Cardmarket (produits japonais) via api.tcgdex.net', url: 'https://tcgdex.dev', count: r.jaCount, date: r.jaLatest } : null },
     fields: ['eur', 'eur_avg1', 'eur_avg7', 'eur_avg30', 'eur_low', 'usd_tcgplayer', 'eur_source'], items: r.items,
   };
 }
@@ -288,6 +312,9 @@ function market(cats, all, fx) {
 
 // ---------- Programme ----------
 const cats = { onepiece: readJSON(path.join(DB, 'catalog', 'onepiece.json')), pokemon: readJSON(path.join(DB, 'catalog', 'pokemon.json')) };
+// Les cartes japonaises rejoignent le catalogue Pokémon pour l'historique et le marché
+const jaCat = readJSON(path.join(DB, 'catalog', 'pokemon-ja.json'), null);
+const catsAll = { ...cats, pokemon: jaCat ? { ...cats.pokemon, sets: [...cats.pokemon.sets, ...jaCat.sets], cards: [...cats.pokemon.cards, ...jaCat.cards] } : cats.pokemon };
 const fx = await usdToEur();
 log('taux USD→EUR', fx);
 const all = {};
@@ -300,7 +327,7 @@ for (const [game, fn] of [['onepiece', onePiece], ['pokemon', pokemon]]) {
     if (Object.keys(res.items).length < 50) throw new Error('trop peu de prix relevés (' + Object.keys(res.items).length + ')');
     all[game] = res;
     writeJSON(path.join(DB, 'prices', game + '.json'), res);
-    updateHistory(game, cats[game], res);
+    updateHistory(game, catsAll[game], res);
   } catch (e) {
     failures.push(game + ': ' + e.message);
     log('ÉCHEC', game, e.message);
@@ -309,6 +336,6 @@ for (const [game, fn] of [['onepiece', onePiece], ['pokemon', pokemon]]) {
     else all[game] = { game, items: {}, source: null, sourceDate: null };
   }
 }
-writeJSON(path.join(DB, 'market.json'), { ...market(cats, all, fx), failures });
+writeJSON(path.join(DB, 'market.json'), { ...market(catsAll, all, fx), failures });
 log('terminé', failures.length ? 'avec échecs : ' + failures.join(' | ') : 'sans échec');
 if (failures.length === 2) process.exit(1);
