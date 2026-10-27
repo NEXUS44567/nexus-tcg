@@ -35,7 +35,13 @@ export default function App() {
 
   useEffect(() => { if (!isChooser && last !== universe) update((s) => { s.universe = universe; }); }, [universe, isChooser]);
   useEffect(() => { document.documentElement.dataset.universe = isChooser ? 'choice' : universe; }, [universe, isChooser]);
-  useEffect(() => { if (!['carte', 'pokedex', 'equipage'].includes(p[0]) || !p[1]) document.title = isChooser ? 'NEXUS TCG · choisis ton univers' : `NEXUS TCG · ${GAMES[universe].label} · prix, collection et boosters`; }, [route.path, universe]);
+  // Titre de l'onglet selon la page (les fiches carte, Pokémon et personnage posent le leur)
+  useEffect(() => {
+    if (['carte', 'pokedex', 'equipage', 'classeur'].includes(p[0]) && p[1]) return;
+    const G = GAMES[universe].label;
+    const T = { recherche: `Recherche ${G}`, comparateur: 'Comparateur de prix', suivis: 'Mes alertes de prix', classement: `Les cartes ${G} les plus chères`, extensions: `Extensions ${G}`, extension: `Extension ${G}`, collection: `Ma collection ${G}`, boosters: `Boosters ${G}`, boutique: 'Boutique', scanner: 'Scanner une carte', pokedex: 'Pokédex', equipage: 'L’équipage', admin: 'Administration' };
+    document.title = isChooser ? 'NEXUS TCG · choisis ton univers' : T[p[0]] ? `${T[p[0]]} · NEXUS TCG` : `NEXUS TCG · ${G} · prix, collection et boosters`;
+  }, [route.path, universe]);
 
   let page;
   switch (p[0]) {
