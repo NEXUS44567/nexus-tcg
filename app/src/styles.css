@@ -1618,3 +1618,6 @@ main#contenu:not(.chooser-main) { animation: uv-arrive .45s ease-out; }
 .set-art.big.has-pack .p0 { transform: translateX(-50%) translateX(-130px) rotate(-16deg) scale(.9); }
 .set-art.big.has-pack .p2 { transform: translateX(-50%) translateX(130px) rotate(16deg) scale(.9); }
 .set-art.has-pack .sa-code { z-index: 4; }
+.set-art.has-pack .sa-card { width: 56px; bottom: -48px; }
+.set-art.has-pack .sa-pack { top: 8px; height: 70%; }
+.set-card:hover .set-art.has-pack .p1 { transform: translateX(-50%) translateY(-14px) scale(1.04); }
