@@ -22,6 +22,7 @@ export function img(u, size = 'small') {
   if (!u) return '';
   const p = u.slice(0, 3);
   let url = PREFIX[p] ? PREFIX[p] + u.slice(3) : u;
+  if (p === '@t/') url = 'https://assets.tcgdex.net/' + u.slice(3) + (/\/logo$/.test(u) ? '.webp' : size === 'large' ? '/high.webp' : '/low.webp');
   if (size === 'large') {
     if (p === '@p/') url = url.replace(/\.png$/, '_hires.png');
     else if (p === '@s/') url = url.replace(/\/small$/, '/large');

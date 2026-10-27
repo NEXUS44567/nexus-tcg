@@ -7,6 +7,7 @@ import Home from './pages/Home.jsx';
 import CardPage from './pages/Card.jsx';
 import CollectionPage from './pages/Collection.jsx';
 import { SharedBinderPage } from './pages/Binder.jsx';
+import { LANGS } from './lib/lang.js';
 import BoostersPage, { VirtualCollection, ShopPage } from './pages/Boosters.jsx';
 import ScannerPage from './pages/Scanner.jsx';
 import UniversePage from './pages/Universe.jsx';
@@ -26,6 +27,7 @@ export default function App() {
   const compare = useStore((s) => s.compare.length);
   const watchN = useStore((s) => Object.keys(s.watch).length);
   const last = useStore((s) => s.universe);
+  const cardLang = useStore((s) => s.lang || 'en');
   const [searchOpen, setSearchOpen] = useState(false);
   const topRef = useRef(null), tabRef = useRef(null);
   const p = route.parts;
@@ -67,7 +69,12 @@ export default function App() {
       <a className="skip" href="#contenu">Aller au contenu</a>
       <header className="topbar">
         <a className="logo" href={href('/')} aria-label="NEXUS TCG, changer d’univers"><Logo /><span>NEXUS<small>TCG</small></span></a>
-        <a className={'univ-pill ' + universe} href={href(UNIV_HOME[universe])}>{universe === 'onepiece' ? <PirateEmblem size={20} className="" /> : <EnergyEmblem size={20} className="" />} {GAMES[universe].label}</a>
+        <a className={'univ-pill ' + universe} href={href(UNIV_HOME[universe])}>{universe === 'onepiece' ? <PirateEmblem size={20} className="" /> : <EnergyEmblem size={20} className="" />}<span className="up-label"> {GAMES[universe].label}</span></a>
+        <label className="lang-select" title="Langue des cartes">
+          <span className="sr-only">Langue des cartes</span>
+          <select value={cardLang} onChange={(e) => update((s) => { s.lang = e.target.value; })}>{LANGS.map(([v, l, t]) => <option key={v} value={v}>{l} · {t}</option>)}</select>
+          <b aria-hidden="true">{LANGS.find((x) => x[0] === cardLang)?.[1]}</b>
+        </label>
         <nav className="topnav" aria-label="Navigation principale" ref={topRef}>
           <NavBolt navRef={topRef} edge="bottom" path={route.path} />
           {nav.slice(1).map(([to, l, i]) => <a key={to} href={href(to)} className={active(to) ? 'on' : ''}><Icon name={i} size={18} />{l}</a>)}

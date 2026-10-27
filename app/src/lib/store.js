@@ -10,7 +10,8 @@ const DEFAULT = {
   recent: [],              // cartes consultées
   binder: { name: '', covers: {} },
   season: { n: 0, cards: {}, packs: {} }, // saison de classement en cours (30 jours)
-  league: { id: '', secret: '', pseudo: '' }, // identité pour le classement en ligne // classeur de présentation
+  league: { id: '', secret: '', pseudo: '' },
+  lang: 'en',              // langue d'affichage des cartes : en, fr, ja // identité pour le classement en ligne // classeur de présentation
   notified: {},            // alertes déjà signalées : key → date
   universe: null,          // dernier univers visité
   wallet: {},              // univers → { coins, day, today, opened }
@@ -38,6 +39,7 @@ export function update(fn) {
   emit();
 }
 export const getState = () => state;
+export function onStore(f) { subs.add(f); return () => subs.delete(f); }
 export function useStore(sel = (s) => s) {
   return useSyncExternalStore((f) => { subs.add(f); return () => subs.delete(f); }, () => sel(state));
 }

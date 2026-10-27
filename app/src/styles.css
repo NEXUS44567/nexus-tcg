@@ -1556,3 +1556,20 @@ main#contenu:not(.chooser-main) { animation: uv-arrive .45s ease-out; }
 @media (max-width: 480px) { .lg-board li { grid-template-columns: 1.8rem minmax(0, 1fr) auto; } .lg-bar { display: none; } }
 .lg-board > .btn { margin-top: .6rem; }
 .boosters-page > .league { margin: 1rem 0 1.4rem; }
+
+/* ---------- Langues des cartes (EN / FR / JP) ---------- */
+.sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
+.lang-select { position: relative; display: inline-grid; place-items: center; flex: none; height: 34px; min-width: 44px; padding: 0 .65rem; border-radius: 999px; border: 1px solid var(--line-2); background: var(--panel); color: var(--text); font: 800 .78rem/1 var(--body); letter-spacing: .06em; cursor: pointer; }
+.lang-select::after { content: ""; width: 0; height: 0; border-left: 4px solid transparent; border-right: 4px solid transparent; border-top: 5px solid var(--muted); position: absolute; right: 7px; top: 50%; margin-top: -2px; }
+.lang-select { padding-right: 1.25rem; }
+.lang-select select { position: absolute; inset: 0; width: 100%; height: 100%; opacity: 0; cursor: pointer; font-size: 16px; }
+.lang-select:focus-within { outline: 2px solid var(--gold); outline-offset: 2px; }
+.ltag { display: inline-block; margin-left: .25rem; padding: .08rem .32rem; border-radius: 5px; font: 800 .62rem/1.3 var(--body); letter-spacing: .04em; vertical-align: middle; }
+.ltag.ja { background: #fff; color: #c8102e; box-shadow: inset 0 0 0 1px #c8102e; }
+.ltag.fr { background: linear-gradient(90deg, #1f47a8 0 33%, #fff 33% 66%, #e1251b 66%); color: #15121f; text-shadow: 0 0 2px #fff; }
+.cimg-fallback em { font-style: normal; font-size: .72rem; color: var(--gold); }
+.cimg.jp.error { background: radial-gradient(circle at 50% 38%, rgba(200, 16, 46, .35) 0 18%, transparent 19%), linear-gradient(160deg, var(--panel-2), var(--bg-2)); }
+.scope-note { display: flex; gap: .45rem; align-items: flex-start; margin: .6rem 0 0; padding: .55rem .7rem; border-radius: 10px; background: rgba(255,255,255,.04); color: var(--muted); font-size: .8rem; line-height: 1.35; }
+.scope-note .icon { flex: none; margin-top: 1px; color: var(--gold); }
+.set-card.ja .set-code { color: #ff6b81; }
+@media (max-width: 440px) { .univ-pill .up-label { display: none; } .univ-pill { padding-inline: .45rem; } .topbar { gap: .45rem; } }

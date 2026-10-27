@@ -39,13 +39,25 @@ export function Icon({ name, size = 20 }) {
 
 export function CardImage({ card, size = 'small', className = '', eager = false, alt }) {
   const [state, setState] = useState('loading');
-  const src = img(card?.image, size);
+  const [useEn, setUseEn] = useState(false);
+  const local = img(card?.image, size);
+  const src = useEn && card?.en?.image ? img(card.en.image, size) : local;
+  useEffect(() => { setState(src ? 'loading' : 'error'); }, [src]);
+  useEffect(() => { setUseEn(false); }, [local]);
+  const fail = () => { if (!useEn && card?.en?.image && card.en.image !== card.image) setUseEn(true); else setState('error'); };
   return (
-    <div className={'cimg ' + className + ' ' + state} data-game={card?.game}>
-      {src && state !== 'error' && <img src={src} alt={alt ?? (card ? card.name + ' ' + card.number : '')} loading={eager ? 'eager' : 'lazy'} decoding="async" referrerPolicy="no-referrer" onLoad={() => setState('ok')} onError={() => setState('error')} />}
-      {state === 'error' && <div className="cimg-fallback"><span>{card?.name}</span><small>{card?.number}</small></div>}
+    <div className={'cimg ' + className + ' ' + state + (card?.lang === 'ja' ? ' jp' : '')} data-game={card?.game}>
+      {src && state !== 'error' && <img src={src} alt={alt ?? (card ? card.name + ' ' + card.number : '')} loading={eager ? 'eager' : 'lazy'} decoding="async" referrerPolicy="no-referrer" onLoad={() => setState('ok')} onError={fail} />}
+      {state === 'error' && <div className="cimg-fallback"><span>{card?.name}</span>{card?.nameFr && card.lang === 'ja' && <em>{card.nameFr}</em>}<small>{card?.number}</small></div>}
     </div>
   );
+}
+
+export function LangTag({ card }) {
+  if (card?.lang === 'ja') return <span className="ltag ja" title="Carte japonaise">JP</span>;
+  if (card?.local === 'fr') return <span className="ltag fr" title="Nom et image de la version française">FR</span>;
+  if (card?.local === 'ja') return <span className="ltag ja" title="Nom et image de la version japonaise">JP</span>;
+  return null;
 }
 
 export function Delta({ pct, small }) {
@@ -85,7 +97,7 @@ export function CardTile({ card, extra, rank, compact, onClick }) {
       </div>
       <div className="tile-body">
         <div className="tile-name">{card.name}</div>
-        <div className="tile-meta"><GameTag game={card.game} /> <span>{card.number}</span>{card.variant && <span className="variant">{card.variant}</span>}</div>
+        <div className="tile-meta"><GameTag game={card.game} /><LangTag card={card} /> <span>{card.number}</span>{card.variant && <span className="variant">{card.variant}</span>}</div>
         {!compact && <div className="tile-set">{set?.name}</div>}
         <div className="tile-price"><Price card={card} />{trend != null && Math.abs(trend) >= 1 && <Delta pct={trend} small />}{extra}</div>
       </div>
@@ -262,10 +274,11 @@ export function Seg({ value, onChange, options, label }) {
   );
 }
 
-export function SourceNote({ game }) {
+export function SourceNote({ game, ja }) {
   const { P, M } = useData();
   const g = M?.games?.[game];
   const s = P?.[game]?.source;
+  if (ja) return s?.ja ? <p className="source-note">Source : <a href={s.ja.url} target="_blank" rel="noreferrer">{s.ja.name}</a> · relevé du {fmtDate(P[game].updatedAt)} · {s.ja.count.toLocaleString('fr-FR')} cartes japonaises avec un prix</p> : <p className="source-note">Prix des cartes japonaises pas encore relevés.</p>;
   if (!s) return <p className="source-note">Prix pas encore relevés pour ce jeu.</p>;
   return (
     <p className="source-note">

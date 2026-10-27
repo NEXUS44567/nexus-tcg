@@ -67,7 +67,7 @@ export function buildProduct(game, cats, P, fx) {
       composition: '3 communes, 1 peu commune, 1 rare, 1 bonus et 1 carte de tête.',
       odds: [['Carte de tête', OP_HEAD.filter(([k]) => pools[k]?.length)], ['Bonus', OP_BONUS.filter(([k]) => pools[k]?.length)]] };
   }
-  const s = g.setList.filter((x) => x.count >= 80).find((x) => { const p = pokemonPools(g.cards.filter((c) => c.set === x.code)); return p.C.length >= 3 && p.U.length >= 1 && p.R.length; });
+  const s = g.setList.filter((x) => x.count >= 80 && x.lang !== 'ja').find((x) => { const p = pokemonPools(g.cards.filter((c) => c.set === x.code)); return p.C.length >= 3 && p.U.length >= 1 && p.R.length; });
   const cards = g.cards.filter((c) => c.set === s.code);
   const pools = pokemonPools(cards);
   return { id: 'pk-' + s.code, game, set: s, name: s.name, code: s.code, size: 7, cover: topCard(cards, P, fx), pools, cards, logo: s.logo,

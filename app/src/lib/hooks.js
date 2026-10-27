@@ -1,5 +1,7 @@
 import { useEffect, useState, useSyncExternalStore } from 'react';
 import { allCatalogs, allPrices, market } from './data.js';
+import { applyLang, loadJapanese } from './lang.js';
+import { getState, onStore } from './store.js';
 
 // ---- Routeur par fragment (#/chemin?x=1), compatible GitHub Pages ----
 function parse() {
@@ -31,13 +33,25 @@ export const cardHref = (c) => href('/carte/' + encodeURIComponent(c.key || c.ga
 let data = { ready: false };
 let started = false;
 const dsubs = new Set();
+const emitData = () => dsubs.forEach((f) => f());
 function start() {
   if (started) return; started = true;
-  Promise.all([allCatalogs(), allPrices(), market()]).then(([cats, P, M]) => {
+  Promise.all([allCatalogs(), allPrices(), market()]).then(async ([cats, P, M]) => {
     const fx = M?.fx?.usdEur || P.onepiece?.source?.fx?.usdEur || null;
-    data = { ready: true, cats, P, M, fx };
-    dsubs.forEach((f) => f());
-  }).catch((e) => { data = { ready: false, error: e.message }; dsubs.forEach((f) => f()); });
+    let lang = getState().lang || 'en';
+    try { await applyLang(cats, lang); } catch {}
+    data = { ready: true, cats, P, M, fx, lang, jp: false };
+    emitData();
+    // cartes japonaises Pokémon, chargées en arrière-plan
+    loadJapanese(cats).then((ok) => { if (ok) { data = { ...data, jp: true }; emitData(); } });
+    // changement de langue
+    onStore(() => {
+      const l = getState().lang || 'en';
+      if (l === lang) return;
+      lang = l;
+      applyLang(cats, l).then(() => { if (lang === l) { data = { ...data, lang: l }; emitData(); } });
+    });
+  }).catch((e) => { data = { ready: false, error: e.message }; emitData(); });
 }
 export function useData() {
   start();
