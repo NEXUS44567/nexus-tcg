@@ -15,6 +15,7 @@ on:
 
 permissions:
   contents: write
+  pages: write
 
 concurrency:
   group: prices
@@ -47,3 +48,8 @@ jobs:
           git commit -m "Langues FR / JP du $(date -u +%F)"
           git pull --rebase origin main
           git push
+      - name: Republier le site
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh api -X POST "repos/${{ github.repository }}/pages/builds"

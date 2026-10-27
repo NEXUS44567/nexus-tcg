@@ -338,6 +338,9 @@ for (const [game, fn] of [['onepiece', onePiece], ['pokemon', pokemon]]) {
   try {
     const res = await fn(cats[game], fx);
     if (Object.keys(res.items).length < 50) throw new Error('trop peu de prix relevés (' + Object.keys(res.items).length + ')');
+    // Garde-fou : une source qui répond à moitié ne doit pas effacer les prix de la veille
+    const before = Object.keys(readJSON(path.join(DB, 'prices', game + '.json'), { items: {} }).items || {}).length;
+    if (before && Object.keys(res.items).length < before * 0.7) throw new Error(`relevé incomplet (${Object.keys(res.items).length} prix contre ${before} la veille)`);
     all[game] = res;
     writeJSON(path.join(DB, 'prices', game + '.json'), res);
     updateHistory(game, catsAll[game], res);
