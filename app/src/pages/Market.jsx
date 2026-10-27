@@ -2,7 +2,7 @@ import React, { useMemo, useState } from 'react';
 import { useData, useAsync, href, cardHref } from '../lib/hooks.js';
 import { useStore, toggleCompare, toggleWatch, setAlert, getState, useUniverse } from '../lib/store.js';
 import { CUR, toDisp, fromDisp, priceOf, eurOf, historyOf, search, fmtEur, fmtUsd, fmtDate, fmtNum, GAMES, img } from '../lib/data.js';
-import { CardImage, CardTile, PriceChart, SearchBox, Section, Loading, Empty, Icon, GameTag, Delta, Seg, Price, SourceNote, Sparkline } from '../components.jsx';
+import { SetArt, setArtCards, CardImage, CardTile, PriceChart, SearchBox, Section, Loading, Empty, Icon, GameTag, Delta, Seg, Price, SourceNote, Sparkline } from '../components.jsx';
 import { Podium } from './Home.jsx';
 
 const COLORS = ['#ff7a45', '#4cc9f0', '#ffd23f', '#b388ff'];
@@ -193,23 +193,6 @@ export function RankingPage() {
 }
 
 // ---------- Extensions ----------
-// Illustration d'une extension sans logo : éventail de ses trois cartes les plus chères (ou ses premières cartes)
-function setArtCards(cards, d) {
-  const priced = cards.map((c) => [eurOf(c, d.P, d.fx) || 0, c]).filter((x) => x[0] > 0).sort((a, b) => b[0] - a[0]).map((x) => x[1]);
-  const withImg = (l) => l.filter((c) => c.image);
-  const pick = withImg(priced).slice(0, 3);
-  return pick.length >= 3 ? pick : withImg(cards).slice(0, 3);
-}
-export function SetArt({ cards, code, big }) {
-  const order = cards.length === 3 ? [cards[1], cards[0], cards[2]] : cards;
-  return (
-    <div className={'set-art' + (big ? ' big' : '')} aria-hidden="true">
-      {order.map((c, i) => <span key={c.key} className={'sa-card p' + (order.length === 3 ? i : 1)}><CardImage card={c} /></span>)}
-      {code && <b className="sa-code">{code}</b>}
-    </div>
-  );
-}
-
 export function SetsPage({ game }) {
   const d = useData();
   const pref = useStore((s) => s.lang);
@@ -236,7 +219,7 @@ export function SetsPage({ game }) {
           return (
             <a key={s.code} className={'set-card' + (s.lang === 'ja' ? ' ja' : '')} href={href('/extension/' + game + '/' + encodeURIComponent(s.code))}>
               {s.logo ? <img src={img(s.logo)} alt="" loading="lazy" referrerPolicy="no-referrer" onError={(e) => (e.currentTarget.style.display = 'none')} />
-                : art.length ? <SetArt cards={art} code={code} /> : <span className="set-code">{code}</span>}
+                : art.length ? <SetArt cards={art} code={code} pack={s.pack} /> : <span className="set-code">{code}</span>}
               <b>{s.name}</b>
               <small>{s.lang === 'ja' ? 'JP · ' : ''}{code} · {s.count} cartes{s.date ? ' · ' + fmtDate(s.date, { month: 'short', year: 'numeric' }) : ''}</small>
               {top[1] && <small className="muted">Top : {top[1].name} · {fmtEur(top[0])}</small>}
@@ -263,7 +246,7 @@ export function SetPage({ game, code }) {
   return (
     <div className="page">
       <nav className="crumbs"><a href={href('/')}>Accueil</a><span>›</span><a href={href('/extensions/' + game)}>{GAMES[game].label}</a></nav>
-      {!s.logo && <SetArt cards={setArtCards(cards, d)} big />}
+      {!s.logo && <SetArt cards={setArtCards(cards, d)} pack={s.pack} big />}
       <h1 className="page-title">{s.name} <small className="muted">{s.lang === 'ja' ? 'JP · ' + s.code.slice(3) : s.code}</small></h1>
       <p className="muted">{s.count} cartes{s.date ? ' · sortie le ' + fmtDate(s.date) : ''} · valeur cumulée d’un exemplaire de chaque : {fmtEur(value)}</p>
       <div className="toolbar"><Seg value={sort} onChange={setSort} label="Tri" options={[['numero', 'Par numéro'], ['prix', 'Par prix']]} /></div>

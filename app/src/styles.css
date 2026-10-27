@@ -1604,3 +1604,17 @@ main#contenu:not(.chooser-main) { animation: uv-arrive .45s ease-out; }
 .tabbar a { font-size: .64rem; letter-spacing: -.01em; min-width: 0; }
 .tabbar a > span { max-width: 100%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 @media (max-width: 360px) { .tabbar a { font-size: .58rem; } }
+/* visuel officiel du booster / display derrière l'éventail */
+.set-art .sa-bg { position: absolute; inset: -10%; width: 120%; height: 120%; object-fit: cover; filter: blur(14px) saturate(1.3); opacity: .5; }
+.set-card .set-art .sa-bg { width: 120%; height: 120%; margin: 0; }
+.set-art .sa-pack { position: absolute; left: 50%; top: 6px; height: 74%; width: auto; max-width: 92%; transform: translateX(-50%); object-fit: contain; filter: drop-shadow(0 10px 16px rgba(0,0,0,.6)); }
+.set-card .set-art .sa-pack { height: 74%; width: auto; max-width: 92%; margin: 0; }
+.set-art.has-pack .sa-card { width: 60px; bottom: -30px; }
+.set-art.has-pack .p0 { transform: translateX(-50%) translateX(-78px) rotate(-18deg) scale(.88); }
+.set-art.has-pack .p1 { transform: translateX(-50%) translateX(0) translateY(-2px); }
+.set-art.has-pack .p2 { transform: translateX(-50%) translateX(78px) rotate(18deg) scale(.88); }
+.set-art.big.has-pack { height: 260px; }
+.set-art.big.has-pack .sa-card { width: 96px; bottom: -36px; }
+.set-art.big.has-pack .p0 { transform: translateX(-50%) translateX(-130px) rotate(-16deg) scale(.9); }
+.set-art.big.has-pack .p2 { transform: translateX(-50%) translateX(130px) rotate(16deg) scale(.9); }
+.set-art.has-pack .sa-code { z-index: 4; }

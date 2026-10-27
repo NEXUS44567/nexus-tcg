@@ -2,7 +2,7 @@ import React, { useMemo, useState } from 'react';
 import { useData, href, cardHref } from '../lib/hooks.js';
 import { useStore } from '../lib/store.js';
 import { fmtEur, fmtDate, fmtNum, eurOf, GAMES, img } from '../lib/data.js';
-import { SearchBox, CardImage, Delta, Section, Seg, Icon, GameTag, Price, Loading, CardTile, SourceNote, PirateEmblem, EnergyEmblem } from '../components.jsx';
+import { SetArt, setArtCards, SearchBox, CardImage, Delta, Section, Seg, Icon, GameTag, Price, Loading, CardTile, SourceNote, PirateEmblem, EnergyEmblem } from '../components.jsx';
 import { collectionValue } from './Collection.jsx';
 import Podium3D from './Podium3D.jsx';
 
@@ -151,7 +151,7 @@ export default function Home({ game }) {
         <div className="set-grid">
           {sets.map((s) => (
             <a key={s.code} className="set-card" href={href('/extension/' + game + '/' + encodeURIComponent(s.code))}>
-              {s.logo ? <img src={img(s.logo)} alt="" loading="lazy" referrerPolicy="no-referrer" onError={(e) => (e.currentTarget.style.display = 'none')} /> : <span className="set-code">{s.code}</span>}
+              {s.logo ? <img src={img(s.logo)} alt="" loading="lazy" referrerPolicy="no-referrer" onError={(e) => (e.currentTarget.style.display = 'none')} /> : <SetArt cards={setArtCards(cats[game].cards.filter((c) => c.set === s.code), d)} code={s.code} pack={s.pack} />}
               <b>{s.name}</b><small>{s.code} · {s.count} cartes{s.date ? ' · ' + fmtDate(s.date, { month: 'short', year: 'numeric' }) : ''}</small>
             </a>
           ))}

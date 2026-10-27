@@ -14,6 +14,9 @@ function load(file) {
 const opLocalOk = (id) => !id.includes('_') || /_p1$/.test(id);
 
 export async function applyLang(cats, lang) {
+  // visuels officiels des boosters / displays One Piece (indépendants de la langue)
+  const packs = await load('onepiece-packs.json');
+  if (packs?.sets && cats.onepiece) for (const [code, url] of Object.entries(packs.sets)) { const s = cats.onepiece.sets.get(code); if (s) s.pack = url; }
   const [opT, pkT] = await Promise.all([
     lang === 'en' ? null : load(`onepiece-${lang}.json`),
     lang === 'fr' ? load('pokemon-fr.json') : null,

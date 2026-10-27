@@ -365,3 +365,23 @@ export function EnergyEmblem({ size = 44, className = 'emblem' }) {
     </svg>
   );
 }
+
+// Illustration d'une extension sans logo : éventail de ses trois cartes les plus chères (ou ses premières cartes)
+export function setArtCards(cards, d) {
+  const priced = cards.map((c) => [eurOf(c, d.P, d.fx) || 0, c]).filter((x) => x[0] > 0).sort((a, b) => b[0] - a[0]).map((x) => x[1]);
+  const withImg = (l) => l.filter((c) => c.image);
+  const pick = withImg(priced).slice(0, 3);
+  return pick.length >= 3 ? pick : withImg(cards).slice(0, 3);
+}
+export function SetArt({ cards, code, big, pack }) {
+  const order = cards.length === 3 ? [cards[1], cards[0], cards[2]] : cards;
+  const [packOk, setPackOk] = useState(true);
+  return (
+    <div className={'set-art' + (big ? ' big' : '') + (pack && packOk ? ' has-pack' : '')} aria-hidden="true">
+      {pack && packOk && <><img className="sa-bg" src={pack} alt="" loading="lazy" referrerPolicy="no-referrer" /><img className="sa-pack" src={pack} alt="" loading="lazy" referrerPolicy="no-referrer" onError={() => setPackOk(false)} /></>}
+      {order.map((c, i) => <span key={c.key} className={'sa-card p' + (order.length === 3 ? i : 1)}><CardImage card={c} /></span>)}
+      {code && <b className="sa-code">{code}</b>}
+    </div>
+  );
+}
+
