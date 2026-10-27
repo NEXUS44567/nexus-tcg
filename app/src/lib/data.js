@@ -89,7 +89,13 @@ export const history = (game, set) => load('history/' + game + '/' + set + '.jso
 export async function historyOf(card) {
   const h = await history(card.game, card.set);
   if (!h || !h.p[card.id]) return [];
-  return h.d.map((d, i) => [d, h.p[card.id][i]]).filter((x) => x[1] != null);
+  const pts = h.d.map((d, i) => [d, h.p[card.id][i]]).filter((x) => x[1] != null);
+  // valeur isolée aberrante (erreur ponctuelle d'une source) : écartée de la courbe
+  return pts.filter(([, v], i) => {
+    const a = pts[i - 1]?.[1], b = pts[i + 1]?.[1];
+    const out = (x, k) => x != null && (v > x * k || v < x / k);
+    return !((a != null && b != null && out(a, 6) && out(b, 6)) || (a == null && b != null && out(b, 20)));
+  });
 }
 
 export async function findCard(key) {

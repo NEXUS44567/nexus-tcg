@@ -46,7 +46,10 @@ export function Movers({ game = 'all', limit = 6 }) {
     const out = [];
     for (const g of Object.keys(cats)) {
       if (game !== 'all' && g !== game) continue;
-      for (const [id, from, to, pct] of M?.games?.[g]?.[per]?.[dir] || []) { const c = cats[g].byId.get(id); if (c) out.push({ c, from, to, pct }); }
+      for (const [id, from, to, pct] of M?.games?.[g]?.[per]?.[dir] || []) {
+        if (!(from >= 0.5 && to / from <= 5 && from / to <= 5)) continue; // erreur ponctuelle d'une source, pas un vrai mouvement
+        const c = cats[g].byId.get(id); if (c) out.push({ c, from, to, pct });
+      }
     }
     return out.sort((a, b) => (dir === 'up' ? b.pct - a.pct : a.pct - b.pct)).slice(0, limit);
   }, [cats, M, dir, per, game]);

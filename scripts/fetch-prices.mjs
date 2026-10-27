@@ -95,7 +95,10 @@ function tcgMarket(prices, get) {
   return rest.length ? Math.min(...rest) : null;
 }
 function pokemonItem(cm, tpMarket) {
-  const eur = num(cm.trendPrice ?? cm.trend) ?? num(cm.averageSellPrice ?? cm.avg) ?? num(cm.avg7) ?? num(cm.avg30);
+  let eur = num(cm.trendPrice ?? cm.trend) ?? num(cm.averageSellPrice ?? cm.avg) ?? num(cm.avg7) ?? num(cm.avg30);
+  // tendance à quelques centimes alors que les moyennes sont bien plus hautes : valeur de remplissage de la source
+  const ref = num(cm.avg30) ?? num(cm.avg7) ?? num(cm.averageSellPrice ?? cm.avg);
+  if (eur != null && eur <= 0.05 && ref != null && ref > eur * 20) eur = ref;
   if (eur == null && tpMarket == null) return null;
   return [round(eur), round(num(cm.avg1)), round(num(cm.avg7)), round(num(cm.avg30)), round(num(cm.lowPrice ?? cm.low)), round(tpMarket)];
 }
@@ -251,6 +254,20 @@ async function pokemon(catalog, fx) {
 }
 
 // ---------- Historique ----------
+// Une valeur isolée qui s'écarte d'un facteur 6 de ses deux voisines (ou 20 au bord) est une erreur de source
+// (ex. 0,02 € renvoyé un jour pour une carte à 900 €) : on l'efface plutôt que de fausser courbes et mouvements.
+function cleanSeries(s) {
+  let n = 0;
+  for (let i = 0; i < s.length; i++) {
+    const v = s[i]; if (v == null) continue;
+    let a = null, b = null;
+    for (let j = i - 1; j >= 0; j--) if (s[j] != null) { a = s[j]; break; }
+    for (let j = i + 1; j < s.length; j++) if (s[j] != null) { b = s[j]; break; }
+    const out = (x, k) => x != null && (v > x * k || v < x / k);
+    if ((a != null && b != null && out(a, 6) && out(b, 6)) || (a == null && b != null && out(b, 20)) || (b == null && a != null && out(a, 20) && false)) { s[i] = null; n++; }
+  }
+  return n;
+}
 function updateHistory(game, catalog, prices) {
   const bySet = new Map();
   for (const c of catalog.cards) { if (!bySet.has(c[2])) bySet.set(c[2], []); bySet.get(c[2]).push(c[0]); }
@@ -267,6 +284,7 @@ function updateHistory(game, catalog, prices) {
       h.p[id][idx] = v;
       if (v != null) any = true;
     }
+    for (const k in h.p) cleanSeries(h.p[k]);
     const extra = h.d.length - HISTORY_DAYS;
     if (extra > 0) { h.d.splice(0, extra); for (const k in h.p) h.p[k].splice(0, extra); }
     if (any || fs.existsSync(p)) writeJSON(p, h);
@@ -296,9 +314,10 @@ function market(cats, all, fx) {
       for (const [id, s] of Object.entries(h.p)) {
         if (prices.items[id]?.[6] === 'x') continue;
         const [a, b] = lastTwo(s);
-        if (a != null && b != null && b >= 5 && a !== b) day.push([id, a, b, round(((b - a) / a) * 100)]);
+        const sane = (x, y) => x >= 0.5 && y / x <= 5 && x / y <= 5; // écarts plausibles en un jour / une semaine
+        if (a != null && b != null && b >= 5 && a !== b && sane(a, b)) day.push([id, a, b, round(((b - a) / a) * 100)]);
         const n = s.length; const old = s.slice(Math.max(0, n - 8), Math.max(0, n - 6)).find((v) => v != null);
-        if (old != null && b != null && b >= 5 && n >= 7 && old !== b) week.push([id, old, b, round(((b - old) / old) * 100)]);
+        if (old != null && b != null && b >= 5 && n >= 7 && old !== b && sane(old, b)) week.push([id, old, b, round(((b - old) / old) * 100)]);
       }
     }
     // Pokémon : tendance sur 7 jours fournie par Cardmarket (moyenne 7 j vs moyenne 30 j)
