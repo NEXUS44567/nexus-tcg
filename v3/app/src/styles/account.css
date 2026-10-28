@@ -51,7 +51,17 @@
 .acc-meter.s2 i:nth-child(-n+2) { background: #ffb347; }
 .acc-meter.s3 i:nth-child(-n+3) { background: #a8e063; }
 .acc-meter.s4 i { background: var(--up); }
-.acc-oauth { display: grid; gap: 10px; }
+.acc-social { display: grid; gap: 10px; }
+.acc-social .acc-or { margin-top: 6px; }
+.btn.oauth { --h: 50px; gap: 12px; font-size: 15px; border-radius: 14px; }
+.btn.oauth svg { flex: none; }
+.btn.oauth.google { background: #131314; border-color: #8e918f; color: #e3e3e3; }
+.btn.oauth.google:hover { background: #202124; border-color: #a8aaa8; }
+.btn.oauth.apple { background: #fff; border-color: #fff; color: #000; }
+.btn.oauth.apple:hover { background: #e8e8ed; }
+.btn.oauth.discord { background: #5865f2; border-color: #5865f2; color: #fff; }
+.btn.oauth.discord:hover { background: #4752c4; border-color: #4752c4; }
+.acc-first { margin: -6px 0 22px; max-width: 760px; }
 .acc-or { display: flex; align-items: center; gap: 12px; color: var(--text-3); font-size: 11.5px; font-weight: 800; text-transform: uppercase; letter-spacing: .16em; }
 .acc-or::before, .acc-or::after { content: ''; flex: 1; height: 1px; background: var(--line-2); }
 

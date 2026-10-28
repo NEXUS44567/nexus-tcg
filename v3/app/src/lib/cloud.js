@@ -11,7 +11,9 @@ import { toast } from './toast.js';
 const AUTH_KEY = 'nexus3.auth';
 const META_KEY = 'nexus3.sync';
 export const cloudOn = () => !!(SUPABASE.url && SUPABASE.key);
-export const providers = () => (cloudOn() && SUPABASE.providers) || [];
+// Connexions en un clic proposées sur le site, dans cet ordre, si elles sont activées dans Supabase
+export const SOCIAL = ['google', 'apple', 'discord'];
+const PROV_KEY = 'nexus3.providers';
 const api = (p) => SUPABASE.url.replace(/\/+$/, '') + p;
 const back = () => encodeURIComponent(location.origin + location.pathname);
 
@@ -20,7 +22,7 @@ const writeJSON = (k, v) => { try { if (v == null) localStorage.removeItem(k); e
 
 // ---- État observable par l'interface ----
 // status : off (pas connecté) · idle (à jour) · dirty (changements en attente) · sync (envoi) · offline · error
-let snap = { user: null, pseudo: null, status: 'off', at: null, error: '', recovery: false, expired: false, linkError: '', busy: false };
+let snap = { user: null, pseudo: null, status: 'off', at: null, error: '', recovery: false, expired: false, linkError: '', providers: cloudOn() ? readJSON(PROV_KEY) || [] : [] };
 const subs = new Set();
 function set(patch) { snap = { ...snap, ...patch }; subs.forEach((f) => f()); }
 export const useCloud = (sel = (s) => s) => useSyncExternalStore((f) => { subs.add(f); return () => subs.delete(f); }, () => sel(snap));
@@ -81,7 +83,7 @@ async function call(path, { method = 'GET', body, token, prefer, keepalive } = {
 }
 
 // ---- Session ----
-const slimUser = (u) => u && { id: u.id, email: u.email, created_at: u.created_at, meta: u.user_metadata || {}, provider: u.app_metadata?.provider || 'email' };
+const slimUser = (u) => u && { id: u.id, email: u.email, created_at: u.created_at, meta: u.user_metadata || {}, provider: u.app_metadata?.provider || 'email', providers: u.app_metadata?.providers || null };
 const toSession = (r, user) => ({
   access_token: r.access_token, refresh_token: r.refresh_token,
   expires_at: Number(r.expires_at) || Math.floor(Date.now() / 1000) + (Number(r.expires_in) || 3600),
@@ -268,7 +270,7 @@ async function attach() {
   set({ pseudo: head.pseudo });
   const row = await fetchRow(true);
   let how;
-  if (other || !hasProgress(getState())) { adopt(row); how = 'adopted'; }
+  if (other || !hasProgress(getState())) { adopt(row); how = hasProgress(row.data || {}) ? 'adopted' : 'new'; }
   else if (!hasProgress(row.data || {})) { saveMeta({ uid: id, rev: row.rev, sig: sig(normalizeSynced(row.data)) }); how = 'uploaded'; }
   else { mergeWith(row); how = 'merged'; }
   await flush();
@@ -368,9 +370,20 @@ async function openLink(q) {
   } catch (e) { set({ linkError: e.message }); }
 }
 
+// Fournisseurs activés dans Supabase (réglages publics du service de comptes), gardés pour l'affichage suivant
+async function loadProviders() {
+  try {
+    const s = await call('/auth/v1/settings');
+    const list = SOCIAL.filter((p) => s?.external?.[p]);
+    writeJSON(PROV_KEY, list);
+    set({ providers: list });
+  } catch {}
+}
+
 // ---- Démarrage ----
 function start() {
   if (!cloudOn()) return;
+  loadProviders();
   const link = readLink();
   if (session) set({ user: session.user, status: 'idle', at: meta.at || null });
   if (link) openLink(link);

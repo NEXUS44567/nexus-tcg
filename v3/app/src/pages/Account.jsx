@@ -5,7 +5,7 @@ import { fmtDate, fmtNum, fmtShort } from '../lib/data.js';
 import { collectionValue } from '../lib/coll.js';
 import { toast } from '../lib/toast.js';
 import {
-  useCloud, cloudOn, providers, signIn, signUp, signInWith, signOut, resetPassword, resendConfirmation, pseudoFree,
+  useCloud, cloudOn, signIn, signUp, signInWith, signOut, resetPassword, resendConfirmation, pseudoFree,
   changePassword, changePseudo, deleteAccount, syncNow, isDirty, dismissRecovery, cleanPseudo, clearLinkError,
 } from '../lib/cloud.js';
 import { Seg } from '../ui/Kit.jsx';
@@ -14,7 +14,42 @@ import Icon from '../ui/Icon.jsx';
 
 // Compte NEXUS : connexion, inscription, carte de membre et état de la sauvegarde en ligne.
 
-const PROVIDERS = { google: 'Google', discord: 'Discord', github: 'GitHub', apple: 'Apple', facebook: 'Facebook', twitch: 'Twitch' };
+const PROVIDERS = { google: 'Google', apple: 'Apple', discord: 'Discord' };
+const joinFr = (a) => (a.length > 1 ? a.slice(0, -1).join(', ') + ' et ' + a[a.length - 1] : a[0] || '');
+
+// Logos officiels des connexions en un clic (Google en couleurs, Apple et Discord en blanc ou noir selon le bouton)
+function BrandLogo({ p }) {
+  if (p === 'google') return (
+    <svg width="20" height="20" viewBox="0 0 48 48" aria-hidden="true">
+      <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z" />
+      <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z" />
+      <path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z" />
+      <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z" />
+    </svg>
+  );
+  if (p === 'apple') return (
+    <svg width="19" height="19" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12.152 6.896c-.948 0-2.415-1.078-3.96-1.04-2.04.027-3.91 1.183-4.961 3.014-2.117 3.675-.546 9.103 1.519 12.09 1.013 1.454 2.208 3.09 3.792 3.039 1.52-.065 2.09-.987 3.935-.987 1.831 0 2.35.987 3.96.948 1.637-.026 2.676-1.48 3.676-2.948 1.156-1.688 1.636-3.325 1.662-3.415-.039-.013-3.182-1.221-3.22-4.857-.026-3.04 2.48-4.494 2.597-4.559-1.429-2.09-3.623-2.324-4.39-2.376-2-.156-3.675 1.09-4.61 1.09zM15.53 3.83c.843-1.012 1.4-2.427 1.245-3.83-1.207.052-2.662.805-3.532 1.818-.78.896-1.454 2.338-1.273 3.714 1.338.104 2.715-.688 3.559-1.701" /></svg>
+  );
+  return (
+    <svg width="21" height="21" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M20.317 4.3698a19.7913 19.7913 0 00-4.8851-1.5152.0741.0741 0 00-.0785.0371c-.211.3753-.4447.8648-.6083 1.2495-1.8447-.2762-3.68-.2762-5.4868 0-.1636-.3933-.4058-.8742-.6177-1.2495a.077.077 0 00-.0785-.037 19.7363 19.7363 0 00-4.8852 1.515.0699.0699 0 00-.0321.0277C.5334 9.0458-.319 13.5799.0992 18.0578a.0824.0824 0 00.0312.0561c2.0528 1.5076 4.0413 2.4228 5.9929 3.0294a.0777.0777 0 00.0842-.0276c.4616-.6304.8731-1.2952 1.226-1.9942a.076.076 0 00-.0416-.1057c-.6528-.2476-1.2743-.5495-1.8722-.8923a.077.077 0 01-.0076-.1277c.1258-.0943.2517-.1923.3718-.2914a.0743.0743 0 01.0776-.0105c3.9278 1.7933 8.18 1.7933 12.0614 0a.0739.0739 0 01.0785.0095c.1202.099.246.1981.3728.2924a.077.077 0 01-.0066.1276 12.2986 12.2986 0 01-1.873.8914.0766.0766 0 00-.0407.1067c.3604.698.7719 1.3628 1.225 1.9932a.076.076 0 00.0842.0286c1.961-.6067 3.9495-1.5219 6.0023-3.0294a.077.077 0 00.0313-.0552c.5004-5.177-.8382-9.6739-3.5485-13.6604a.061.061 0 00-.0312-.0286zM8.02 15.3312c-1.1825 0-2.1569-1.0857-2.1569-2.419 0-1.3332.9555-2.4189 2.157-2.4189 1.2108 0 2.1757 1.0952 2.1568 2.419 0 1.3332-.9555 2.4189-2.1569 2.4189zm7.9748 0c-1.1825 0-2.1569-1.0857-2.1569-2.419 0-1.3332.9554-2.4189 2.1569-2.4189 1.2108 0 2.1757 1.0952 2.1568 2.419 0 1.3332-.946 2.4189-2.1568 2.4189Z" /></svg>
+  );
+}
+
+// Connexion en un clic : compte créé à la première fois, retrouvé ensuite
+function Social({ list }) {
+  const [going, setGoing] = useState('');
+  if (!list?.length) return null;
+  return (
+    <div className="acc-social">
+      {list.map((p) => (
+        <button key={p} type="button" className={'btn block oauth ' + p} disabled={!!going} onClick={() => { setGoing(p); signInWith(p); }}>
+          {going === p ? <span className="acc-spin" /> : <BrandLogo p={p} />}Continuer avec {PROVIDERS[p]}
+        </button>
+      ))}
+      <span className="acc-or">ou avec ton e-mail</span>
+    </div>
+  );
+}
 
 export default function AccountPage() {
   const c = useCloud();
@@ -95,6 +130,7 @@ function Welcome() {
   const [mode, setMode] = useState('signup');
   const [pseudo, setPseudo] = useState('');
   const [sent, setSent] = useState(null); // { kind: 'confirm' | 'reset', email }
+  const social = useCloud((x) => x.providers);
   useEffect(() => { if (c.expired) setMode('login'); }, [c.expired]);
   const has = p.cards || p.opened || p.ach;
   return (
@@ -111,15 +147,10 @@ function Welcome() {
           {sent ? <Sent sent={sent} back={() => { setSent(null); setMode('login'); }} /> : (
             <>
               {mode !== 'forgot' && <Seg value={mode} onChange={setMode} label="Connexion ou inscription" options={[['signup', 'Créer un compte'], ['login', 'Se connecter']]} />}
+              {mode !== 'forgot' && <Social list={social} />}
               {mode === 'signup' && <SignupForm pseudo={pseudo} setPseudo={setPseudo} onSent={(email) => setSent({ kind: 'confirm', email })} />}
               {mode === 'login' && <LoginForm forgot={() => setMode('forgot')} />}
               {mode === 'forgot' && <ForgotForm back={() => setMode('login')} onSent={(email) => setSent({ kind: 'reset', email })} />}
-              {mode !== 'forgot' && providers().length > 0 && (
-                <div className="acc-oauth">
-                  <span className="acc-or">ou</span>
-                  {providers().map((pv) => <button key={pv} type="button" className="btn ghost block" onClick={() => signInWith(pv)}><Icon name="user" size={18} />Continuer avec {PROVIDERS[pv] || pv}</button>)}
-                </div>
-              )}
             </>
           )}
         </section>
@@ -347,6 +378,9 @@ function Profile() {
   const pseudo = c.pseudo || '';
   const code = user.id.replace(/-/g, '').slice(0, 6).toUpperCase();
   const coins = (g) => p.wallet?.[g]?.coins;
+  const via = user.providers?.length ? user.providers : [user.provider];
+  // Discord donne déjà un pseudo ; Google et Apple donnent le vrai nom, qu'on ne propose pas
+  const suggest = user.provider === 'discord' ? cleanPseudo(user.meta?.custom_claims?.global_name) || cleanPseudo(user.meta?.full_name) || cleanPseudo(user.meta?.name) : '';
   return (
     <div className="page account-page">
       <div className="acc-hero">
@@ -354,9 +388,10 @@ function Profile() {
         <h1 className="page-title">{pseudo ? <>Salut, <span className="grad">{pseudo}</span></> : <>Ton <span className="grad">compte</span></>}</h1>
         <p className="lead">Tout ce que tu fais sur NEXUS est enregistré dans ton compte et te suit sur tous tes appareils.</p>
       </div>
+      {!pseudo && <div className="acc-first"><PseudoPanel current="" suggest={suggest} /></div>}
       <div className="acc-grid profile">
         <div className="acc-col">
-          <MemberCard pseudo={pseudo || user.meta?.pseudo || user.email?.split('@')[0]} since={user.created_at} code={code} stats={statsOf(p)} />
+          <MemberCard pseudo={pseudo || 'Nouveau joueur'} since={user.created_at} code={code} stats={statsOf(p)} />
           <SyncPanel />
           <section className="panel pad acc-saved">
             <h2 className="acc-h"><Icon name="cloud" size={20} />Enregistré dans ton compte</h2>
@@ -372,11 +407,11 @@ function Profile() {
           </section>
         </div>
         <div className="acc-col">
-          <PseudoPanel current={pseudo} />
+          {pseudo && <PseudoPanel current={pseudo} />}
           <section className="panel pad acc-block">
             <h2 className="acc-h"><Icon name="mail" size={20} />Connexion</h2>
-            <p className="muted small">{user.provider === 'email' ? <>Tu te connectes avec <b>{user.email}</b>.</> : <>Tu te connectes avec {PROVIDERS[user.provider] || user.provider}{user.email ? <> (<b>{user.email}</b>)</> : null}.</>}</p>
-            {user.provider === 'email' && <details className="acc-details"><summary><Icon name="lock" size={17} />Changer de mot de passe</summary><NewPassword inline /></details>}
+            <p className="muted small">Tu te connectes avec {joinFr(via.map((x) => (x === 'email' ? 'ton e-mail' : PROVIDERS[x] || x)))}{user.email ? <> (<b>{user.email}</b>)</> : null}.</p>
+            {via.includes('email') && <details className="acc-details"><summary><Icon name="lock" size={17} />Changer de mot de passe</summary><NewPassword inline /></details>}
           </section>
           <LogoutPanel />
           <DeletePanel pseudo={pseudo} />
@@ -386,11 +421,11 @@ function Profile() {
   );
 }
 
-function PseudoPanel({ current }) {
-  const [v, setV] = useState(current);
+function PseudoPanel({ current, suggest = '' }) {
+  const [v, setV] = useState(current || suggest);
   const { busy, err, run } = useSubmit();
   const [ok, setOk] = useState(false);
-  useEffect(() => setV(current), [current]);
+  useEffect(() => setV(current || suggest), [current]);
   const submit = run(async () => { setOk(false); await changePseudo(v); setOk(true); });
   const missing = !current;
   return (
@@ -455,11 +490,11 @@ function DeletePanel({ pseudo }) {
 export function AccountButton() {
   const c = useCloud();
   if (!cloudOn()) return null;
-  const name = c.pseudo || c.user?.meta?.pseudo || c.user?.email || '';
+  const name = c.pseudo || c.user?.meta?.pseudo || '';
   const label = c.user ? `Mon compte (${STATUS[c.status]?.[1] || ''})` : 'Se connecter ou créer un compte';
   return (
     <a className={'icon-btn acc-btn' + (c.user ? ' in st-' + c.status : '')} href={href('/compte')} aria-label={label} title={c.user ? name : 'Se connecter'}>
-      {c.user ? <span className="acc-av" aria-hidden="true">{name.charAt(0).toUpperCase()}</span> : <Icon name="user" />}
+      {c.user ? <span className="acc-av" aria-hidden="true">{name ? name.charAt(0).toUpperCase() : <Icon name="user" size={15} />}</span> : <Icon name="user" />}
       {c.user && <i className="acc-dot" aria-hidden="true" />}
     </a>
   );
@@ -476,11 +511,11 @@ export function AccountDrawer({ tab }) {
       <Icon name="right" size={16} />
     </a>
   );
-  const name = c.pseudo || c.user.meta?.pseudo || c.user.email || '';
+  const name = c.pseudo || c.user.meta?.pseudo || '';
   return (
     <a className={'drawer-acc st-' + c.status} href={href('/compte')} tabIndex={tab}>
-      <span className="acc-av big">{name.charAt(0).toUpperCase()}<i className="acc-dot" /></span>
-      <span><b>{name}</b><small>{STATUS[c.status]?.[1]}</small></span>
+      <span className="acc-av big">{name ? name.charAt(0).toUpperCase() : <Icon name="user" size={20} />}<i className="acc-dot" /></span>
+      <span><b>{name || 'Choisis ton pseudo'}</b><small>{STATUS[c.status]?.[1]}</small></span>
       <Icon name="right" size={16} />
     </a>
   );

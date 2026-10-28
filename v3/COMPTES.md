@@ -43,11 +43,25 @@ npm run build
 
 Le classement des collectionneurs s'active en même temps.
 
-## Connexion avec Google, Discord… (facultatif)
+## Connexion avec Google, Apple ou Discord (facultatif)
 
-Active le fournisseur dans **Authentication → Sign In / Providers** (il faut créer une application chez Google, Discord…
-et coller ses identifiants), puis ajoute son nom dans `providers` du fichier de configuration, par exemple `['google']`.
-Un bouton « Continuer avec Google » apparaît alors sous le formulaire.
+Les boutons « Continuer avec Google / Apple / Discord » apparaissent d'eux-mêmes sur la page « Mon compte » dès que le
+fournisseur est activé dans Supabase (**Authentication → Sign In / Providers**) : il n'y a rien à changer sur le site.
+Pour chacun, il faut créer une application chez le fournisseur, y coller l'adresse de retour de Supabase
+(`https://fkdkalmqwinhgdcoqfph.supabase.co/auth/v1/callback`, affichée aussi dans le panneau du fournisseur),
+puis recopier dans Supabase l'identifiant (*Client ID*) et le secret (*Client Secret*) qu'il donne.
+
+- **Discord** (gratuit, le plus simple) : discord.com/developers/applications → *New Application* → *OAuth2* →
+  *Redirects* : ajouter l'adresse de retour → copier *Client ID* et *Client Secret* (*Reset Secret*).
+- **Google** (gratuit) : console.cloud.google.com → nouveau projet → *Google Auth Platform* (écran de consentement :
+  nom de l'application, e-mail, public « Externe ») → *Clients* → *Créer un client* « Application Web » →
+  *URI de redirection autorisés* : l'adresse de retour → copier l'ID client et le code secret.
+- **Apple** : nécessite l'abonnement Apple Developer Program (99 € par an). Il faut un *Services ID*, une clé
+  « Sign in with Apple » (fichier .p8) et générer un secret qui **expire tous les 6 mois** : sans renouvellement,
+  la connexion avec Apple cesse de fonctionner.
+
+Avec Discord, le pseudo Discord est proposé ; avec Google et Apple, le joueur choisit son pseudo à la première connexion
+(on ne propose pas son vrai nom).
 
 ## Ce qui est enregistré
 
