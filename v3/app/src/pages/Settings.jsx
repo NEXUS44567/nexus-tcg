@@ -16,11 +16,11 @@ export function SettingsPage() {
   const account = useCloud((c) => (c.user ? c.pseudo || c.user.email : null));
   const file = useRef();
   const setSetting = (patch) => update((s) => { s.settings = { ...s.settings, ...patch }; });
-  const download = () => { const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([exportData()], { type: 'application/json' })); a.download = 'nexus-sauvegarde-' + new Date().toISOString().slice(0, 10) + '.json'; a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 2000); };
+  const download = () => { const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([exportData()], { type: 'application/json' })); a.download = 'kirakai-sauvegarde-' + new Date().toISOString().slice(0, 10) + '.json'; a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 2000); };
   const doImport = async (f) => { try { const k = importData(await f.text()); toast(`${k} carte${k > 1 ? 's' : ''} importée${k > 1 ? 's' : ''}.`, { icon: 'download' }); } catch (e) { toast('Import impossible : ' + e.message, { icon: 'info' }); } };
   return (
     <div className="page settings-page">
-      <div className="kicker">NEXUS V3</div>
+      <div className="kicker">Kirakai</div>
       <h1 className="page-title">Réglages</h1>
       <div className="settings">
         <section className="panel pad set-block">
@@ -44,19 +44,19 @@ export function SettingsPage() {
             <button className="btn ghost" onClick={download}><Icon name="download" size={18} />Exporter</button>
             <button className="btn ghost" onClick={() => file.current.click()}><Icon name="upload" size={18} />Importer</button>
             <input ref={file} type="file" accept="application/json" hidden onChange={(e) => e.target.files[0] && doImport(e.target.files[0])} />
-            {hasV2() && <button className="btn ghost" onClick={() => { try { const k = syncFromV2(); toast(k ? `${k} carte${k > 1 ? 's' : ''} reprise${k > 1 ? 's' : ''} de la V2.` : 'Tout est déjà à jour avec la V2.', { icon: 'refresh' }); } catch (e) { toast(e.message, { icon: 'info' }); } }}><Icon name="refresh" size={18} />Reprendre les nouveautés de la V2</button>}
+            {hasV2() && <button className="btn ghost" onClick={() => { try { const k = syncFromV2(); toast(k ? `${k} carte${k > 1 ? 's' : ''} reprise${k > 1 ? 's' : ''} de l’ancienne version.` : 'Tout est déjà à jour avec l’ancienne version.', { icon: 'refresh' }); } catch (e) { toast(e.message, { icon: 'info' }); } }}><Icon name="refresh" size={18} />Reprendre les nouveautés de l’ancienne version</button>}
           </div>
-          <p className="muted small">La V3 garde ses propres données : ce que tu fais ici ne modifie jamais la V2.</p>
+          <p className="muted small">Kirakai garde ses propres données : ce que tu fais ici ne modifie jamais l’ancienne version du site.</p>
         </section>
         <section className="panel pad set-block">
           <h2><Icon name="info" size={20} />Application</h2>
           <div className="row">
             <button className="btn ghost" onClick={() => { update((s) => { s.installHidden = false; }); toast('Le bandeau d’installation réapparaît quand ton navigateur le permet.', { icon: 'info' }); }}><Icon name="download" size={18} />Installer l’application</button>
-            <a className="btn ghost" href="../"><Icon name="ext" size={18} />Ouvrir NEXUS V2</a>
+            <a className="btn ghost" href="../"><Icon name="ext" size={18} />Ouvrir l’ancienne version</a>
           </div>
           <h2 className="danger-h" style={{ marginTop: 18 }}><Icon name="trash" size={20} />Tout effacer</h2>
-          {!confirm ? <button className="btn danger" onClick={() => setConfirm(true)}>Effacer les données de la V3</button> : (
-            <div className="row"><span className="muted small">Collection, suivis, boosters et succès de la V3 seront supprimés de ce navigateur{account ? ' et de ton compte' : ''}.</span><button className="btn danger" onClick={() => { resetAll(); setConfirm(false); toast('Données de la V3 effacées.', { icon: 'trash' }); }}>Confirmer</button><button className="btn ghost" onClick={() => setConfirm(false)}>Annuler</button></div>
+          {!confirm ? <button className="btn danger" onClick={() => setConfirm(true)}>Effacer mes données Kirakai</button> : (
+            <div className="row"><span className="muted small">Collection, suivis, boosters et succès seront supprimés de ce navigateur{account ? ' et de ton compte' : ''}.</span><button className="btn danger" onClick={() => { resetAll(); setConfirm(false); toast('Données effacées.', { icon: 'trash' }); }}>Confirmer</button><button className="btn ghost" onClick={() => setConfirm(false)}>Annuler</button></div>
           )}
         </section>
       </div>

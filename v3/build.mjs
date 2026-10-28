@@ -1,4 +1,4 @@
-// Construit NEXUS V3 dans ce dossier (servi par GitHub Pages sous /nexus-tcg/v3/) : index.html + assets/ + sw.js.
+// Construit Kirakai (V3) dans ce dossier (servi par GitHub Pages sous /nexus-tcg/v3/) : index.html + assets/ + sw.js.
 // Le site V2 (racine du dépôt) n'est pas modifié : la V3 lit seulement ses données dans ../db/ et ../img/.
 import { build } from 'esbuild';
 import fs from 'node:fs';
@@ -44,8 +44,8 @@ fs.writeFileSync(path.join(ROOT, 'sw.js'), fs.readFileSync(path.join(APP, 'sw.js
 const v2 = fs.readFileSync(path.join(ROOT, '..', 'index.html'), 'utf8');
 const v2js = /assets\/(app\.[0-9a-f]+\.js)/.exec(v2)?.[1];
 if (v2js) {
-  const heal = `(async()=>{const k='nexus3.heal';if(sessionStorage.getItem(k)){sessionStorage.removeItem(k);document.body.innerHTML='<p style="font:16px system-ui;color:#fff;background:#07080d;margin:0;min-height:100vh;display:grid;place-items:center">NEXUS V3 · <a style="color:#ffd23f" href="./">recharger la page</a></p>';return}sessionStorage.setItem(k,'1');try{const r=await navigator.serviceWorker?.getRegistration();if(r)await r.unregister()}catch(e){}location.reload()})();\n`;
+  const heal = `(async()=>{const k='nexus3.heal';if(sessionStorage.getItem(k)){sessionStorage.removeItem(k);document.body.innerHTML='<p style="font:16px system-ui;color:#fff;background:#07080d;margin:0;min-height:100vh;display:grid;place-items:center">Kirakai · <a style="color:#ffd23f" href="./">recharger la page</a></p>';return}sessionStorage.setItem(k,'1');try{const r=await navigator.serviceWorker?.getRegistration();if(r)await r.unregister()}catch(e){}location.reload()})();\n`;
   fs.writeFileSync(path.join(OUT, v2js), heal);
   console.log('relais V2 :', v2js);
 }
-console.log('NEXUS V3 construit.');
+console.log('Kirakai construit.');

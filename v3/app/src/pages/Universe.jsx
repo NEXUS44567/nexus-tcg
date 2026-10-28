@@ -76,7 +76,7 @@ export default function UniversePage() {
   };
   return (
     <div className={'chooser' + (hover ? ' hover-' + hover : '')} ref={root}>
-      <header className="ch-top"><Logo size={38} /><span className="ch-ver">V3</span></header>
+      <header className="ch-top"><Logo size={38} /></header>
       {['onepiece', 'pokemon'].map((g) => {
         const S = SIDES[g], t = top[g];
         return (

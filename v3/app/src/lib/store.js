@@ -114,7 +114,7 @@ export const toggleCompare = (key) => update((s) => {
 export const pushRecent = (key) => update((s) => { s.recent = [key, ...s.recent.filter((k) => k !== key)].slice(0, 16); });
 
 // ---- Sauvegarde ----
-export function exportData() { return JSON.stringify({ app: 'NEXUS TCG', version: 3, exportedAt: new Date().toISOString(), ...state }, null, 1); }
+export function exportData() { return JSON.stringify({ app: 'Kirakai', version: 3, exportedAt: new Date().toISOString(), ...state }, null, 1); }
 export function importData(text) {
   const v = JSON.parse(text);
   if (!v || !Array.isArray(v.collection)) throw new Error('fichier non reconnu');

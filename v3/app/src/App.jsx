@@ -31,7 +31,7 @@ const TABS = (u) => NAVS[u].filter(([to]) => !['/marche', '/scanner'].includes(t
 
 function titleFor(p, G) {
   const T = { recherche: `Recherche ${G}`, comparateur: 'Comparateur de prix', suivis: 'Mes alertes de prix', classement: `Top 100 ${G}`, marche: `Le marché ${G}`, extensions: `Extensions ${G}`, extension: `Extension ${G}`, collection: `Ma collection ${G}`, boosters: `Boosters ${G}`, boutique: 'Boutique', scanner: 'Scanner une carte', pokedex: 'Pokédex', equipage: 'L’équipage', reglages: 'Réglages', succes: 'Succès', admin: 'Administration', compte: 'Mon compte' };
-  return T[p[0]] ? `${T[p[0]]} · NEXUS TCG` : `NEXUS TCG · ${G} · prix, collection et boosters`;
+  return T[p[0]] ? `${T[p[0]]} · Kirakai` : `Kirakai · ${G} · prix, collection et boosters`;
 }
 
 export default function App() {
@@ -55,16 +55,16 @@ export default function App() {
   useEffect(() => { setDrawer(false); }, [route.path]);
   useEffect(() => {
     if (['carte', 'pokedex', 'equipage', 'classeur', 'extension'].includes(p[0]) && p[1]) return;
-    document.title = isChooser ? 'NEXUS TCG · choisis ton univers' : titleFor(p, GAMES[universe].label);
+    document.title = isChooser ? 'Kirakai · choisis ton univers' : titleFor(p, GAMES[universe].label);
   }, [route.path, universe]);
   useEffect(() => { if (d.ready) checkCollection(d); }, [d.ready, coll, watch, cmp]);
-  // Données reprises de la V2 au premier lancement
+  // Données reprises de l'ancienne version du site (V2) au premier lancement
   useEffect(() => {
     const s = getState();
     if (s.importedV2 && !s.importedV2Told) {
       const n = s.collection.length;
       update((x) => { x.importedV2Told = true; });
-      if (n || Object.keys(s.watch).length) setTimeout(() => toast(`${n} carte${n > 1 ? 's' : ''} et tes suivis ont été repris de NEXUS V2.`, { title: 'Bienvenue dans la V3', icon: 'sparkle', ms: 5200 }), 1200);
+      if (n || Object.keys(s.watch).length) setTimeout(() => toast(`${n} carte${n > 1 ? 's' : ''} et tes suivis ont été repris de l’ancienne version du site.`, { title: 'Bienvenue sur Kirakai', icon: 'sparkle', ms: 5200 }), 1200);
     }
   }, []);
   // Raccourcis : Ctrl/⌘ + K ou « / » pour chercher
@@ -114,7 +114,7 @@ export default function App() {
       <a className="skip" href="#contenu">Aller au contenu</a>
       <header className="topbar">
         <div className="topbar-in">
-          <a className="brand" href={href('/')} aria-label="NEXUS TCG, changer d’univers" onClick={() => update((s) => { s.universe = null; })}><Logo size={32} /></a>
+          <a className="brand" href={href('/')} aria-label="Kirakai, changer d’univers" onClick={() => update((s) => { s.universe = null; })}><Logo size={32} /></a>
           <UniverseSwitch universe={universe} />
           <nav className="topnav" aria-label="Navigation principale">
             <NavPill path={route.path} />
@@ -302,7 +302,7 @@ function Drawer({ open, onClose, universe, other, openPalette }) {
           <button className="btn ghost small" onClick={() => update((s) => { s.settings = { ...s.settings, sound: !sound }; })} tabIndex={open ? 0 : -1}><Icon name={sound ? 'sound' : 'mute'} size={16} />{sound ? 'Son activé' : 'Son coupé'}</button>
           <a className="btn ghost small" href={href('/')} onClick={() => update((s) => { s.universe = null; })} tabIndex={open ? 0 : -1}><Icon name="home" size={16} />Écran d’accueil</a>
         </div>
-        <p className="drawer-foot">NEXUS V3 · <a href="../" tabIndex={open ? 0 : -1}>revenir à la V2</a></p>
+        <p className="drawer-foot">Kirakai · <a href="../" tabIndex={open ? 0 : -1}>ancienne version du site</a></p>
       </aside>
     </div>
   );
@@ -317,7 +317,7 @@ function AlertBanner() {
   useEffect(() => {
     if (!fresh.length) return;
     if (typeof Notification !== 'undefined' && Notification.permission === 'granted') {
-      try { new Notification('NEXUS TCG · seuil atteint', { body: fresh.slice(0, 3).map((h) => `${h.c.name} : ${fmtEur(h.eur)}`).join('\n'), icon: 'icon-192.png' }); } catch {}
+      try { new Notification('Kirakai · seuil atteint', { body: fresh.slice(0, 3).map((h) => `${h.c.name} : ${fmtEur(h.eur)}`).join('\n'), icon: 'icon-192.png' }); } catch {}
     }
   }, []);
   if (!fresh.length) return null;
@@ -353,7 +353,7 @@ function InstallBanner() {
   return (
     <div className="banner install" role="region" aria-label="Installer l’application">
       <span className="banner-ico"><LogoMark size={22} /></span>
-      <span><b>Installe NEXUS</b> {evt ? '· s’ouvre en un geste, même hors ligne' : <>· <b>Partager</b> › <b>Sur l’écran d’accueil</b></>}</span>
+      <span><b>Installe Kirakai</b> {evt ? '· s’ouvre en un geste, même hors ligne' : <>· <b>Partager</b> › <b>Sur l’écran d’accueil</b></>}</span>
       {evt && <button className="btn small primary" onClick={async () => { evt.prompt(); try { await evt.userChoice; } catch {} setEvt(null); close(); }}>Installer</button>}
       <button className="icon-btn" onClick={close} aria-label="Fermer"><Icon name="x" size={16} /></button>
     </div>
@@ -385,7 +385,7 @@ function Footer({ universe }) {
           <div><b>Jouer</b><a href={href('/boosters')}>Boosters virtuels</a><a href={href('/boosters/collection')}>Collection virtuelle</a><a href={href('/succes')}>Succès</a><a href={href('/boutique')}>Boutique</a></div>
         </nav>
       </div>
-      <p className="footer-legal">Prix : TCGplayer via optcgapi.com (One Piece) et Cardmarket / TCGplayer via pokemontcg.io et tcgdex (Pokémon). Pokédex : PokéAPI. Images : optcgapi.com, pokemontcg.io, Scrydex, TCGdex, PokéAPI. Site de fan indépendant, non affilié à Bandai, Toei Animation, Shueisha, Nintendo, Creatures, GAME FREAK ou The Pokémon Company. One Piece © Eiichiro Oda / Shueisha, Toei Animation. Pokémon © Nintendo / Creatures / GAME FREAK. · <a href={href('/reglages')}>Réglages</a> · <a href="../">NEXUS V2</a></p>
+      <p className="footer-legal">Prix : TCGplayer via optcgapi.com (One Piece) et Cardmarket / TCGplayer via pokemontcg.io et tcgdex (Pokémon). Pokédex : PokéAPI. Images : optcgapi.com, pokemontcg.io, Scrydex, TCGdex, PokéAPI. Site de fan indépendant, non affilié à Bandai, Toei Animation, Shueisha, Nintendo, Creatures, GAME FREAK ou The Pokémon Company. One Piece © Eiichiro Oda / Shueisha, Toei Animation. Pokémon © Nintendo / Creatures / GAME FREAK. · <a href={href('/reglages')}>Réglages</a> · <a href="../">Ancienne version</a></p>
     </footer>
   );
 }

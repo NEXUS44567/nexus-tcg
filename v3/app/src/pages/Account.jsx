@@ -12,7 +12,7 @@ import { Seg } from '../ui/Kit.jsx';
 import { LogoMark, Emblem } from '../ui/Brand.jsx';
 import Icon from '../ui/Icon.jsx';
 
-// Compte NEXUS : connexion, inscription, carte de membre et état de la sauvegarde en ligne.
+// Compte Kirakai : connexion, inscription, carte de membre et état de la sauvegarde en ligne.
 
 const PROVIDERS = { google: 'Google', apple: 'Apple', discord: 'Discord' };
 const joinFr = (a) => (a.length > 1 ? a.slice(0, -1).join(', ') + ' et ' + a[a.length - 1] : a[0] || '');
@@ -79,7 +79,7 @@ function MemberCard({ pseudo, since, code, stats, preview }) {
       <div className="member-in">
         <div className="member-top">
           <LogoMark size={28} />
-          <span>NEXUS TCG<small>Carte de membre</small></span>
+          <span>KIRAKAI<small>Carte de membre</small></span>
           <em>{code ? 'N° ' + code : 'N° ······'}</em>
         </div>
         <div className="member-id">
@@ -114,7 +114,7 @@ function Closed() {
   return (
     <div className="page account-page">
       <div className="acc-hero">
-        <div className="kicker">Compte NEXUS</div>
+        <div className="kicker">Compte Kirakai</div>
         <h1 className="page-title">Les comptes <span className="grad">arrivent bientôt</span></h1>
         <p className="lead">En attendant, ta collection, tes boosters et tes succès sont enregistrés dans ce navigateur. Dès l’ouverture des comptes, tout ce que tu as déjà fait ici rejoindra ton compte.</p>
         <div className="row"><a className="btn primary" href={href('/collection')}><Icon name="album" size={18} />Ma collection</a><a className="btn ghost" href={href('/reglages')}><Icon name="download" size={18} />Exporter une sauvegarde</a></div>
@@ -136,7 +136,7 @@ function Welcome() {
   return (
     <div className="page account-page">
       <div className="acc-hero">
-        <div className="kicker">Compte NEXUS · gratuit</div>
+        <div className="kicker">Compte Kirakai · gratuit</div>
         <h1 className="page-title">Ta progression, <span className="grad">partout avec toi</span></h1>
         <p className="lead">Crée ton compte pour retrouver ta collection, tes boosters, ton classeur et tes succès sur ton téléphone comme sur ton ordinateur.</p>
       </div>
@@ -323,7 +323,7 @@ function NewPassword({ inline }) {
   });
   return (
     <form className={inline ? 'acc-form' : 'panel pad acc-card glow-edge acc-form acc-narrow'} onSubmit={submit}>
-      {!inline && <><div className="kicker">Compte NEXUS</div><h1 className="acc-h big">Choisis un nouveau mot de passe</h1></>}
+      {!inline && <><div className="kicker">Compte Kirakai</div><h1 className="acc-h big">Choisis un nouveau mot de passe</h1></>}
       <Password value={pw} onChange={setPw} autoComplete="new-password" label="Nouveau mot de passe" />
       <Meter pw={pw} />
       {err && <p className="notice" role="alert">{err}</p>}
@@ -386,7 +386,7 @@ function Profile() {
       <div className="acc-hero">
         <div className="kicker">Mon compte</div>
         <h1 className="page-title">{pseudo ? <>Salut, <span className="grad">{pseudo}</span></> : <>Ton <span className="grad">compte</span></>}</h1>
-        <p className="lead">Tout ce que tu fais sur NEXUS est enregistré dans ton compte et te suit sur tous tes appareils.</p>
+        <p className="lead">Tout ce que tu fais sur Kirakai est enregistré dans ton compte et te suit sur tous tes appareils.</p>
       </div>
       {!pseudo && <div className="acc-first"><PseudoPanel current="" suggest={suggest} /></div>}
       <div className="acc-grid profile">

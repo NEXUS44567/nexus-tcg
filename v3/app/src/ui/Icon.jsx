@@ -1,6 +1,6 @@
 import React from 'react';
 
-// Jeu d'icônes au trait (24 × 24), toutes dessinées pour NEXUS
+// Jeu d'icônes au trait (24 × 24), toutes dessinées pour Kirakai
 const P = {
   search: <><circle cx="11" cy="11" r="7" /><path d="m20 20-3.5-3.5" /></>,
   home: <><path d="M3 11 12 4l9 7" /><path d="M5 10v10h14V10" /><path d="M10 20v-5h4v5" /></>,

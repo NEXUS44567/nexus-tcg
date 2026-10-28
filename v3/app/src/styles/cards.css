@@ -67,7 +67,7 @@ html[data-fx='lite'] .cart-holo { display: none; }
 .cart.mini .cart-in { border-radius: 4px; box-shadow: 0 2px 8px rgba(0, 0, 0, .5); }
 .cart[data-game='onepiece'].is-ok .cart-in { background: #111; }
 
-/* ---------- Dos de carte NEXUS ---------- */
+/* ---------- Dos de carte Kirakai ---------- */
 .card-back { position: absolute; inset: 0; border-radius: 4.8% / 3.4%; overflow: hidden; display: grid; place-items: center; }
 .cb-onepiece { background: radial-gradient(circle at 50% 45%, #1f3f73 0%, #0b1730 55%, #050b18 100%); }
 .cb-pokemon { background: radial-gradient(circle at 50% 45%, #2d4cc9 0%, #13206b 55%, #070c33 100%); }
@@ -76,7 +76,7 @@ html[data-fx='lite'] .cart-holo { display: none; }
 .cb-pattern { position: absolute; inset: 0; opacity: .22; background: repeating-conic-gradient(from 0deg at 50% 45%, rgba(255, 255, 255, .5) 0 4deg, transparent 4deg 15deg); mask-image: radial-gradient(circle at 50% 45%, transparent 22%, #000 60%); -webkit-mask-image: radial-gradient(circle at 50% 45%, transparent 22%, #000 60%); }
 .cb-center { position: relative; display: grid; justify-items: center; gap: 4%; width: 62%; }
 .cb-center .emblem { width: 100%; height: auto; filter: drop-shadow(0 6px 18px rgba(0, 0, 0, .6)); }
-.cb-center b { font-family: var(--display); font-weight: 900; letter-spacing: .3em; font-size: clamp(8px, 1.6vw, 15px); color: rgba(255, 255, 255, .85); padding-left: .3em; }
+.cb-center b { font-family: var(--display); font-weight: 900; letter-spacing: .22em; font-size: clamp(8px, 1.6vw, 15px); color: rgba(255, 255, 255, .85); padding-left: .3em; }
 
 /* ---------- Vignettes ---------- */
 .tile { position: relative; display: flex; flex-direction: column; gap: 11px; padding: 0; border: 0; background: none; text-align: left; color: inherit; min-width: 0; -webkit-tap-highlight-color: transparent; }

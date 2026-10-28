@@ -114,7 +114,7 @@ export function MemberPage({ slug }) {
     for (const c of d.cats.onepiece.cards) { const e = eurOf(c, d.P, d.fx); if (e != null && e > (out.get(c.number) || 0)) out.set(c.number, e); }
     return out;
   }, [d.ready, d.v]);
-  useEffect(() => { if (m) document.title = m.name + ' · L’équipage · NEXUS TCG'; }, [m]);
+  useEffect(() => { if (m) document.title = m.name + ' · L’équipage · Kirakai'; }, [m]);
   if (C.loading || !d.ready) return <div className="page"><Loading /></div>;
   if (!m) return <div className="page"><Empty icon="crew" title="Personnage introuvable" action={<a className="btn primary" href={href('/equipage')}>Retour à l’équipage</a>} /></div>;
   const cards = memberCards(m, d);

@@ -1,25 +1,28 @@
 import React, { useId } from 'react';
 
-// ---- Identité NEXUS V3 : logo prisme, emblèmes originaux des deux univers, dos de carte ----
-// Aucun logo officiel : la boussole-gouvernail (One Piece) et le noyau d'énergie (Pokémon) sont dessinés pour NEXUS.
+// ---- Identité Kirakai : vague et étincelle, emblèmes originaux des deux univers, dos de carte ----
+// Kirakai : « kira » (キラ), l'éclat d'une carte brillante en japonais, et « kai » (海), la mer.
+// Aucun logo officiel : la boussole-gouvernail (One Piece) et le noyau d'énergie (Pokémon) sont dessinés pour Kirakai.
 const useIds = () => { const id = useId().replace(/[^a-z0-9]/gi, ''); return (n) => `${n}${id}`; };
 
+// Glyphe : une vague dont le creux abrite une étincelle, une plus petite au-dessus
 export function LogoMark({ size = 36, className = '' }) {
   const g = useIds();
   return (
     <svg viewBox="0 0 64 64" width={size} height={size} className={'logo-mark ' + className} aria-hidden="true">
       <defs>
-        <linearGradient id={g('t')} x1="0" y1="0" x2="1" y2="1"><stop offset="0" style={{ stopColor: 'var(--l1, #fff)' }} /><stop offset="1" style={{ stopColor: 'var(--a2)' }} /></linearGradient>
-        <linearGradient id={g('l')} x1="0" y1="0" x2="0" y2="1"><stop offset="0" style={{ stopColor: 'var(--a1)' }} /><stop offset="1" style={{ stopColor: 'var(--a1d, var(--a1))' }} /></linearGradient>
-        <linearGradient id={g('r')} x1="1" y1="0" x2="0" y2="1"><stop offset="0" style={{ stopColor: 'var(--a3)' }} /><stop offset="1" style={{ stopColor: 'var(--a1d, #222)' }} /></linearGradient>
-        <linearGradient id={g('e')} x1="0" y1="0" x2="1" y2="1"><stop offset="0" stopColor="#fff" stopOpacity=".95" /><stop offset="1" stopColor="#fff" stopOpacity=".55" /></linearGradient>
+        <linearGradient id={g('w')} x1="0" y1="0" x2=".4" y2="1"><stop offset="0" stopColor="#7df4ff" /><stop offset=".42" stopColor="#3d8cff" /><stop offset="1" stopColor="#6b2bff" /></linearGradient>
+        <linearGradient id={g('s')} x1="0" y1="0" x2="0" y2="1"><stop offset="0" stopColor="#fffef6" /><stop offset=".55" stopColor="#ffe37a" /><stop offset="1" stopColor="#ffae2b" /></linearGradient>
+        <radialGradient id={g('h')} cx=".5" cy=".5" r=".5"><stop offset="0" stopColor="#ffe9a0" stopOpacity=".7" /><stop offset="1" stopColor="#ffe9a0" stopOpacity="0" /></radialGradient>
       </defs>
-      <path d="M32 3 57 17.5 32 32 7 17.5z" fill={`url(#${g('t')})`} />
-      <path d="M7 17.5 32 32v29L7 46.5z" fill={`url(#${g('l')})`} />
-      <path d="M57 17.5v29L32 61V32z" fill={`url(#${g('r')})`} />
-      <path d="M32 3 57 17.5v29L32 61 7 46.5v-29z" fill="none" stroke="rgba(255,255,255,.55)" strokeWidth="1.4" strokeLinejoin="round" />
-      <path d="M20.5 43.5V23.2L43.5 40.8V20.5" fill="none" stroke="rgba(0,0,0,.35)" strokeWidth="7" strokeLinecap="round" strokeLinejoin="round" transform="translate(0 1.6)" />
-      <path d="M20.5 43.5V23.2L43.5 40.8V20.5" fill="none" stroke={`url(#${g('e')})`} strokeWidth="6" strokeLinecap="round" strokeLinejoin="round" />
+      <path d="M6 57C9.5 42 18.5 25 33 15.5C42.5 9.5 54 11.5 58.3 21C61.6 28.6 58.3 37 51.5 39C45.6 40.6 41.4 36.6 43.6 31.6C46.2 33 48.6 32.2 49 29.6C49.2 25.4 42 22.6 35.6 26.6C27.6 31.6 23.6 44 25.4 57Z" fill={`url(#${g('w')})`} />
+      <path d="M13.4 50C16 40.5 21.5 31 30 24.2" fill="none" stroke="#fff" strokeOpacity=".32" strokeWidth="1.5" strokeLinecap="round" />
+      <path d="M18.6 52.5C20 44 23.6 36.8 29.4 31.2" fill="none" stroke="#fff" strokeOpacity=".2" strokeWidth="1.3" strokeLinecap="round" />
+      <path d="M18.2 28.2C23.4 21.6 28 18 33 15.5C42.5 9.5 54 11.5 58.3 21" fill="none" stroke="#fff" strokeOpacity=".92" strokeWidth="1.9" strokeLinecap="round" />
+      <circle className="lm-glow" cx="39.6" cy="42" r="11.5" fill={`url(#${g('h')})`} />
+      <path className="lm-spark" d="M39.6 31.4Q40.8 40.8 47.4 42Q40.8 43.2 39.6 52.4Q38.4 43.2 31.8 42Q38.4 40.8 39.6 31.4Z" fill={`url(#${g('s')})`} />
+      <path d="M12.5 9Q13 12.5 16.5 13Q13 13.5 12.5 17Q12 13.5 8.5 13Q12 12.5 12.5 9Z" fill="#fff6d0" />
+      <path d="M4 59.5C13.5 55 21.5 59.5 31.5 55.6C41.5 51.8 50 57.4 60 53.6" fill="none" stroke={`url(#${g('w')})`} strokeWidth="2.8" strokeLinecap="round" />
     </svg>
   );
 }
@@ -28,7 +31,7 @@ export function Logo({ size = 34, tag = true }) {
   return (
     <span className="logo">
       <LogoMark size={size} />
-      <span className="logo-word">NEXUS{tag && <small>TCG</small>}</span>
+      <span className="logo-word">KIRA<span className="lw-kai">KAI</span>{tag && <small lang="ja">キラカイ</small>}</span>
     </span>
   );
 }
@@ -85,13 +88,13 @@ export function PKEmblem({ size = 64, className = '' }) {
 
 export const Emblem = ({ game, size = 64, className }) => (game === 'onepiece' ? <OPEmblem size={size} className={className} /> : <PKEmblem size={size} className={className} />);
 
-// Dos des cartes NEXUS (boosters, inspecteur)
+// Dos des cartes Kirakai (boosters, inspecteur)
 export function CardBack({ game }) {
   return (
     <span className={'card-back cb-' + game} aria-hidden="true">
       <span className="cb-frame" />
       <span className="cb-pattern" />
-      <span className="cb-center"><Emblem game={game} size={120} /><b>NEXUS</b></span>
+      <span className="cb-center"><Emblem game={game} size={120} /><b>KIRAKAI</b></span>
     </span>
   );
 }
