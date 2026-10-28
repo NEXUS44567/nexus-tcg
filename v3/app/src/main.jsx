@@ -1,3 +1,5 @@
+// En premier : les liens reçus par e-mail (#access_token=…) sont lus avant le routeur
+import './lib/cloud.js';
 import React from 'react';
 import { createRoot } from 'react-dom/client';
 import App from './App.jsx';
@@ -11,6 +13,7 @@ import './styles/boosters.css';
 import './styles/collection.css';
 import './styles/scanner.css';
 import './styles/worlds.css';
+import './styles/account.css';
 
 try { sessionStorage.removeItem('nexus3.heal'); } catch {}
 installTilt();

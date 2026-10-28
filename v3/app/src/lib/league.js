@@ -9,7 +9,8 @@ export function seasonNow(t = Date.now()) {
   return { n: Math.max(1, n), start, end: start + SEASON_LEN, started: t >= SEASON_EPOCH };
 }
 export const leagueOn = () => !!(SUPABASE.url && SUPABASE.key);
-const H = () => ({ apikey: SUPABASE.key, Authorization: 'Bearer ' + SUPABASE.key, 'Content-Type': 'application/json' });
+// Les nouvelles clés « publishable » ne sont pas des jetons : elles vont seulement dans l'en-tête apikey
+const H = () => ({ apikey: SUPABASE.key, ...(/^eyJ/.test(SUPABASE.key) ? { Authorization: 'Bearer ' + SUPABASE.key } : {}), 'Content-Type': 'application/json' });
 
 export async function fetchBoard(game, season, limit = 100) {
   const q = `select=player_id,pseudo,owned,total,packs,updated_at&season=eq.${season}&game=eq.${game}&order=owned.desc,updated_at.asc&limit=${limit}`;

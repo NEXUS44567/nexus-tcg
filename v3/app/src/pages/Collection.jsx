@@ -1,6 +1,7 @@
 import React, { useMemo, useRef, useState } from 'react';
 import { useData, useAsync, useUniverse, useInfinite, href, cardHref } from '../lib/hooks.js';
 import { useStore, update, updateEntry, removeEntry, CONDITIONS, condOf, exportData, importData, hasV2, syncFromV2 } from '../lib/store.js';
+import { useCloud, cloudOn } from '../lib/cloud.js';
 import { eurOf, history, fmtEur, fmtDate, fmtNum, fmtShort, GAMES, otherGame, resolveKey } from '../lib/data.js';
 import { collectionValue, entryValue } from '../lib/coll.js';
 import { toast } from '../lib/toast.js';
@@ -14,6 +15,7 @@ const PALETTE = ['#ff6a4d', '#ffc24a', '#4cc9f0', '#b388ff', '#2fe39b', '#ff6b9a
 
 export default function CollectionPage() {
   const d = useData();
+  const account = useCloud((c) => !!c.user);
   const game = useUniverse();
   const allColl = useStore((s) => s.collection);
   const coll = useMemo(() => allColl.filter((e) => e.key.startsWith(game + ':')), [allColl, game]);
@@ -92,7 +94,7 @@ export default function CollectionPage() {
     <div className="page collection-page">
       <div className="page-head">
         <div>
-          <div className="kicker">{GAMES[game].label} · sans compte, dans ce navigateur</div>
+          <div className="kicker">{GAMES[game].label} · {account ? 'enregistrée dans ton compte' : 'dans ce navigateur'}</div>
           <h1 className="page-title" style={{ marginBottom: 0 }}>Ma <span className="grad">collection</span></h1>
         </div>
         {coll.length > 0 && <button className="btn primary" onClick={() => setSharing(true)}><Icon name="share" size={18} />Partager mon classeur</button>}
@@ -159,7 +161,9 @@ export default function CollectionPage() {
               {virtualCount > 0 && <a className="btn ghost" href={href('/boosters/collection')}><Icon name="pack" size={18} />Collection virtuelle ({virtualCount})</a>}
               <a className="btn ghost" href={href('/reglages')}><Icon name="gear" size={18} />Réglages</a>
             </div>
-            <p className="source-note">Ta collection est enregistrée dans ce navigateur, sans compte. Exporte-la régulièrement pour la garder en sécurité ou la passer sur un autre appareil.</p>
+            <p className="source-note">{account ? 'Ta collection est enregistrée dans ton compte et te suit sur tous tes appareils. Tu peux aussi l’exporter pour en garder une copie.'
+              : cloudOn() ? <>Ta collection est enregistrée dans ce navigateur. <a href={href('/compte')}>Crée un compte</a> pour la retrouver sur tous tes appareils, ou exporte-la pour en garder une copie.</>
+              : 'Ta collection est enregistrée dans ce navigateur. Exporte-la régulièrement pour la garder en sécurité ou la passer sur un autre appareil.'}</p>
           </Section>
         </>
       )}

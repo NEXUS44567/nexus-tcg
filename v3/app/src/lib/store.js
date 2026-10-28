@@ -1,4 +1,5 @@
-// État local persistant (sans compte) : collection, suivis, comparateur, boosters, classeur, réglages.
+// État persistant : collection, suivis, comparateur, boosters, classeur, réglages.
+// Toujours enregistré dans ce navigateur ; avec un compte, recopié aussi en ligne (voir cloud.js).
 // La V3 a sa propre clé ; au premier lancement elle reprend une copie des données de la V2 (même navigateur),
 // sans jamais écrire dans celles-ci.
 import { useSyncExternalStore } from 'react';
@@ -133,6 +134,26 @@ function mergeFrom(v) {
 export const hasV2 = () => !!readV2();
 export function syncFromV2() { const v2 = readV2(); if (!v2) throw new Error('aucune donnée de la V2 dans ce navigateur'); return mergeFrom(v2); }
 export function resetAll() { try { localStorage.removeItem(KEY); } catch {} state = structuredClone(DEFAULT); save(); emit(); }
+
+// ---- Partie enregistrée dans le compte : tout sauf ce qui est propre à cet appareil ----
+export const LOCAL_ONLY = ['settings', 'universe', 'installHidden', 'importedV2', 'importedV2Told', 'admin'];
+export function syncedPart(s = state) {
+  const o = {};
+  for (const k of Object.keys(s)) if (!LOCAL_ONLY.includes(k)) o[k] = s[k];
+  return o;
+}
+const localPart = () => Object.fromEntries(LOCAL_ONLY.filter((k) => k in state).map((k) => [k, state[k]]));
+// Remplace la progression par celle du compte (les réglages de l'appareil restent)
+export function replaceSynced(data) { state = merge({ ...structuredClone(data || {}), ...localPart() }); save(); emit(); }
+// Forme complète (valeurs par défaut comprises) d'une progression venue du compte
+export const normalizeSynced = (data) => syncedPart(merge(structuredClone(data || {})));
+// Progression vierge (déconnexion), réglages de l'appareil conservés
+export function clearProgress() { state = merge({ ...localPart(), importedV2Told: true }); save(); emit(); }
+// La progression contient-elle quelque chose qui mérite d'être gardé ?
+export function hasProgress(s = state) {
+  return !!(s.collection?.length || Object.keys(s.watch || {}).length || s.packs?.opened || Object.keys(s.packs?.virtual || {}).length
+    || Object.keys(s.achievements || {}).length || Object.values(s.wallet || {}).some((w) => w?.opened) || s.league?.id);
+}
 
 // ---- Berrys (One Piece) et Pokéballs (Pokémon) : 1 000 au départ, +200 par jour, même les jours d'absence ----
 const dayKey = (t = new Date()) => t.getFullYear() + '-' + String(t.getMonth() + 1).padStart(2, '0') + '-' + String(t.getDate()).padStart(2, '0');
