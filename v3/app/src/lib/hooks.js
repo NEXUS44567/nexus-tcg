@@ -13,10 +13,15 @@ function parse() {
 }
 let route = parse();
 const rsubs = new Set();
+// L'éclair de la barre de navigation sert alors de transition : la capture de la page la figerait
+let skipVT = 0;
+export const skipNextTransition = () => { skipVT = Date.now(); };
 function onHash() {
   const next = parse();
   const samePage = next.path === route.path;
   const apply = () => { route = next; rsubs.forEach((f) => f()); if (!samePage) window.scrollTo({ top: 0, behavior: 'instant' }); };
+  // l'éclair traverse d'abord la barre, puis la nouvelle page s'affiche
+  if (!samePage && Date.now() - skipVT < 600) { setTimeout(apply, 140); return; }
   // Transition fluide entre les pages quand le navigateur sait le faire
   if (!samePage && document.startViewTransition && !matchMedia('(prefers-reduced-motion: reduce)').matches && getState().settings?.fx !== 'lite') {
     try {

@@ -1,5 +1,5 @@
 import React, { useEffect, useLayoutEffect, useRef, useState } from 'react';
-import { useRoute, useData, useUniverse, href, cardHref, UNIV_HOME } from './lib/hooks.js';
+import { useRoute, useData, useUniverse, href, cardHref, UNIV_HOME, skipNextTransition } from './lib/hooks.js';
 import { useStore, update, getState } from './lib/store.js';
 import { fmtEur, GAMES, otherGame } from './lib/data.js';
 import { checkCollection } from './lib/achievements.js';
@@ -116,6 +116,7 @@ export default function App() {
           <UniverseSwitch universe={universe} />
           <nav className="topnav" aria-label="Navigation principale">
             <NavPill path={route.path} />
+            <NavBolt path={route.path} edge="bottom" />
             {nav.slice(1).map(([to, l, i]) => <a key={to} href={href(to)} className={active(to) ? 'on' : ''}><Icon name={i} size={17} /><span>{l}</span></a>)}
           </nav>
           <button className="search-trigger" onClick={() => setPalette(true)} aria-label="Rechercher (Ctrl K)"><Icon name="search" size={17} /><span>Rechercher…</span><kbd>{/Mac|iPhone|iPad/.test(navigator.platform) ? '⌘' : 'Ctrl'}</kbd><kbd>K</kbd></button>
@@ -134,6 +135,7 @@ export default function App() {
       <main id="contenu"><div className="route" key={route.path}>{page}</div></main>
       <Footer universe={universe} />
       <nav className="tabbar" aria-label="Navigation">
+        <NavBolt path={route.path} edge="top" />
         {TABS(universe).map(([to, l, i]) => <a key={to} href={href(to)} className={active(to) ? 'on' : ''}><span className="tb-ico"><Icon name={i} size={22} /></span><span>{l}</span></a>)}
       </nav>
       <Drawer open={drawer} onClose={() => setDrawer(false)} universe={universe} other={other} openPalette={() => { setDrawer(false); setPalette(true); }} />
@@ -173,6 +175,82 @@ function NavPill({ path }) {
     return () => ro.disconnect();
   }, [path]);
   return <span ref={ref} className={'nav-pill' + (st ? ' show' : '')} style={st ? { transform: `translateX(${st.x}px)`, width: st.w } : undefined} aria-hidden="true" />;
+}
+
+// Éclair qui file de l'ancienne section à la nouvelle, le long de la barre de navigation (repris de la V2)
+function boltPath(a, b) {
+  // vrai zigzag : segments droits, angles vifs, amplitude marquée, plus une petite fourche
+  const len = Math.abs(b.x - a.x), n = Math.max(4, Math.round(len / 18));
+  const pts = [a]; let sgn = Math.random() < 0.5 ? 1 : -1;
+  for (let i = 1; i < n; i++) { sgn = -sgn; const t = (i + (Math.random() - 0.5) * 0.35) / n; pts.push({ x: a.x + (b.x - a.x) * t, y: a.y + sgn * (5 + Math.random() * 5) }); }
+  pts.push(b);
+  const f = (v) => v.toFixed(1);
+  let d = pts.map((p, i) => (i ? 'L' : 'M') + f(p.x) + ' ' + f(p.y)).join(' ');
+  if (pts.length > 4) {
+    const k = 1 + Math.floor(Math.random() * (pts.length - 3)), p = pts[k], dir = Math.sign(b.x - a.x) || 1, up = p.y < a.y ? -1 : 1;
+    d += ` M${f(p.x)} ${f(p.y)} L${f(p.x + dir * 7)} ${f(p.y + up * 6)} L${f(p.x + dir * 4)} ${f(p.y + up * 11)}`;
+  }
+  return d;
+}
+function NavBolt({ path, edge }) {
+  const ref = useRef(null);
+  const last = useRef(null);
+  const [bolt, setBolt] = useState(null);
+  const timer = useRef(0);
+  const posOf = (link) => {
+    const r = ref.current?.parentElement?.getBoundingClientRect(), b = link.getBoundingClientRect();
+    return r?.width ? { x: b.left - r.left + b.width / 2, y: edge === 'top' ? 2 : b.bottom - r.top + 7 } : null;
+  };
+  const fire = (prev, pos, link) => {
+    if (!prev || !pos || Math.abs(prev.x - pos.x) < 2 || matchMedia('(prefers-reduced-motion: reduce)').matches || getState().settings?.fx === 'lite') return;
+    const key = Date.now();
+    clearTimeout(timer.current);
+    document.querySelectorAll('a.zap').forEach((a) => a.classList.remove('zap'));
+    setBolt({ d: boltPath(prev, pos), d2: boltPath(prev, pos), end: pos, key });
+    link.classList.add('zap');
+    timer.current = setTimeout(() => { setBolt((x) => (x?.key === key ? null : x)); link.classList.remove('zap'); }, 900);
+  };
+  // Départ immédiat au toucher d'une section, sans attendre que la nouvelle page s'affiche
+  useEffect(() => {
+    const nav = ref.current?.parentElement; if (!nav) return;
+    const onClick = (e) => {
+      const a = e.target.closest('a'); if (!a || a.classList.contains('on') || e.metaKey || e.ctrlKey || e.shiftKey) return;
+      const pos = posOf(a); if (!pos) return;
+      const cur = nav.querySelector('a.on');
+      skipNextTransition();
+      fire(cur ? posOf(cur) : last.current, pos, a);
+      last.current = pos;
+    };
+    nav.addEventListener('click', onClick, true);
+    return () => { nav.removeEventListener('click', onClick, true); clearTimeout(timer.current); };
+  }, []);
+  // Changement de section par un autre chemin (lien dans la page, retour arrière, clavier)
+  useLayoutEffect(() => {
+    let raf = 0, tries = 0;
+    const run = () => {
+      const link = ref.current?.parentElement?.querySelector('a.on');
+      const pos = link && posOf(link);
+      if (!pos) { if (++tries < 40) raf = requestAnimationFrame(run); return; }
+      const prev = last.current; last.current = pos;
+      fire(prev, pos, link);
+    };
+    run();
+    return () => cancelAnimationFrame(raf);
+  }, [path]);
+  return (
+    <svg ref={ref} className={'nav-bolt' + (bolt ? ' live' : '')} key={bolt?.key ?? 'idle'} aria-hidden="true">
+      {bolt && (
+        <g>
+          <path className="bolt-glow" d={bolt.d} pathLength="1" />
+          <path className="bolt-mid thin" d={bolt.d2} pathLength="1" />
+          <path className="bolt-mid" d={bolt.d} pathLength="1" />
+          <path className="bolt-core" d={bolt.d} pathLength="1" />
+          <circle className="bolt-ring" cx={bolt.end.x} cy={bolt.end.y} r="6" />
+          <circle className="bolt-spark" cx={bolt.end.x} cy={bolt.end.y} r="2.6" />
+        </g>
+      )}
+    </svg>
+  );
 }
 
 function LangSelect() {
