@@ -159,7 +159,7 @@ body.booted #boot { opacity: 0; }
 .icon { flex: none; }
 
 /* ---------- Champs ---------- */
-.input, select, input[type='text'], input[type='number'], input[type='search'], textarea {
+.input, select, input[type='text'], input[type='number'], input[type='search'], input[type='email'], input[type='password'], textarea {
   height: 44px; padding: 0 14px; border-radius: 13px; border: 1px solid var(--line-2); background: rgba(255, 255, 255, .04); color: var(--text); outline: none; transition: border-color .2s, background .2s, box-shadow .2s; min-width: 0;
 }
 textarea { height: auto; padding: 12px 14px; }

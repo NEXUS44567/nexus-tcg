@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { href } from '../lib/hooks.js';
 import { useStore, update, exportData, importData, hasV2, syncFromV2, resetAll, tryAdmin } from '../lib/store.js';
 import { toast } from '../lib/toast.js';
+import { useCloud, cloudOn } from '../lib/cloud.js';
 import { LANGS } from '../lib/lang.js';
 import { Seg } from '../ui/Kit.jsx';
 import Icon from '../ui/Icon.jsx';
@@ -12,6 +13,7 @@ export function SettingsPage() {
   const sound = useStore((s) => s.settings?.sound !== false);
   const n = useStore((s) => s.collection.length);
   const [confirm, setConfirm] = useState(false);
+  const account = useCloud((c) => (c.user ? c.pseudo || c.user.email : null));
   const file = useRef();
   const setSetting = (patch) => update((s) => { s.settings = { ...s.settings, ...patch }; });
   const download = () => { const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([exportData()], { type: 'application/json' })); a.download = 'nexus-sauvegarde-' + new Date().toISOString().slice(0, 10) + '.json'; a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 2000); };
@@ -35,7 +37,9 @@ export function SettingsPage() {
         </section>
         <section className="panel pad set-block">
           <h2><Icon name="download" size={20} />Sauvegarde</h2>
-          <p className="muted small">Ta collection ({n} entrée{n > 1 ? 's' : ''}), tes suivis, tes boosters et tes succès restent dans ce navigateur, sans compte.</p>
+          {account
+            ? <p className="muted small">Ta collection ({n} entrée{n > 1 ? 's' : ''}), tes suivis, tes boosters et tes succès sont enregistrés dans ton compte <b>{account}</b> et synchronisés automatiquement. <a className="link" href={href('/compte')}>Mon compte</a></p>
+            : <p className="muted small">Ta collection ({n} entrée{n > 1 ? 's' : ''}), tes suivis, tes boosters et tes succès sont enregistrés dans ce navigateur.{cloudOn() && <> <a className="link" href={href('/compte')}>Crée un compte</a> pour les retrouver sur tous tes appareils.</>}</p>}
           <div className="row">
             <button className="btn ghost" onClick={download}><Icon name="download" size={18} />Exporter</button>
             <button className="btn ghost" onClick={() => file.current.click()}><Icon name="upload" size={18} />Importer</button>
@@ -52,7 +56,7 @@ export function SettingsPage() {
           </div>
           <h2 className="danger-h" style={{ marginTop: 18 }}><Icon name="trash" size={20} />Tout effacer</h2>
           {!confirm ? <button className="btn danger" onClick={() => setConfirm(true)}>Effacer les données de la V3</button> : (
-            <div className="row"><span className="muted small">Collection, suivis, boosters et succès de la V3 seront supprimés de ce navigateur.</span><button className="btn danger" onClick={() => { resetAll(); setConfirm(false); toast('Données de la V3 effacées.', { icon: 'trash' }); }}>Confirmer</button><button className="btn ghost" onClick={() => setConfirm(false)}>Annuler</button></div>
+            <div className="row"><span className="muted small">Collection, suivis, boosters et succès de la V3 seront supprimés de ce navigateur{account ? ' et de ton compte' : ''}.</span><button className="btn danger" onClick={() => { resetAll(); setConfirm(false); toast('Données de la V3 effacées.', { icon: 'trash' }); }}>Confirmer</button><button className="btn ghost" onClick={() => setConfirm(false)}>Annuler</button></div>
           )}
         </section>
       </div>

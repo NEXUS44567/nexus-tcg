@@ -1,5 +1,6 @@
 import React, { useMemo, useState } from 'react';
 import { useData, href, cardHref, useMedia } from '../lib/hooks.js';
+import { cloudOn } from '../lib/cloud.js';
 import { useStore } from '../lib/store.js';
 import { fmtEur, fmtDate, fmtNum, fmtShort, eurOf, GAMES, img, setCards, resolveKey, artwork } from '../lib/data.js';
 import { CardArt, CardTile, Delta, GameTag, Price, SetArt, setArtCards } from '../ui/Card.jsx';
@@ -207,7 +208,7 @@ export default function Home({ game }) {
             ? <div className="panel pad"><Icon name="chart" size={22} /><h3>One Piece</h3><p>Prix de marché TCGplayer relevé chaque matin par optcgapi.com, converti en euros au taux BCE du jour. Chaque version (standard, parallèle, réimpression) a son propre prix.</p></div>
             : <div className="panel pad"><Icon name="chart" size={22} /><h3>Pokémon</h3><p>Tendance Cardmarket, avec les moyennes sur 1, 7 et 30 jours et le prix TCGplayer quand il existe. Les cartes dont les deux sources divergent fortement sont signalées.</p></div>}
           <div className="panel pad"><Icon name="info" size={22} /><h3>Une carte sans prix ?</h3><p>On affiche « Pas de prix relevé ». Aucun prix n’est inventé ni estimé à partir d’une autre carte.</p></div>
-          <div className="panel pad"><Icon name="heart" size={22} /><h3>Tes données</h3><p>Collection, suivis et boosters restent dans ton navigateur, sans compte. Exporte-les quand tu veux depuis les réglages.</p></div>
+          <div className="panel pad"><Icon name="heart" size={22} /><h3>Tes données</h3><p>{cloudOn() ? <>Collection, suivis et boosters sont enregistrés dans ton navigateur, et dans ton compte si tu en crées un : tu les retrouves alors sur tous tes appareils. <a className="link" href={href('/compte')}>Mon compte</a></> : 'Collection, suivis et boosters restent dans ton navigateur. Exporte-les quand tu veux depuis les réglages.'}</p></div>
         </div>
       </Section>
     </div>

@@ -21,11 +21,15 @@ En plus dans la V3 :
 - classeur 3D : couverture en cuir qui s'ouvre, feuilles qui se tournent, mode « Organiser » pour placer chaque carte, export CSV
 - Équipage en avis de recherche (la prime est la valeur de la carte la plus chère), Pokédex avec radar des statistiques et cri du Pokémon
 - succès à débloquer, réglages (effets allégés, sons, sauvegarde, reprise des données de la V2)
+- comptes joueurs : inscription, connexion, carte de membre, progression enregistrée en ligne et synchronisée
+  entre appareils (à activer avec Supabase, voir [COMPTES.md](COMPTES.md))
 
 ## Données de l'utilisateur
 
 La V3 garde ses propres données (`localStorage` « nexus.v3 »). Au premier lancement, elle reprend une copie de celles de la V2
 du même navigateur, sans jamais écrire dans celles-ci. Les réglages permettent de reprendre plus tard les nouveautés de la V2.
+Avec un compte, ces données sont aussi enregistrées en ligne (table `nexus_saves`, une ligne par joueur) et reprises
+sur chaque appareil où le joueur se connecte.
 
 ## Développement
 

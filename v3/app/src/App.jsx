@@ -21,6 +21,7 @@ import ScannerPage from './pages/Scanner.jsx';
 import PokedexPage, { PokemonPage } from './pages/Pokedex.jsx';
 import EquipagePage, { MemberPage } from './pages/Equipage.jsx';
 import { SettingsPage, AdminPage } from './pages/Settings.jsx';
+import AccountPage, { AccountButton, AccountDrawer } from './pages/Account.jsx';
 
 const NAVS = {
   onepiece: [['/op', 'Accueil', 'home'], ['/extensions', 'Extensions', 'sets'], ['/equipage', 'Équipage', 'crew'], ['/marche', 'Marché', 'market'], ['/scanner', 'Scanner', 'scan'], ['/boosters', 'Boosters', 'pack'], ['/collection', 'Collection', 'album']],
@@ -29,7 +30,7 @@ const NAVS = {
 const TABS = (u) => NAVS[u].filter(([to]) => !['/marche', '/scanner'].includes(to));
 
 function titleFor(p, G) {
-  const T = { recherche: `Recherche ${G}`, comparateur: 'Comparateur de prix', suivis: 'Mes alertes de prix', classement: `Top 100 ${G}`, marche: `Le marché ${G}`, extensions: `Extensions ${G}`, extension: `Extension ${G}`, collection: `Ma collection ${G}`, boosters: `Boosters ${G}`, boutique: 'Boutique', scanner: 'Scanner une carte', pokedex: 'Pokédex', equipage: 'L’équipage', reglages: 'Réglages', succes: 'Succès', admin: 'Administration' };
+  const T = { recherche: `Recherche ${G}`, comparateur: 'Comparateur de prix', suivis: 'Mes alertes de prix', classement: `Top 100 ${G}`, marche: `Le marché ${G}`, extensions: `Extensions ${G}`, extension: `Extension ${G}`, collection: `Ma collection ${G}`, boosters: `Boosters ${G}`, boutique: 'Boutique', scanner: 'Scanner une carte', pokedex: 'Pokédex', equipage: 'L’équipage', reglages: 'Réglages', succes: 'Succès', admin: 'Administration', compte: 'Mon compte' };
   return T[p[0]] ? `${T[p[0]]} · NEXUS TCG` : `NEXUS TCG · ${G} · prix, collection et boosters`;
 }
 
@@ -97,6 +98,7 @@ export default function App() {
     case 'pokedex': page = p[1] ? <PokemonPage id={p[1]} key={p[1]} /> : <PokedexPage />; break;
     case 'equipage': page = p[1] ? <MemberPage slug={p[1]} key={p[1]} /> : <EquipagePage />; break;
     case 'reglages': page = <SettingsPage />; break;
+    case 'compte': page = <AccountPage />; break;
     case 'admin': page = <AdminPage code={p[1] || ''} />; break;
     default: page = <div className="page"><h1 className="page-title">Page introuvable</h1><a className="btn primary" href={href('/')}>Accueil</a></div>;
   }
@@ -126,6 +128,7 @@ export default function App() {
             <a className="icon-btn hide-m" href={href('/comparateur')} aria-label="Comparateur" title="Comparateur"><Icon name="compare" />{cmp.length > 0 && <span className="dot">{cmp.length}</span>}</a>
             <a className="icon-btn hide-m" href={href('/suivis')} aria-label="Alertes de prix" title="Alertes"><Icon name="bell" />{Object.keys(watch).length > 0 && <span className="dot">{Object.keys(watch).length}</span>}</a>
             <LangSelect />
+            <AccountButton />
             <button className="icon-btn" onClick={() => setDrawer(true)} aria-label="Menu"><Icon name="menu" /></button>
           </div>
         </div>
@@ -285,6 +288,7 @@ function Drawer({ open, onClose, universe, other, openPalette }) {
     <div className={'drawer-back' + (open ? ' open' : '')} onPointerDown={(e) => e.target === e.currentTarget && onClose()} aria-hidden={!open}>
       <aside className="drawer" role="dialog" aria-label="Menu" aria-modal="true">
         <div className="drawer-head"><Logo size={30} /><button className="icon-btn" onClick={onClose} aria-label="Fermer le menu" tabIndex={open ? 0 : -1}><Icon name="x" /></button></div>
+        <AccountDrawer tab={open ? 0 : -1} />
         <button className="drawer-search" onClick={openPalette} tabIndex={open ? 0 : -1}><Icon name="search" size={18} />Rechercher une carte, un Pokémon…</button>
         <a className={'drawer-switch ' + other} href={href(UNIV_HOME[other])} onClick={() => update((s) => { s.universe = other; })} tabIndex={open ? 0 : -1}>
           <Emblem game={other} size={44} />

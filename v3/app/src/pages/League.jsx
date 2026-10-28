@@ -4,6 +4,7 @@ import { fmtNum, GAMES } from '../lib/data.js';
 import { useNow } from '../lib/hooks.js';
 import { seasonNow, leagueOn, fetchBoard, fetchRank, submitScore, newIdentity } from '../lib/league.js';
 import { Progress } from '../ui/Kit.jsx';
+import { useCloud } from '../lib/cloud.js';
 
 // Classement des collectionneurs : qui a rempli le plus l'extension des boosters pendant la saison de 30 jours.
 
@@ -37,7 +38,9 @@ export function League({ prod }) {
   const [err, setErr] = useState('');
   const [rank, setRank] = useState(null);
   const [all, setAll] = useState(false);
-  const [pseudo, setPseudo] = useState(me?.pseudo || '');
+  const account = useCloud((c) => (c.user ? c.pseudo || c.user.meta?.pseudo || '' : null));
+  const [pseudo, setPseudo] = useState(me?.pseudo || account || '');
+  useEffect(() => { if (account && !pseudo) setPseudo(account); }, [account]);
   const [tick, setTick] = useState(0);
   const joined = !!(me?.id && me?.pseudo);
 
@@ -110,7 +113,7 @@ export function League({ prod }) {
               <form className="lg-join" onSubmit={join}>
                 <label htmlFor="lg-pseudo">Choisis ton pseudo pour apparaître dans le classement</label>
                 <div className="row"><input id="lg-pseudo" value={pseudo} maxLength={20} placeholder="Ton pseudo" autoComplete="nickname" onChange={(e) => setPseudo(e.target.value)} /><button className="btn primary">Rejoindre</button></div>
-                <small className="faint">Pas de compte : ton identité de joueur reste dans ce navigateur. Évite ton vrai nom.</small>
+                <small className="faint">{account != null ? 'Ton identité de joueur est enregistrée dans ton compte. Évite ton vrai nom.' : <>Ton identité de joueur reste dans ce navigateur. <a className="link" href="#/compte">Crée un compte</a> pour la garder sur tous tes appareils. Évite ton vrai nom.</>}</small>
               </form>
             )}
         </div>
