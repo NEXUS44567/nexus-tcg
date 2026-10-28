@@ -167,3 +167,26 @@ main#contenu { flex: 1; padding-bottom: calc(76px + var(--safe-b)); }
 .footer-legal { max-width: var(--page); margin: 36px auto 0; font-size: 12px; color: var(--text-3); line-height: 1.6; }
 .footer-legal a { color: var(--text-2); }
 @media (min-width: 1024px) and (max-width: 1179px) { .topnav a { padding: 0 8px; font-size: 13.5px; } .topbar-in { gap: 8px; } .topnav { margin-left: 2px; } }
+
+/* ---------- Éclair de navigation ---------- */
+.shell { --bolt: #ff2340; --bolt-glow: #ff1a2e; }
+[data-universe='pokemon'] .shell { --bolt: #ffc400; --bolt-glow: #ffe14d; }
+.nav-bolt { position: absolute; left: 0; top: 0; width: 100%; height: 100%; overflow: visible; pointer-events: none; z-index: 3; }
+.nav-bolt path { fill: none; stroke-linecap: round; stroke-linejoin: miter; stroke-miterlimit: 8; stroke-dasharray: 1; stroke-dashoffset: 1; animation: nb-draw .14s ease-out forwards; }
+/* extinction portée par le calque entier : elle reste fluide même pendant l'affichage d'une page lourde */
+.nav-bolt.live { will-change: opacity; animation: nb-flicker .8s linear forwards; }
+@keyframes nb-flicker { 0%, 30% { opacity: 1; } 34% { opacity: .35; } 38% { opacity: 1; } 46% { opacity: .5; } 50% { opacity: .95; } 100% { opacity: 0; } }
+.nav-bolt .bolt-glow { stroke: var(--bolt-glow); stroke-width: 5; filter: blur(3px); opacity: .9; }
+.nav-bolt .bolt-mid { stroke: var(--bolt); stroke-width: 2.4; }
+.nav-bolt .bolt-mid.thin { stroke-width: 1; opacity: .6; animation-delay: .03s; }
+.nav-bolt .bolt-core { stroke: #fff; stroke-width: 1; }
+.nav-bolt .bolt-spark { fill: #fff; transform-box: fill-box; transform-origin: center; animation: nb-spark .5s .12s ease-out both; filter: drop-shadow(0 0 4px var(--bolt-glow)) drop-shadow(0 0 9px var(--bolt)); }
+.nav-bolt .bolt-ring { fill: none; stroke: var(--bolt-glow); stroke-width: 1.5; transform-box: fill-box; transform-origin: center; animation: nb-ring .55s .13s ease-out both; }
+@keyframes nb-draw { to { stroke-dashoffset: 0; } }
+@keyframes nb-spark { 0% { transform: scale(0); opacity: 1; } 60% { transform: scale(2.4); opacity: .9; } to { transform: scale(3.2); opacity: 0; } }
+@keyframes nb-ring { 0% { transform: scale(.2); opacity: 1; } to { transform: scale(3.4); opacity: 0; } }
+/* la section d'arrivée s'électrise un instant */
+.topnav a.zap .icon, .topnav a.zap span { animation: nb-zap .6s ease-out; }
+.tabbar a.zap .tb-ico { animation: nb-zap-ico .6s ease-out; }
+@keyframes nb-zap { 0%, 30% { color: #fff; filter: drop-shadow(0 0 6px var(--bolt-glow)) drop-shadow(0 0 12px var(--bolt)); } to { filter: none; } }
+@keyframes nb-zap-ico { 0%, 30% { box-shadow: 0 0 0 2px #fff, 0 0 18px 4px var(--bolt-glow); transform: translateY(-1px) scale(1.08); } to { transform: translateY(-1px); } }
