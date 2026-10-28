@@ -1,4 +1,4 @@
-# Activer les comptes joueurs (V3)
+# Activer les comptes joueurs (Kirakai)
 
 Les comptes permettent à chacun de retrouver sa collection, ses boosters, son classeur et ses succès sur tous ses appareils.
 Ils reposent sur [Supabase](https://supabase.com) (offre gratuite). Tant que la configuration n'est pas faite, le site

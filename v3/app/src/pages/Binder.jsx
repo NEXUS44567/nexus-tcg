@@ -99,7 +99,7 @@ export function Cover({ name, cover, game, stats, onOpen, small, opening }) {
         <span className="bd-cover-title">{name || 'Mon classeur'}</span>
         <span className="bd-cover-sub">{GAMES[game].label} · collection</span>
         {stats && <span className="bd-cover-stats"><span><b>{fmtNum(stats.count)}</b> cartes</span><span><b>{fmtNum(stats.unique)}</b> différentes</span>{stats.total > 0 && <span><b>{fmtEur(stats.total)}</b></span>}</span>}
-        <span className="bd-cover-stamp">NEXUS TCG</span>
+        <span className="bd-cover-stamp">KIRAKAI</span>
       </span>
       <span className="bd-strap"><i /></span>
     </button>
@@ -205,7 +205,7 @@ export function ShareModal({ open, onClose, game, entries }) {
   };
   const share = async () => {
     const u = url || (await make());
-    if (navigator.share) { try { await navigator.share({ title: (name || 'Mon classeur') + ' · NEXUS TCG', text: `Mon classeur ${GAMES[game].label} : ${entries.length} cartes`, url: u }); return; } catch (e) { if (e?.name === 'AbortError') return; } }
+    if (navigator.share) { try { await navigator.share({ title: (name || 'Mon classeur') + ' · Kirakai', text: `Mon classeur ${GAMES[game].label} : ${entries.length} cartes`, url: u }); return; } catch (e) { if (e?.name === 'AbortError') return; } }
     copy(u);
   };
   const copy = async (u0) => { const u = u0 || url || (await make()); try { await navigator.clipboard.writeText(u); toast('Le lien de ton classeur est copié.', { icon: 'share' }); } catch { toast('Sélectionne le lien pour le copier.', { icon: 'info' }); } };
@@ -225,7 +225,7 @@ export function ShareModal({ open, onClose, game, entries }) {
             <button className="btn ghost" onClick={() => copy()}>Copier le lien</button>
           </div>
           {url && <input className="bd-url" type="text" readOnly value={url} onFocus={(e) => e.target.select()} />}
-          <p className="source-note">Le lien contient la liste de tes {fmtNum(entries.length)} cartes {GAMES[game].label} (quantité, état et note), sans tes prix payés. La personne qui l’ouvre voit ton classeur avec les prix du jour. Il s’ouvre aussi sur NEXUS V2. Si tu ajoutes des cartes, crée un nouveau lien.</p>
+          <p className="source-note">Le lien contient la liste de tes {fmtNum(entries.length)} cartes {GAMES[game].label} (quantité, état et note), sans tes prix payés. La personne qui l’ouvre voit ton classeur avec les prix du jour. Il s’ouvre aussi sur l’ancienne version du site. Si tu ajoutes des cartes, crée un nouveau lien.</p>
         </div>
       </div>
     </Modal>
@@ -238,7 +238,7 @@ export function SharedBinderPage({ code }) {
   const [res, setRes] = useState(null);
   useEffect(() => { let ok = true; decodeBinder(code).then((r) => ok && setRes(r), (e) => ok && setRes({ error: e.message || 'lien invalide' })); return () => { ok = false; }; }, [code]);
   const items = useMemo(() => (!d.ready || !res?.entries ? [] : res.entries.map((e) => ({ e, c: resolveKey(d.cats, e.key) })).filter((x) => x.c)), [d.ready, d.jp, res]);
-  useEffect(() => { if (res?.name != null) document.title = (res.name || 'Classeur') + ' · NEXUS TCG'; }, [res]);
+  useEffect(() => { if (res?.name != null) document.title = (res.name || 'Classeur') + ' · Kirakai'; }, [res]);
   if (!res || !d.ready) return <div className="page"><Loading /></div>;
   if (res.error) return <div className="page"><h1 className="page-title">Ce lien de classeur ne marche pas</h1><p className="muted">{res.error === 'navigateur trop ancien' ? 'Ton navigateur est trop ancien pour lire ce lien : mets-le à jour (iOS 16.4 ou plus récent, Chrome, Firefox…).' : 'Il est peut-être incomplet. Demande à la personne de te le renvoyer.'}</p><a className="btn primary" href={href('/collection')}>Créer mon classeur</a></div>;
   let total = 0, count = 0;

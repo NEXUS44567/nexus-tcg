@@ -31,7 +31,7 @@ export default function CardPage({ cardKey }) {
     const [g, ...r] = cardKey.split(':');
     return d.cats[g]?.byId.get(r.join(':')) || null;
   }, [d.ready, d.jp, cardKey]);
-  useEffect(() => { if (card) { pushRecent(card.key); document.title = card.name + ' ' + card.number + ' · prix · NEXUS TCG'; } }, [card, d.lang]);
+  useEffect(() => { if (card) { pushRecent(card.key); document.title = card.name + ' ' + card.number + ' · prix · Kirakai'; } }, [card, d.lang]);
   const hist = useAsync(() => (card ? historyOf(card) : []), [card?.key]);
   const world = useAsync(() => (!card ? null : card.game === 'pokemon' ? speciesOf(card) : memberOf(card)), [card?.key, d.lang]);
   const tilt = useTilt({ max: 16, gyro: true });
@@ -77,7 +77,7 @@ export default function CardPage({ cardKey }) {
       : [['Cardmarket', `https://www.cardmarket.com/fr/Pokemon/Products/Search?searchString=${q(enName)}`], ['TCGplayer', `https://www.tcgplayer.com/search/pokemon/product?q=${q(enName + ' ' + (set?.en?.name || set?.name || ''))}`], ['eBay', `https://www.ebay.fr/sch/i.html?_nkw=${q(enName + ' ' + card.number + ' ' + (set?.en?.name || set?.name || ''))}`]];
   const lvl = fxLevel(card);
   const share = async () => {
-    const url = location.href, text = `${card.name} ${card.number} · ${eur != null ? fmtEur(eur) : 'prix'} sur NEXUS TCG`;
+    const url = location.href, text = `${card.name} ${card.number} · ${eur != null ? fmtEur(eur) : 'prix'} sur Kirakai`;
     if (navigator.share) { try { await navigator.share({ title: card.name, text, url }); return; } catch (e) { if (e?.name === 'AbortError') return; } }
     try { await navigator.clipboard.writeText(url); toast('Le lien de la fiche est copié.', { icon: 'share' }); } catch { toast(url, { icon: 'share' }); }
   };
@@ -201,7 +201,7 @@ function AvgBars({ p }) {
 
 function ConditionTable({ eur }) {
   return (
-    <Section kicker="Selon l’état" title="Ce que vaut ta carte selon son état" lead="Estimation NEXUS : le prix du jour (état Near Mint) multiplié par un coefficient d’usure courant sur le marché. Ce n’est pas un prix relevé.">
+    <Section kicker="Selon l’état" title="Ce que vaut ta carte selon son état" lead="Estimation Kirakai : le prix du jour (état Near Mint) multiplié par un coefficient d’usure courant sur le marché. Ce n’est pas un prix relevé.">
       <div className="cond-grid">
         {CONDITIONS.map((c, i) => (
           <div key={c.id} className={'cond c-' + c.id} style={{ '--i': i, '--f': Math.min(1, c.factor / 1.15) }}>
@@ -267,7 +267,7 @@ function AlertEditor({ card, eur }) {
       <span className="ae-ico"><Icon name="bell" size={18} /></span>
       <label>Préviens-moi sous<span className="ae-in"><input type="number" min="0" step="0.5" inputMode="decimal" value={below} onChange={(e) => setBelow(e.target.value)} onBlur={save} placeholder={eur ? String(Math.round(toDisp(eur) * 0.9)) : ''} />{CUR.sym}</span></label>
       <label>ou au-dessus de<span className="ae-in"><input type="number" min="0" step="0.5" inputMode="decimal" value={above} onChange={(e) => setAbove(e.target.value)} onBlur={save} placeholder={eur ? String(Math.round(toDisp(eur) * 1.1)) : ''} />{CUR.sym}</span></label>
-      <small>Vérifié à chaque relevé quotidien, quand tu ouvres NEXUS.</small>
+      <small>Vérifié à chaque relevé quotidien, quand tu ouvres Kirakai.</small>
     </div>
   );
 }
@@ -311,7 +311,7 @@ function Inspector({ card, onClose }) {
         </div>
       </div>
       <div className="insp-bar">
-        <span className="insp-name"><b>{card.name}</b><small>{card.number} · {face === 'front' ? 'recto' : 'verso NEXUS'}</small></span>
+        <span className="insp-name"><b>{card.name}</b><small>{card.number} · {face === 'front' ? 'recto' : 'verso Kirakai'}</small></span>
         <button className="btn ghost small" onClick={flip}><Icon name="rotate" size={16} />Retourner</button>
         <a className="btn ghost small" href={img(card.image, 'large')} target="_blank" rel="noreferrer"><Icon name="ext" size={16} />Image HD</a>
         <button className="btn primary small" onClick={onClose}><Icon name="x" size={16} />Fermer</button>

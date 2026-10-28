@@ -86,7 +86,7 @@ export default function CollectionPage() {
   const doCsv = () => {
     const rows = [['Univers', 'Carte', 'Numéro', 'Extension', 'Version', 'Rareté', 'Quantité', 'État', 'Note', 'Langue', 'Prix du jour (EUR)', 'Valeur selon l’état (EUR)', 'Prix payé (EUR)', 'Ajoutée le']];
     for (const x of sorted) { const eur = eurOf(x.c, d.P, d.fx); rows.push([GAMES[x.c.game].label, x.c.name, x.c.number, d.cats[x.c.game].sets.get(x.c.set)?.name || x.c.set, x.c.variant || '', x.c.rarity || '', x.e.qty, x.e.cond, x.e.grade ?? '', x.e.lang, eur ?? '', eur != null ? (eur * condOf(x.e.cond).factor * x.e.qty).toFixed(2) : '', x.e.paid ?? '', x.e.addedAt.slice(0, 10)]); }
-    download(`nexus-collection-${game}-${new Date().toISOString().slice(0, 10)}.csv`, '﻿' + rows.map((r) => r.map((v) => `"${String(v).replace(/"/g, '""')}"`).join(';')).join('\n'), 'text/csv');
+    download(`kirakai-collection-${game}-${new Date().toISOString().slice(0, 10)}.csv`, '﻿' + rows.map((r) => r.map((v) => `"${String(v).replace(/"/g, '""')}"`).join(';')).join('\n'), 'text/csv');
   };
   const doImport = async (f) => { try { const n = importData(await f.text()); toast(`${n} carte${n > 1 ? 's' : ''} importée${n > 1 ? 's' : ''}.`, { icon: 'download' }); } catch (e) { toast('Import impossible : ' + e.message, { icon: 'info' }); } };
 
@@ -102,7 +102,7 @@ export default function CollectionPage() {
       {otherCount > 0 && <p className="muted">Tu as aussi {otherCount} carte{otherCount > 1 ? 's' : ''} {GAMES[other].label} : <a className="link" href={href('/collection?u=' + other)}>voir ma collection {GAMES[other].label}</a></p>}
       {coll.length === 0 ? (
         <Empty icon="album" title="Ta collection est vide" action={<div className="row"><a className="btn primary" href={href('/scanner')}><Icon name="scan" size={18} />Scanner une carte</a><a className="btn ghost" href={href('/recherche')}><Icon name="search" size={18} />Chercher une carte</a>{hasV2() && <button className="btn ghost" onClick={() => { try { const n = syncFromV2(); toast(n ? `${n} carte${n > 1 ? 's' : ''} reprise${n > 1 ? 's' : ''} de la V2.` : 'Rien de nouveau dans la V2.', { icon: 'download' }); } catch (e) { toast(e.message, { icon: 'info' }); } }}><Icon name="download" size={18} />Reprendre ma collection V2</button>}</div>}>
-          Ajoute tes cartes depuis leur fiche ou avec le scanner : NEXUS calcule leur valeur au prix du jour selon leur état.
+          Ajoute tes cartes depuis leur fiche ou avec le scanner : Kirakai calcule leur valeur au prix du jour selon leur état.
           {virtualCount > 0 && <><br /><a className="link" href={href('/boosters/collection')}>Tu as aussi {virtualCount} cartes virtuelles gagnées en boosters</a></>}
         </Empty>
       ) : (
@@ -154,7 +154,7 @@ export default function CollectionPage() {
 
           <Section kicker="Sauvegarde" title="Mes données" className="coll-tools-sec">
             <div className="coll-tools">
-              <button className="btn ghost" onClick={() => download('nexus-collection-' + new Date().toISOString().slice(0, 10) + '.json', exportData(), 'application/json')}><Icon name="download" size={18} />Exporter (sauvegarde)</button>
+              <button className="btn ghost" onClick={() => download('kirakai-collection-' + new Date().toISOString().slice(0, 10) + '.json', exportData(), 'application/json')}><Icon name="download" size={18} />Exporter (sauvegarde)</button>
               <button className="btn ghost" onClick={doCsv}><Icon name="list" size={18} />Exporter en tableau (CSV)</button>
               <button className="btn ghost" onClick={() => file.current.click()}><Icon name="upload" size={18} />Importer</button>
               <input ref={file} type="file" accept="application/json" hidden onChange={(e) => e.target.files[0] && doImport(e.target.files[0])} />

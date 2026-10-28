@@ -14,10 +14,18 @@ main#contenu { flex: 1; padding-bottom: calc(76px + var(--safe-b)); }
 
 /* ---------- Logo ---------- */
 .logo { display: inline-flex; align-items: center; gap: 10px; }
-.logo-mark { filter: drop-shadow(0 4px 14px color-mix(in srgb, var(--a1) 45%, transparent)); transition: transform .5s var(--spring); }
-.brand:hover .logo-mark { transform: rotate(-8deg) scale(1.06); }
-.logo-word { font-family: var(--display); font-weight: 800; font-size: 18px; letter-spacing: .08em; display: inline-flex; align-items: flex-start; gap: 4px; }
-.logo-word small { font-size: 8.5px; font-weight: 700; letter-spacing: .14em; padding: 2px 4px; border-radius: 4px; background: linear-gradient(120deg, var(--a1), var(--a2)); color: var(--ink); margin-top: 1px; }
+.logo-mark { flex: none; overflow: visible; filter: drop-shadow(0 4px 14px rgba(61, 140, 255, .42)); transition: transform .5s var(--spring); }
+.brand:hover .logo-mark { transform: rotate(-6deg) scale(1.07); }
+/* l'étincelle scintille doucement */
+.logo-mark .lm-spark, .logo-mark .lm-glow { transform-box: view-box; transform-origin: 39.6px 42px; animation: lm-twinkle 4.2s ease-in-out infinite; }
+.logo-mark .lm-glow { animation-name: lm-glow; }
+@keyframes lm-twinkle { 0%, 70%, 100% { transform: scale(1) rotate(0); } 82% { transform: scale(1.22) rotate(12deg); } }
+@keyframes lm-glow { 0%, 70%, 100% { opacity: .8; } 82% { opacity: 1; transform: scale(1.25); } }
+[data-fx='lite'] .logo-mark .lm-spark, [data-fx='lite'] .logo-mark .lm-glow { animation: none; }
+@media (prefers-reduced-motion: reduce) { .logo-mark .lm-spark, .logo-mark .lm-glow { animation: none; } }
+.logo-word { font-family: var(--display); font-weight: 800; font-size: 18px; letter-spacing: .07em; display: inline-flex; align-items: flex-start; gap: 0; }
+.logo-word .lw-kai { background: linear-gradient(100deg, #7df4ff, #3d8cff 55%, #9b6bff); -webkit-background-clip: text; background-clip: text; color: transparent; }
+.logo-word small { margin: 1px 0 0 6px; padding: 2px 4px; border-radius: 4px; font: 700 9px/1.2 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Noto Sans JP', 'Yu Gothic', Meiryo, sans-serif; letter-spacing: .08em; background: linear-gradient(120deg, #fff1b0, #ffc94a); color: #2a1a00; }
 
 /* ---------- Barre du haut ---------- */
 .topbar { position: sticky; top: 0; z-index: 50; padding-top: env(safe-area-inset-top, 0px); background: linear-gradient(180deg, rgba(6, 7, 12, .86), rgba(6, 7, 12, .7)); backdrop-filter: blur(18px) saturate(1.4); -webkit-backdrop-filter: blur(18px) saturate(1.4); border-bottom: 1px solid var(--line); }
@@ -25,7 +33,9 @@ main#contenu { flex: 1; padding-bottom: calc(76px + var(--safe-b)); }
 .topbar-in { max-width: 1440px; margin: 0 auto; height: var(--top); padding: 0 var(--gut); display: flex; align-items: center; gap: 12px; }
 .brand { display: inline-flex; flex: none; }
 .brand .logo-word { display: none; }
+.brand .logo-word small { display: none; }
 @media (min-width: 1180px) { .brand .logo-word { display: inline-flex; } }
+@media (min-width: 1700px) { .topbar-in { max-width: 1680px; } }
 
 /* Bascule d'univers */
 .uswitch { position: relative; display: grid; grid-template-columns: 1fr 1fr; padding: 3px; border-radius: 14px; background: rgba(255, 255, 255, .045); border: 1px solid var(--line); flex: none; }
@@ -36,14 +46,14 @@ main#contenu { flex: 1; padding-bottom: calc(76px + var(--safe-b)); }
 .uswitch a.on .emblem, .uswitch a:hover .emblem { filter: none; transform: scale(1.12) rotate(-6deg); }
 .us-pill { position: absolute; top: 3px; bottom: 3px; left: 3px; width: calc(50% - 3px); border-radius: 11px; background: linear-gradient(135deg, color-mix(in srgb, var(--a1) 40%, #10131e), color-mix(in srgb, var(--a2) 26%, #10131e)); border: 1px solid color-mix(in srgb, var(--a1) 55%, transparent); box-shadow: 0 6px 20px -8px var(--a1); transition: transform .5s var(--spring), background .6s; }
 .uswitch.is-pokemon .us-pill { transform: translateX(100%); }
-@media (min-width: 1560px) { .uswitch a { padding: 0 12px; } .uswitch a span { display: inline; } }
+@media (min-width: 1700px) { .uswitch a { padding: 0 12px; } .uswitch a span { display: inline; } }
 
 /* Navigation */
 .topnav { position: relative; display: none; align-items: center; gap: 2px; margin-left: 6px; }
 @media (min-width: 1024px) { .topnav { display: flex; } }
 .topnav a { position: relative; z-index: 1; display: inline-flex; align-items: center; gap: 7px; height: 38px; padding: 0 11px; border-radius: 11px; font-weight: 750; font-size: 14px; color: var(--text-2); transition: color .25s; white-space: nowrap; }
 .topnav a .icon { display: none; }
-@media (min-width: 1360px) { .topnav a .icon { display: block; } }
+@media (min-width: 1440px) { .topnav a .icon { display: block; } }
 .topnav a:hover { color: var(--text); }
 .topnav a.on { color: #fff; }
 .topnav a.on .icon { color: var(--a2); }
@@ -55,11 +65,11 @@ main#contenu { flex: 1; padding-bottom: calc(76px + var(--safe-b)); }
 .search-trigger span { flex: 1; text-align: left; }
 .search-trigger:hover { border-color: var(--line-3); background: rgba(255, 255, 255, .07); color: var(--text-2); }
 @media (min-width: 1024px) { .search-trigger { display: inline-flex; } }
-@media (min-width: 1024px) and (max-width: 1279px) { .search-trigger { min-width: 0; padding: 0 11px; } .search-trigger span, .search-trigger kbd { display: none; } }
+@media (min-width: 1024px) and (max-width: 1359px) { .search-trigger { min-width: 0; padding: 0 11px; } .search-trigger span, .search-trigger kbd { display: none; } }
 .top-icons { display: flex; align-items: center; gap: 2px; margin-left: auto; }
 @media (min-width: 1024px) { .top-icons { margin-left: 0; } .show-s, .hide-l { display: none !important; } }
 @media (max-width: 1179px) { .hide-m { display: none !important; } }
-@media (max-width: 380px) { .hide-s { display: none !important; } }
+@media (max-width: 420px) { .hide-s { display: none !important; } }
 .lang-select { position: relative; display: inline-flex; height: 40px; }
 .lang-select select { position: absolute; inset: 0; opacity: 0; cursor: pointer; height: 40px; width: 100%; padding: 0; }
 .lang-select b { display: inline-flex; align-items: center; gap: 5px; height: 40px; padding: 0 10px; border-radius: 12px; font-size: 12.5px; font-weight: 850; color: var(--text-2); letter-spacing: .04em; border: 1px solid transparent; }

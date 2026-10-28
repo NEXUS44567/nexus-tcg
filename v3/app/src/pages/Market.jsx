@@ -110,7 +110,7 @@ export function MarketPage() {
 
       <div className="market-grid">
         <div className="panel pad">
-          <div className="index-head"><h3><Icon name="market" size={18} />Indice NEXUS · top 50</h3>{idxChange != null && <Delta pct={idxChange} />}</div>
+          <div className="index-head"><h3><Icon name="market" size={18} />Indice Kirakai · top 50</h3>{idxChange != null && <Delta pct={idxChange} />}</div>
           {idx.length > 0 && <div className="index-head"><b>{fmtEur(idx.at(-1)[1])}</b><small className="faint">valeur des 50 cartes les plus chères, jour après jour</small></div>}
           {index.loading ? <Loading /> : <PriceChart series={[{ points: idx, color: 'var(--a2)' }]} height={220} empty="L’indice se dessine au fil des relevés quotidiens." />}
         </div>
@@ -274,7 +274,7 @@ export function WatchPage() {
     <div className="page">
       <div className="kicker">Outils</div>
       <h1 className="page-title">Mes suivis et alertes</h1>
-      <p className="lead">Suis une carte et fixe un seuil : à chaque relevé quotidien, NEXUS te signale les cartes qui passent sous ou au-dessus de ton prix.</p>
+      <p className="lead">Suis une carte et fixe un seuil : à chaque relevé quotidien, Kirakai te signale les cartes qui passent sous ou au-dessus de ton prix.</p>
       {rows.length > 0 && (
         <div className="stats" style={{ margin: '6px 0 18px' }}>
           <Stat label="Cartes suivies" icon="eye" value={rows.length} />

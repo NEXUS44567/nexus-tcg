@@ -1,6 +1,7 @@
-# NEXUS TCG — V3
+# Kirakai
 
-Nouvelle version du site, construite à part pour comparer avec la V2 (racine du dépôt), qui n'est pas modifiée.
+Kirakai (« kira » キラ, l'éclat d'une carte brillante, et « kai » 海, la mer) est la nouvelle version du site,
+construite à part dans `v3/` (l'ancienne version, NEXUS V2, à la racine du dépôt, n'est pas modifiée).
 En ligne : `https://nexus44567.github.io/nexus-tcg/v3/` (une fois la branche fusionnée dans `main`).
 
 Mêmes fonctionnalités que la V2, mêmes adresses (`#/op`, `#/carte/…`, `#/collection`…) et mêmes données (`../db/`, relevées chaque jour par les robots de la V2) :
@@ -12,7 +13,7 @@ Mêmes fonctionnalités que la V2, mêmes adresses (`#/op`, `#/carte/…`, `#/co
 - collection : valeur, courbe, classeur, grille, liste, progression par extension, export / import, lien de partage (même format que la V2)
 - langues FR / EN / JP et devise associée, application installable, consultation hors ligne
 
-En plus dans la V3 :
+En plus dans Kirakai :
 
 - recherche rapide partout (Ctrl/⌘ + K ou `/`) : cartes, extensions, Pokémon, personnages, pages
 - reflets holographiques selon la rareté, inspecteur plein écran (la carte se tourne, recto / verso)
@@ -44,5 +45,5 @@ Le build dépose aussi dans `assets/` un petit relais au nom du script de la V2 
 ouvre la V3 pour la première fois, ce relais retire ce service worker et recharge la page (la V2 le réinstalle à sa visite suivante).
 Après une reconstruction de la V2, relancer `npm run build` ici pour mettre ce relais à jour.
 
-Emblèmes et logo dessinés pour NEXUS (aucun logo officiel). One Piece © Eiichiro Oda / Shueisha, Toei Animation, Bandai.
+Logo (vague et étincelle) et emblèmes dessinés pour Kirakai (aucun logo officiel). One Piece © Eiichiro Oda / Shueisha, Toei Animation, Bandai.
 Pokémon © Nintendo, Creatures, GAME FREAK, The Pokémon Company. Site de fan non officiel.

@@ -123,7 +123,7 @@ export function PokemonPage({ id }) {
   const tilt = useTilt({ max: 14, gyro: true });
   useEffect(() => { setFormIdx(0); setShiny(false); }, [n]);
   const sp = L.value?.byId.get(n);
-  useEffect(() => { if (sp) document.title = sp.fr + ' · Pokédex · NEXUS TCG'; }, [sp]);
+  useEffect(() => { if (sp) document.title = sp.fr + ' · Pokédex · Kirakai'; }, [sp]);
   if (L.loading || D.loading) return <div className="page"><Loading label="Chargement du Pokémon…" /></div>;
   if (!sp || !D.value) return <div className="page"><Empty icon="dex" title="Pokémon introuvable" action={<a className="btn primary" href={href('/pokedex')}>Retour au Pokédex</a>} /></div>;
   const { types, byId } = L.value;

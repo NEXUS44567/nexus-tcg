@@ -1,4 +1,4 @@
-// Service worker de NEXUS V3 (portée /nexus-tcg/v3/) : ouverture instantanée après la première visite,
+// Service worker de Kirakai (portée /nexus-tcg/v3/) : ouverture instantanée après la première visite,
 // consultation hors ligne avec les derniers prix connus. Les prix sont toujours redemandés au réseau d'abord.
 // Les caches sont préfixés « nexus3- » pour ne jamais toucher à ceux de la V2.
 const VERSION = '__VERSION__';

@@ -34,7 +34,7 @@ export default function ScannerPage() {
       <ol className="scan-steps">{steps.map(([k, l], i) => <li key={k} className={i < si ? 'done' : i === si ? 'on' : ''}><span>{i < si ? <Icon name="check" size={14} stroke={3} /> : i + 1}</span>{l}</li>)}</ol>
       {step === 'start' && (
         <div className="scan-start">
-          <p className="lead">Prends ta carte en photo : NEXUS lit son numéro pour la retrouver, puis analyse le centrage, les coins, les bords et la surface pour lui donner une note sur 10.</p>
+          <p className="lead">Prends ta carte en photo : Kirakai lit son numéro pour la retrouver, puis analyse le centrage, les coins, les bords et la surface pour lui donner une note sur 10.</p>
           <div className="scan-choices">
             <button className="scan-choice cam" onClick={() => { setErr(''); setStep('camera'); }}>
               <span className="sc-visual"><span className="sc-frame"><i /><i /><i /><i /></span><span className="sc-laser" /></span>
@@ -224,7 +224,7 @@ function Result({ result, onRestart, onAdjust }) {
             <span className="gc-num"><b>{a.grade.toLocaleString('fr-FR')}</b><small>/10</small></span>
           </div>
           <div className="gc-txt">
-            <span className="kicker">Note NEXUS</span>
+            <span className="kicker">Note Kirakai</span>
             <b className="glabel">{G.label}</b>
             <p>{G.text}</p>
             <span className="conf">Fiabilité de l’analyse : {Math.round(a.confidence * 100)} %</span>

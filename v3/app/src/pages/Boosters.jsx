@@ -14,7 +14,7 @@ import Icon from '../ui/Icon.jsx';
 
 const LV_COLOR = ['#9aa3bd', '#7cc4ff', '#b48bff', '#ffd76a', '#ff6b9a', '#ffffff'];
 
-// ---- Visuel du booster : vraie illustration si elle existe (../db/packs/<code>.webp), sinon emballage NEXUS ----
+// ---- Visuel du booster : vraie illustration si elle existe (../db/packs/<code>.webp), sinon emballage Kirakai ----
 // Seule l'extension la plus récente de chaque univers a une illustration officielle (relevée chaque semaine)
 const realPack = new Map();
 function useRealPack(code, enabled) {
@@ -48,7 +48,7 @@ export function PackFace({ prod }) {
         {prod.logo ? <img className="pf-logo" src={img(prod.logo)} alt="" referrerPolicy="no-referrer" onError={(e) => (e.currentTarget.style.display = 'none')} /> : <b className="pf-code">{prod.code}</b>}
         <span className="pf-name">{prod.name}</span>
       </span>
-      <span className="pf-count">{prod.size} cartes · NEXUS</span>
+      <span className="pf-count">{prod.size} cartes · Kirakai</span>
     </span>
   );
 }
@@ -394,7 +394,7 @@ export default function BoostersPage({ focus }) {
             </div>
           );
         })}
-        <p className="source-note">Les éditeurs ne publient pas de taux officiels. Ces probabilités sont des estimations NEXUS inspirées des retours de la communauté ; elles ne prédisent pas le contenu d’un vrai booster. Cartes virtuelles, sans valeur monétaire.</p>
+        <p className="source-note">Les éditeurs ne publient pas de taux officiels. Ces probabilités sont des estimations Kirakai inspirées des retours de la communauté ; elles ne prédisent pas le contenu d’un vrai booster. Cartes virtuelles, sans valeur monétaire.</p>
       </Modal>
     </div>
   );

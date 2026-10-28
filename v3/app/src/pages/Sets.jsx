@@ -99,7 +99,7 @@ export function SetPage({ game, code }) {
   if (!d.ready) return <div className="page"><Loading grid /></div>;
   if (!s && String(code).startsWith('jp-') && !d.jp) return <div className="page"><Loading /></div>;
   if (!s) return <div className="page"><Empty title="Extension introuvable" action={<a className="btn primary" href={href('/extensions/' + game)}>Toutes les extensions</a>} /></div>;
-  document.title = s.name + ' · extension ' + GAMES[game].label + ' · NEXUS TCG';
+  document.title = s.name + ' · extension ' + GAMES[game].label + ' · Kirakai';
   const value = all.reduce((t, c) => t + (eurOf(c, d.P, d.fx) || 0), 0);
   const priced = all.filter((c) => eurOf(c, d.P, d.fx) != null).length;
   const top = all.reduce((m, c) => { const e = eurOf(c, d.P, d.fx) || 0; return e > m[0] ? [e, c] : m; }, [0, null]);

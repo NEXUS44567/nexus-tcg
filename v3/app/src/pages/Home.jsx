@@ -160,7 +160,7 @@ export default function Home({ game }) {
           <span className="bt-txt"><span className="bt-ico"><Icon name={U.world.icon} size={22} /></span><h3>{U.world.title}</h3><p>{U.world.text}</p><span className="link">{U.world.cta} <Icon name="arrow" size={16} /></span></span>
         </a>
         <a className="bento-tile packs" href={href('/boosters')}>
-          <span className="bt-pack" aria-hidden="true"><span className="mini-pack"><Emblem game={game} size={44} /><b>NEXUS</b></span></span>
+          <span className="bt-pack" aria-hidden="true"><span className="mini-pack"><Emblem game={game} size={44} /><b>KIRAKAI</b></span></span>
           <span className="bt-txt"><span className="bt-ico"><Icon name="pack" size={22} /></span><h3>Ouvre des boosters</h3><p>{U.packs}</p>{wallet && <span className="tag">{fmtNum(wallet.coins)} {game === 'onepiece' ? 'Berrys' : 'Pokéballs'}</span>}<span className="link">Déchirer un booster <Icon name="arrow" size={16} /></span></span>
         </a>
         <a className="bento-tile scan" href={href('/scanner')}>

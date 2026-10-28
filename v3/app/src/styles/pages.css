@@ -125,7 +125,7 @@
 .mini-pack { position: relative; display: grid; place-items: center; align-content: center; gap: 8px; width: 104px; height: 160px; border-radius: 8px; background: linear-gradient(135deg, var(--a1), color-mix(in srgb, var(--a1) 30%, #000) 55%, var(--a2)); box-shadow: 0 24px 40px -10px rgba(0, 0, 0, .8), inset 0 0 0 1px rgba(255, 255, 255, .25); transform: rotate(8deg); transition: transform .6s var(--spring); overflow: hidden; }
 .mini-pack::before, .mini-pack::after { content: ''; position: absolute; left: 0; right: 0; height: 10px; background: repeating-linear-gradient(90deg, rgba(255, 255, 255, .5) 0 3px, transparent 3px 6px); }
 .mini-pack::before { top: 0; } .mini-pack::after { bottom: 0; }
-.mini-pack b { font: 900 11px var(--display); letter-spacing: .25em; color: #fff; }
+.mini-pack b { font: 900 10px var(--display); letter-spacing: .14em; color: #fff; }
 .bento-tile.packs:hover .mini-pack { transform: rotate(-4deg) scale(1.08); }
 .bento-tile.packs .bt-txt { max-width: calc(100% - 130px); }
 .bt-scan { position: absolute; z-index: -1; right: 14px; top: 14px; width: 70px; height: 96px; border-radius: 8px; border: 2px dashed var(--line-3); }

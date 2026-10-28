@@ -48,7 +48,7 @@ const MSG = {
   refresh_token_not_found: 'Ta session a expiré : reconnecte-toi.',
   refresh_token_already_used: 'Ta session a expiré : reconnecte-toi.',
   user_not_found: 'Compte introuvable.',
-  email_address_not_authorized: 'L’envoi d’e-mails n’est pas encore activé sur NEXUS. Réessaie plus tard.',
+  email_address_not_authorized: 'L’envoi d’e-mails n’est pas encore activé sur Kirakai. Réessaie plus tard.',
   23505: 'Ce pseudo est déjà pris.',
   23514: 'Sauvegarde trop volumineuse pour ton compte.',
 };
