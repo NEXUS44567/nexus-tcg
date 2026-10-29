@@ -1,14 +1,16 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { href, useData, useNow } from '../lib/hooks.js';
-import { useStore } from '../lib/store.js';
-import { fmtDate, fmtNum, fmtShort } from '../lib/data.js';
+import { useStore, update } from '../lib/store.js';
+import { profileRow, forgetPublished } from '../lib/social.js';
+import { fmtDate, fmtNum, fmtShort, fmtEur, eurOf, resolveKey } from '../lib/data.js';
 import { collectionValue } from '../lib/coll.js';
 import { toast } from '../lib/toast.js';
 import {
   useCloud, cloudOn, signIn, signUp, signInWith, signOut, resetPassword, resendConfirmation, pseudoFree,
-  changePassword, changePseudo, deleteAccount, syncNow, isDirty, dismissRecovery, cleanPseudo, clearLinkError,
+  changePassword, changePseudo, deleteAccount, syncNow, isDirty, dismissRecovery, cleanPseudo, clearLinkError, publishProfile, hideProfile,
 } from '../lib/cloud.js';
-import { Seg } from '../ui/Kit.jsx';
+import { Seg, Modal } from '../ui/Kit.jsx';
+import { CardArt } from '../ui/Card.jsx';
 import { LogoMark, Emblem } from '../ui/Brand.jsx';
 import Icon from '../ui/Icon.jsx';
 
@@ -72,7 +74,7 @@ function useProgress() {
 }
 
 // Carte de membre holographique (aperçu pendant l'inscription, vraie carte une fois connecté)
-function MemberCard({ pseudo, since, code, stats, preview }) {
+export function MemberCard({ pseudo, since, code, stats, preview }) {
   const name = pseudo || 'Ton pseudo';
   return (
     <div className={'member' + (preview ? ' preview' : '')} data-tilt>
@@ -408,6 +410,7 @@ function Profile() {
         </div>
         <div className="acc-col">
           {pseudo && <PseudoPanel current={pseudo} />}
+          <PublicPanel pseudo={pseudo} />
           <section className="panel pad acc-block">
             <h2 className="acc-h"><Icon name="mail" size={20} />Connexion</h2>
             <p className="muted small">Tu te connectes avec {joinFr(via.map((x) => (x === 'email' ? 'ton e-mail' : PROVIDERS[x] || x)))}{user.email ? <> (<b>{user.email}</b>)</> : null}.</p>
@@ -418,6 +421,84 @@ function Profile() {
         </div>
       </div>
     </div>
+  );
+}
+
+// Profil public : visible dans le classement des collectionneurs, avec une vitrine de cartes
+function PublicPanel({ pseudo }) {
+  const d = useData();
+  const pub = useStore((s) => !!s.profile?.public);
+  const n = useStore((s) => (s.profile?.showcase || []).length);
+  const [busy, setBusy] = useState(false);
+  const [err, setErr] = useState('');
+  const [pick, setPick] = useState(false);
+  const toggle = async () => {
+    setErr(''); setBusy(true);
+    try {
+      if (pub) {
+        await hideProfile(); forgetPublished();
+        update((s) => { s.profile = { ...(s.profile || {}), public: false }; });
+        toast('Ton profil n’est plus visible.', { icon: 'eyeoff' });
+      } else {
+        if (!pseudo) throw new Error('Choisis d’abord un pseudo.');
+        if (!d.ready) throw new Error('Les cartes sont encore en train de charger, réessaie dans un instant.');
+        await publishProfile(profileRow(d));
+        update((s) => { s.profile = { ...(s.profile || {}), public: true }; });
+        toast('Ton profil est visible dans le classement des collectionneurs.', { icon: 'trophy', title: 'Profil public' });
+      }
+    } catch (e) { setErr(e.message); } finally { setBusy(false); }
+  };
+  return (
+    <section className={'panel pad acc-block' + (pub ? '' : ' acc-promo')}>
+      <h2 className="acc-h"><Icon name="trophy" size={20} />Profil public</h2>
+      <p className="muted small">{pub
+        ? <>Ton profil est visible par tous : <a className="link" href={href('/joueur/' + encodeURIComponent(pseudo))}>voir mon profil</a>. Tu apparais dans le <a className="link" href={href('/collectionneurs')}>classement des collectionneurs</a>.</>
+        : 'Montre ta collection : ta carte de membre, la valeur de ta collection et une vitrine de tes plus belles cartes, sous ton pseudo. Ton e-mail reste privé.'}</p>
+      <div className="row">
+        <button className={'btn ' + (pub ? 'ghost' : 'primary')} onClick={toggle} disabled={busy}>{busy ? <span className="acc-spin" /> : <Icon name={pub ? 'eyeoff' : 'eye'} size={18} />}{pub ? 'Rendre mon profil privé' : 'Rendre mon profil public'}</button>
+        <button className="btn ghost" onClick={() => setPick(true)}><Icon name="star" size={17} />Ma vitrine{n ? ` (${n})` : ''}</button>
+      </div>
+      {err && <p className="notice" role="alert">{err}</p>}
+      <ShowcasePicker open={pick} onClose={() => setPick(false)} />
+    </section>
+  );
+}
+
+// Choix des cartes de la vitrine (12 au plus) ; sans choix, ce sont les 12 plus chères
+function ShowcasePicker({ open, onClose }) {
+  const d = useData();
+  const coll = useStore((s) => s.collection);
+  const chosen = useStore((s) => s.profile?.showcase || []);
+  const list = useMemo(() => {
+    if (!open || !d.ready) return [];
+    const keys = [...new Set(coll.map((e) => e.key))];
+    return keys.map((k) => { const c = resolveKey(d.cats, k); return c && { c, eur: eurOf(c, d.P, d.fx) || 0 }; }).filter(Boolean).sort((a, b) => b.eur - a.eur).slice(0, 120);
+  }, [open, coll, d.ready, d.v]);
+  const toggle = (k) => update((s) => {
+    const cur = s.profile?.showcase || [];
+    const next = cur.includes(k) ? cur.filter((x) => x !== k) : cur.length >= 12 ? cur : [...cur, k];
+    s.profile = { ...(s.profile || {}), showcase: next };
+  });
+  return (
+    <Modal open={open} onClose={onClose} title="Ma vitrine" wide>
+      <p className="muted small">Choisis jusqu’à 12 cartes à montrer sur ton profil ({chosen.length}/12). Sans choix, ce sont tes 12 cartes les plus chères.</p>
+      {chosen.length > 0 && <button className="btn small ghost" onClick={() => update((s) => { s.profile = { ...(s.profile || {}), showcase: [] }; })}>Revenir au choix automatique</button>}
+      {list.length === 0 ? <p className="muted">Ajoute des cartes à ta collection pour remplir ta vitrine.</p> : (
+        <div className="sc-grid">
+          {list.map(({ c, eur }) => {
+            const on = chosen.includes(c.key);
+            return (
+              <button key={c.key} type="button" className={'sc-item' + (on ? ' on' : '')} onClick={() => toggle(c.key)} aria-pressed={on} disabled={!on && chosen.length >= 12}>
+                <CardArt card={c} tilt={false} fx={0} />
+                <span>{c.name}</span>
+                <small>{fmtEur(eur)}</small>
+                {on && <i className="sc-check"><Icon name="check" size={14} stroke={3} /></i>}
+              </button>
+            );
+          })}
+        </div>
+      )}
+    </Modal>
   );
 }
 
@@ -447,7 +528,7 @@ function LogoutPanel() {
   const [busy, setBusy] = useState(false);
   const out = async (force) => {
     setBusy(true);
-    try { await signOut({ force }); toast('Tu es déconnecté. Ta progression t’attend dans ton compte.', { icon: 'logout' }); location.hash = '#/compte'; }
+    try { await signOut({ force }); forgetPublished(); toast('Tu es déconnecté. Ta progression t’attend dans ton compte.', { icon: 'logout' }); location.hash = '#/compte'; }
     catch (e) { if (e.code === 'dirty') setWarn(true); else toast(e.message, { icon: 'info' }); }
     finally { setBusy(false); }
   };

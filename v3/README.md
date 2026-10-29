@@ -28,6 +28,10 @@ En plus dans Kirakai :
 - liste de souhaits : budget total, baisses de prix depuis l'ajout, cartes que mon budget permet d'acheter
 - ce qui monte et ce qui baisse dans ma collection
 - quêtes du jour et série de jours de visite, récompensées en Berrys et en Pokéballs
+- profils publics avec vitrine de cartes et classement des plus belles collections (`#/collectionneurs`, `#/joueur/<pseudo>`)
+- alertes de prix sur le téléphone, même site fermé (notifications envoyées par le robot `alerts/send.mjs` après le relevé)
+- une vraie page par carte et par extension pour Google (`seo.mjs` → `carte/`, `extension/`, `sitemap.xml`), qui démarre
+  l'application sur la bonne carte ; les liens partagés affichent l'image et le nom de la carte
 - comptes joueurs : inscription, connexion, carte de membre, progression enregistrée en ligne et synchronisée
   entre appareils (à activer avec Supabase, voir [COMPTES.md](COMPTES.md))
 

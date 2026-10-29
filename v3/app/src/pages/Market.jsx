@@ -9,6 +9,8 @@ import { SearchBox } from '../ui/Search.jsx';
 import { Podium, Movers, podiumRows, moverRows } from './Home.jsx';
 import { SourceLine } from './Card.jsx';
 import Icon from '../ui/Icon.jsx';
+import PushPanel from './Push.jsx';
+import { cloudOn } from '../lib/cloud.js';
 
 const COLORS = ['#ff6a4d', '#4cc9f0', '#ffd23f', '#b388ff'];
 
@@ -282,7 +284,8 @@ export function WatchPage() {
           <Stat label="Valeur des cartes suivies" icon="gem" value={fmtShort(total)} />
         </div>
       )}
-      {perm === 'default' && rows.length > 0 && <button className="btn ghost" style={{ marginBottom: 16 }} onClick={() => Notification.requestPermission().then(setPerm)}><Icon name="bell" size={18} />Activer les notifications du navigateur</button>}
+      {cloudOn() ? rows.length > 0 && <PushPanel count={rows.filter((r) => r.w.below != null || r.w.above != null).length} />
+        : perm === 'default' && rows.length > 0 && <button className="btn ghost" style={{ marginBottom: 16 }} onClick={() => Notification.requestPermission().then(setPerm)}><Icon name="bell" size={18} />Activer les notifications du navigateur</button>}
       {rows.length === 0 ? <Empty icon="eye" title="Aucune carte suivie" action={<a className="btn primary" href={href('/recherche')}>Trouver une carte</a>}>Ouvre la fiche d’une carte et touche « Suivre le prix », ou l’œil sur une vignette.</Empty> : (
         <div className="watch-list">
           {rows.map(({ c, w, eur }) => {

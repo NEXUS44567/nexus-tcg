@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { useData, useAsync, href, cardHref, useTilt, reduceMotion } from '../lib/hooks.js';
 import { useStore, addToCollection, setAlert, pushRecent, toggleWatch, toggleCompare, toggleWish, CONDITIONS } from '../lib/store.js';
-import { CUR, toDisp, fromDisp, priceOf, eurOf, historyOf, fmtEur, fmtUsd, fmtDate, normalize, GAMES, pokedexList, equipageData, img, fxLevel, FX_NAMES, setCards } from '../lib/data.js';
+import { CUR, toDisp, fromDisp, priceOf, eurOf, historyOf, fmtEur, fmtUsd, fmtDate, normalize, GAMES, pokedexList, equipageData, img, fxLevel, FX_NAMES, setCards, cardPageUrl } from '../lib/data.js';
 import { toast } from '../lib/toast.js';
 import { CardArt, CardTile, Delta, GameTag, LangTag } from '../ui/Card.jsx';
 import { CardBack } from '../ui/Brand.jsx';
@@ -77,7 +77,8 @@ export default function CardPage({ cardKey }) {
       : [['Cardmarket', `https://www.cardmarket.com/fr/Pokemon/Products/Search?searchString=${q(enName)}`], ['TCGplayer', `https://www.tcgplayer.com/search/pokemon/product?q=${q(enName + ' ' + (set?.en?.name || set?.name || ''))}`], ['eBay', `https://www.ebay.fr/sch/i.html?_nkw=${q(enName + ' ' + card.number + ' ' + (set?.en?.name || set?.name || ''))}`]];
   const lvl = fxLevel(card);
   const share = async () => {
-    const url = location.href, text = `${card.name} ${card.number} · ${eur != null ? fmtEur(eur) : 'prix'} sur Kirakai`;
+    // la page de la carte : son aperçu (image, nom) s'affiche dans les messageries et réseaux sociaux
+    const url = cardPageUrl(card) || location.href, text = `${card.name} ${card.number} · ${eur != null ? fmtEur(eur) : 'prix'} sur Kirakai`;
     if (navigator.share) { try { await navigator.share({ title: card.name, text, url }); return; } catch (e) { if (e?.name === 'AbortError') return; } }
     try { await navigator.clipboard.writeText(url); toast('Le lien de la fiche est copié.', { icon: 'share' }); } catch { toast(url, { icon: 'share' }); }
   };

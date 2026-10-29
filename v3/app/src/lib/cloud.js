@@ -351,6 +351,16 @@ function forget() {
 export const dismissRecovery = () => set({ recovery: false });
 export const clearLinkError = () => { if (snap.linkError) set({ linkError: '' }); };
 
+// ---- Profils publics et alertes sur le téléphone (voir supabase/social.sql) ----
+// Appel d'une fonction de la base, connecté si possible
+export const rpc = (name, body = {}) => (session ? authed(`/rest/v1/rpc/${name}`, { method: 'POST', body }) : call(`/rest/v1/rpc/${name}`, { method: 'POST', body }));
+export const restGet = (path) => (session ? authed(path) : call(path));
+export const myId = () => uid();
+export function publishProfile(row) {
+  return authed('/rest/v1/nexus_public?on_conflict=user_id', { method: 'POST', prefer: 'resolution=merge-duplicates,return=minimal', body: { ...row, user_id: uid() } });
+}
+export const hideProfile = () => authed(`/rest/v1/nexus_public?user_id=eq.${uid()}`, { method: 'DELETE', prefer: 'return=minimal' });
+
 // ---- Liens reçus par e-mail (confirmation, mot de passe oublié) et retour des connexions Google, Discord… ----
 function readLink() {
   const h = location.hash.slice(1);
