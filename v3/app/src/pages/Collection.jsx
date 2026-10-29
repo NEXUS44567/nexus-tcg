@@ -2,7 +2,7 @@ import React, { useMemo, useRef, useState } from 'react';
 import { useData, useAsync, useUniverse, useInfinite, href, cardHref } from '../lib/hooks.js';
 import { useStore, update, updateEntry, removeEntry, CONDITIONS, condOf, exportData, importData, hasV2, syncFromV2 } from '../lib/store.js';
 import { useCloud, cloudOn } from '../lib/cloud.js';
-import { eurOf, history, fmtEur, fmtDate, fmtNum, fmtShort, GAMES, otherGame, resolveKey } from '../lib/data.js';
+import { eurOf, history, fmtEur, fmtDate, fmtNum, fmtShort, GAMES, otherGame, resolveKey, setCards } from '../lib/data.js';
 import { collectionValue, entryValue } from '../lib/coll.js';
 import { toast } from '../lib/toast.js';
 import { ShowBinder, ShareModal, coverOf, arrange } from './Binder.jsx';
@@ -44,22 +44,32 @@ export default function CollectionPage() {
 
   const histSets = useMemo(() => [...new Set(coll.map((e) => { const c = d.ready && resolveKey(d.cats, e.key); return c ? c.set : null; }).filter(Boolean))], [coll, d.ready]);
   const valueHist = useAsync(async () => {
-    if (!d.ready || !coll.length) return [];
+    if (!d.ready || !coll.length) return { pts: [], movers: [] };
     const hs = new Map(await Promise.all(histSets.map((s) => history(game, s).then((h) => [s, h]))));
     const byDate = new Map();
+    const movers = new Map();
     for (const e of coll) {
       const c = resolveKey(d.cats, e.key); if (!c) continue;
       const h = hs.get(c.set); const s = h?.p[c.id]; if (!s) continue;
       const f = condOf(e.cond).factor * e.qty;
       h.d.forEach((dt, i) => { if (s[i] != null) byDate.set(dt, (byDate.get(dt) || 0) + s[i] * f); });
+      // variation de la carte entre le premier et le dernier relevé
+      const i0 = s.findIndex((v) => v != null), i1 = s.findLastIndex((v) => v != null);
+      if (i0 < 0 || i1 <= i0 || !s[i0]) continue;
+      const m = movers.get(c.key) || { c, pct: ((s[i1] - s[i0]) / s[i0]) * 100, diff: 0, from: h.d[i0] };
+      m.diff += (s[i1] - s[i0]) * f;
+      movers.set(c.key, m);
     }
-    return [...byDate.entries()].sort((a, b) => a[0].localeCompare(b[0]));
+    return { pts: [...byDate.entries()].sort((a, b) => a[0].localeCompare(b[0])), movers: [...movers.values()].filter((m) => Math.abs(m.pct) >= 1 && Math.abs(m.diff) >= 0.05) };
   }, [histSets.join('|'), coll.length, d.ready]);
   const [n, sentinel] = useInfinite(sorted.length, 60, [view, sort, q]);
 
   if (!d.ready) return <div className="page"><Loading /></div>;
   const V = collectionValue(coll, d);
-  const vh = valueHist.value || [];
+  const vh = valueHist.value?.pts || [];
+  const movers = valueHist.value?.movers || [];
+  const ups = movers.filter((m) => m.diff > 0).sort((a, b) => b.diff - a.diff).slice(0, 5);
+  const downs = movers.filter((m) => m.diff < 0).sort((a, b) => a.diff - b.diff).slice(0, 5);
   const vChange = vh.length > 1 ? ((vh.at(-1)[1] - vh[0][1]) / vh[0][1]) * 100 : null;
 
   // Répartition de la valeur par extension
@@ -136,6 +146,23 @@ export default function CollectionPage() {
             </div>
           </div>
 
+          {(ups.length > 0 || downs.length > 0) && (
+            <div className="movers-mine">
+              {[['up', 'En hausse dans ta collection', ups], ['down', 'En baisse dans ta collection', downs]].map(([k, t, list]) => list.length > 0 && (
+                <div key={k} className={'mm-col panel ' + k}>
+                  <h3><Icon name={k === 'up' ? 'up' : 'down'} size={18} />{t}<small>depuis le {fmtDate(list[0].from, { day: 'numeric', month: 'short' })}</small></h3>
+                  {list.map((m) => (
+                    <a key={m.c.key} href={cardHref(m.c)} className="mm-row">
+                      <CardArt card={m.c} className="mini" tilt={false} fx={0} />
+                      <span className="mm-name">{m.c.name}<small>{m.c.number}{m.c.variant ? ' · ' + m.c.variant : ''}</small></span>
+                      <span className="mm-val"><b className={k}>{(m.diff > 0 ? '+' : '') + fmtEur(m.diff)}</b><Delta pct={m.pct} small /></span>
+                    </a>
+                  ))}
+                </div>
+              ))}
+            </div>
+          )}
+
           <div className="toolbar coll-bar">
             <Seg value={view} onChange={(v) => { setView(v); setOrganize(false); }} label="Affichage" options={[['classeur', 'Classeur'], ['grille', 'Grille'], ['liste', 'Liste'], ['extensions', 'Extensions']]} />
             {view !== 'extensions' && view !== 'classeur' && <select value={sort} onChange={(e) => setSort(e.target.value)} aria-label="Trier"><option value="valeur">Valeur</option><option value="recent">Ajout récent</option><option value="nom">Nom</option><option value="extension">Extension</option></select>}
@@ -210,15 +237,20 @@ function SetProgress({ coll, game }) {
   const rows = useMemo(() => {
     const owned = new Map();
     for (const e of coll) { const c = resolveKey(d.cats, e.key); if (!c) continue; if (!owned.has(c.set)) owned.set(c.set, new Set()); owned.get(c.set).add(c.id); }
-    return [...owned.entries()].map(([s, ids]) => ({ s: d.cats[game].sets.get(s), have: ids.size })).filter((r) => r.s).sort((a, b) => b.have / b.s.count - a.have / a.s.count);
-  }, [coll, game]);
+    return [...owned.entries()].map(([s, ids]) => {
+      const set = d.cats[game].sets.get(s); if (!set) return null;
+      // coût des cartes manquantes au prix du jour
+      const miss = setCards(d.cats, game, s).filter((c) => !ids.has(c.id));
+      return { s: set, have: ids.size, missing: miss.length, cost: miss.reduce((t, c) => t + (eurOf(c, d.P, d.fx) || 0), 0) };
+    }).filter(Boolean).sort((a, b) => b.have / b.s.count - a.have / a.s.count);
+  }, [coll, game, d.v]);
   return (
     <div className="set-progress">
       {rows.map((r) => (
         <a key={r.s.code} href={href('/extension/' + game + '/' + encodeURIComponent(r.s.code))} className="sp-row panel">
           <Ring value={r.have / r.s.count} size={52} stroke={6} />
-          <span className="sp-txt"><b>{r.s.name}</b><small>{r.s.code} · {r.have} / {r.s.count} cartes</small></span>
-          <span className="sp-go">Voir les manquantes <Icon name="arrow" size={16} /></span>
+          <span className="sp-txt"><b>{r.s.name}</b><small>{r.s.code} · {r.have} / {r.s.count} cartes{r.missing > 0 && r.cost > 0 ? ` · il en manque ${r.missing} (${fmtShort(r.cost)})` : ''}</small></span>
+          <span className="sp-go">{r.missing ? 'Compléter' : 'Complète !'} <Icon name="arrow" size={16} /></span>
         </a>
       ))}
     </div>

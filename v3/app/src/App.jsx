@@ -1,6 +1,6 @@
 import React, { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { useRoute, useData, useUniverse, href, cardHref, UNIV_HOME, skipNextTransition } from './lib/hooks.js';
-import { useStore, update, getState } from './lib/store.js';
+import { useStore, update, getState, touchStreak, questStep, questsOf } from './lib/store.js';
 import { fmtEur, GAMES, otherGame } from './lib/data.js';
 import { checkCollection } from './lib/achievements.js';
 import { toast } from './lib/toast.js';
@@ -22,6 +22,7 @@ import PokedexPage, { PokemonPage } from './pages/Pokedex.jsx';
 import EquipagePage, { MemberPage } from './pages/Equipage.jsx';
 import { SettingsPage, AdminPage } from './pages/Settings.jsx';
 import AccountPage, { AccountButton, AccountDrawer } from './pages/Account.jsx';
+import WishPage from './pages/Wish.jsx';
 
 const NAVS = {
   onepiece: [['/op', 'Accueil', 'home'], ['/extensions', 'Extensions', 'sets'], ['/equipage', 'Équipage', 'crew'], ['/marche', 'Marché', 'market'], ['/scanner', 'Scanner', 'scan'], ['/boosters', 'Boosters', 'pack'], ['/collection', 'Collection', 'album']],
@@ -30,7 +31,7 @@ const NAVS = {
 const TABS = (u) => NAVS[u].filter(([to]) => !['/marche', '/scanner'].includes(to));
 
 function titleFor(p, G) {
-  const T = { recherche: `Recherche ${G}`, comparateur: 'Comparateur de prix', suivis: 'Mes alertes de prix', classement: `Top 100 ${G}`, marche: `Le marché ${G}`, extensions: `Extensions ${G}`, extension: `Extension ${G}`, collection: `Ma collection ${G}`, boosters: `Boosters ${G}`, boutique: 'Boutique', scanner: 'Scanner une carte', pokedex: 'Pokédex', equipage: 'L’équipage', reglages: 'Réglages', succes: 'Succès', admin: 'Administration', compte: 'Mon compte' };
+  const T = { recherche: `Recherche ${G}`, comparateur: 'Comparateur de prix', suivis: 'Mes alertes de prix', classement: `Top 100 ${G}`, marche: `Le marché ${G}`, extensions: `Extensions ${G}`, extension: `Extension ${G}`, collection: `Ma collection ${G}`, boosters: `Boosters ${G}`, boutique: 'Boutique', scanner: 'Scanner une carte', pokedex: 'Pokédex', equipage: 'L’équipage', reglages: 'Réglages', succes: 'Succès', admin: 'Administration', compte: 'Mon compte', souhaits: 'Ma liste de souhaits' };
   return T[p[0]] ? `${T[p[0]]} · Kirakai` : `Kirakai · ${G} · prix, collection et boosters`;
 }
 
@@ -67,6 +68,16 @@ export default function App() {
       if (n || Object.keys(s.watch).length) setTimeout(() => toast(`${n} carte${n > 1 ? 's' : ''} et tes suivis ont été repris de l’ancienne version du site.`, { title: 'Bienvenue sur Kirakai', icon: 'sparkle', ms: 5200 }), 1200);
     }
   }, []);
+  // Série de jours de visite (bonus aux paliers)
+  useEffect(() => {
+    const { gain, streak } = touchStreak();
+    if (gain) setTimeout(() => toast(`+${gain} Berrys et +${gain} Pokéballs pour ta série de ${streak} jours !`, { title: `Série de ${streak} jours`, icon: 'flame', ms: 5200 }), 1600);
+  }, []);
+  // Quêtes liées à la visite d'une page
+  useEffect(() => {
+    const id = route.path === '/marche' ? 'market' : /^\/extension\//.test(route.path) ? 'set' : null;
+    if (id && questsOf().includes(id)) update((s) => questStep(s, id));
+  }, [route.path]);
   // Raccourcis : Ctrl/⌘ + K ou « / » pour chercher
   useEffect(() => {
     const k = (e) => {
@@ -99,6 +110,7 @@ export default function App() {
     case 'equipage': page = p[1] ? <MemberPage slug={p[1]} key={p[1]} /> : <EquipagePage />; break;
     case 'reglages': page = <SettingsPage />; break;
     case 'compte': page = <AccountPage />; break;
+    case 'souhaits': page = <WishPage />; break;
     case 'admin': page = <AdminPage code={p[1] || ''} />; break;
     default: page = <div className="page"><h1 className="page-title">Page introuvable</h1><a className="btn primary" href={href('/')}>Accueil</a></div>;
   }
@@ -270,6 +282,7 @@ function LangSelect() {
 function Drawer({ open, onClose, universe, other, openPalette }) {
   const cmp = useStore((s) => s.compare.length);
   const watchN = useStore((s) => Object.keys(s.watch).length);
+  const wishN = useStore((s) => Object.keys(s.wish || {}).length);
   const sound = useStore((s) => s.settings?.sound !== false);
   const ach = useStore((s) => Object.keys(s.achievements || {}).length);
   useEffect(() => {
@@ -281,7 +294,7 @@ function Drawer({ open, onClose, universe, other, openPalette }) {
   const links = [
     [GAMES[universe].world, GAMES[universe].worldLabel, universe === 'onepiece' ? 'crew' : 'dex'],
     ['/marche', 'Le marché du jour', 'market'], ['/classement', 'Top 100', 'trophy'], ['/scanner', 'Scanner une carte', 'scan'],
-    ['/comparateur', 'Comparateur', 'compare', cmp], ['/suivis', 'Mes alertes de prix', 'bell', watchN], ['/boutique', 'Boutique', 'coin'],
+    ['/comparateur', 'Comparateur', 'compare', cmp], ['/suivis', 'Mes alertes de prix', 'bell', watchN], ['/souhaits', 'Ma liste de souhaits', 'heart', wishN || null], ['/boutique', 'Boutique', 'coin'],
     ['/succes', 'Succès', 'crown', ach || null], ['/reglages', 'Réglages et sauvegarde', 'gear'],
   ];
   return (
@@ -381,7 +394,7 @@ function Footer({ universe }) {
         </div>
         <nav className="footer-cols">
           <div><b>Explorer</b><a href={href('/extensions/' + universe)}>Extensions</a><a href={href(GAMES[universe].world)}>{GAMES[universe].worldLabel}</a><a href={href('/marche')}>Marché du jour</a><a href={href('/classement')}>Top 100</a></div>
-          <div><b>Mes outils</b><a href={href('/collection')}>Collection et classeur</a><a href={href('/scanner')}>Scanner</a><a href={href('/comparateur')}>Comparateur</a><a href={href('/suivis')}>Alertes de prix</a></div>
+          <div><b>Mes outils</b><a href={href('/collection')}>Collection et classeur</a><a href={href('/scanner')}>Scanner</a><a href={href('/comparateur')}>Comparateur</a><a href={href('/suivis')}>Alertes de prix</a><a href={href('/souhaits')}>Liste de souhaits</a></div>
           <div><b>Jouer</b><a href={href('/boosters')}>Boosters virtuels</a><a href={href('/boosters/collection')}>Collection virtuelle</a><a href={href('/succes')}>Succès</a><a href={href('/boutique')}>Boutique</a></div>
         </nav>
       </div>

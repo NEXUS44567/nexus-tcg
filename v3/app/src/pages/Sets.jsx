@@ -1,9 +1,11 @@
 import React, { useMemo, useState } from 'react';
 import { useData, useInfinite, href, cardHref } from '../lib/hooks.js';
-import { useStore } from '../lib/store.js';
+import { useStore, addWishes } from '../lib/store.js';
+import { toast } from '../lib/toast.js';
 import { eurOf, fmtEur, fmtDate, fmtNum, fmtShort, GAMES, normalize, setCards } from '../lib/data.js';
-import { boosterSets } from '../lib/packs.js';
-import { CardTile, SetArt, setArtCards } from '../ui/Card.jsx';
+import { boosterSets, buildProduct } from '../lib/packs.js';
+import { EVPanel } from './Ev.jsx';
+import { CardArt, CardTile, SetArt, setArtCards } from '../ui/Card.jsx';
 import { Seg, Loading, Empty, Ring, Stat, Crumbs, Progress } from '../ui/Kit.jsx';
 import Icon from '../ui/Icon.jsx';
 
@@ -79,6 +81,41 @@ export function SetsPage({ game }) {
 
 // ---------- Une extension ----------
 const RAR_ORDER = ['C', 'UC', 'R', 'SR', 'L', 'SEC', 'SP CARD', 'TR', 'Common', 'Uncommon', 'Rare', 'Rare Holo', 'Double Rare', 'Ultra Rare', 'Illustration Rare', 'Special Illustration Rare', 'Hyper Rare'];
+// Ce qu'il me manque pour compléter l'extension, et ce que ça coûte au prix du jour
+function CompleteSet({ all, owned }) {
+  const d = useData();
+  const wish = useStore((s) => s.wish || {});
+  const st = useMemo(() => {
+    const miss = all.filter((c) => !owned.has(c.key)).map((c) => [c, eurOf(c, d.P, d.fx)]);
+    const priced = miss.filter(([, e]) => e != null).sort((a, b) => b[1] - a[1]);
+    const cost = priced.reduce((t, [, e]) => t + e, 0);
+    const cheap = [...priced].reverse();
+    const cheapHalf = cheap.slice(0, Math.ceil(cheap.length / 2)).reduce((t, [, e]) => t + e, 0);
+    return { miss, priced, cost, cheapHalf, unpriced: miss.length - priced.length };
+  }, [all, owned, d.v]);
+  if (!owned.size || !all.some((c) => owned.has(c.key))) return null;
+  if (!st.miss.length) return <div className="complete panel pad done"><Icon name="crown" size={26} /><div><b>Extension complète !</b><small>Tu as toutes les cartes de cette extension. Bravo, collectionneur.</small></div></div>;
+  const notWished = st.miss.filter(([c]) => !wish[c.key]);
+  const add = () => { const n = addWishes(notWished.map(([c, e]) => [c.key, e])); toast(`${n} carte${n > 1 ? 's' : ''} ajoutée${n > 1 ? 's' : ''} à ta liste de souhaits.`, { icon: 'heart' }); };
+  return (
+    <section className="complete panel pad">
+      <header>
+        <div><div className="kicker">Compléter l’extension</div><h3>Il te manque {st.miss.length} carte{st.miss.length > 1 ? 's' : ''}</h3></div>
+        <div className="complete-cost"><small>Au prix du jour</small><b>{fmtEur(st.cost)}</b>{st.unpriced > 0 && <small>+ {st.unpriced} sans prix relevé</small>}</div>
+      </header>
+      {st.priced.length > 3 && <p className="muted small">La moitié la moins chère des cartes manquantes coûte {fmtEur(st.cheapHalf)} ; les {Math.min(3, st.priced.length)} plus chères pèsent {fmtEur(st.priced.slice(0, 3).reduce((t, [, e]) => t + e, 0))} à elles seules.</p>}
+      <div className="complete-top">
+        {st.priced.slice(0, 5).map(([c, e]) => (
+          <a key={c.key} href={cardHref(c)} className="ct-card"><CardArt card={c} tilt={false} fx={0} /><b>{fmtEur(e)}</b><small>{c.name}</small></a>
+        ))}
+      </div>
+      <div className="row">
+        {notWished.length > 0 ? <button className="btn ghost" onClick={add}><Icon name="heart" size={17} />Ajouter les {notWished.length} manquante{notWished.length > 1 ? 's' : ''} à ma liste de souhaits</button> : <a className="btn ghost" href={href('/souhaits')}><Icon name="heart" size={17} />Toutes sont dans ta liste de souhaits</a>}
+      </div>
+    </section>
+  );
+}
+
 export function SetPage({ game, code }) {
   const d = useData();
   const coll = useStore((s) => s.collection);
@@ -127,6 +164,8 @@ export function SetPage({ game, code }) {
           {isBooster && <a className="btn primary" href={href('/boosters?set=' + encodeURIComponent(code))}><Icon name="pack" size={18} />Ouvrir un booster de cette extension</a>}
         </div>
       </div>
+      <CompleteSet all={all} owned={owned} />
+      {isBooster && <EVPanel prod={buildProduct(game, d.cats, d.P, d.fx, code)} />}
       <div className="toolbar" style={{ marginTop: 30 }}>
         <Seg value={sort} onChange={setSort} label="Tri" options={[['numero', 'Numéro'], ['prix', 'Prix'], ['rarete', 'Rareté']]} />
         <Seg value={own} onChange={setOwn} label="Collection" options={[['all', 'Toutes'], ['have', 'Possédées'], ['missing', 'Manquantes']]} />
