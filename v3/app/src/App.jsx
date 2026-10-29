@@ -23,6 +23,8 @@ import EquipagePage, { MemberPage } from './pages/Equipage.jsx';
 import { SettingsPage, AdminPage } from './pages/Settings.jsx';
 import AccountPage, { AccountButton, AccountDrawer } from './pages/Account.jsx';
 import WishPage from './pages/Wish.jsx';
+import { PlayersPage, PlayerPage } from './pages/Players.jsx';
+import { useProfileSync } from './lib/social.js';
 
 const NAVS = {
   onepiece: [['/op', 'Accueil', 'home'], ['/extensions', 'Extensions', 'sets'], ['/equipage', 'Équipage', 'crew'], ['/marche', 'Marché', 'market'], ['/scanner', 'Scanner', 'scan'], ['/boosters', 'Boosters', 'pack'], ['/collection', 'Collection', 'album']],
@@ -31,7 +33,7 @@ const NAVS = {
 const TABS = (u) => NAVS[u].filter(([to]) => !['/marche', '/scanner'].includes(to));
 
 function titleFor(p, G) {
-  const T = { recherche: `Recherche ${G}`, comparateur: 'Comparateur de prix', suivis: 'Mes alertes de prix', classement: `Top 100 ${G}`, marche: `Le marché ${G}`, extensions: `Extensions ${G}`, extension: `Extension ${G}`, collection: `Ma collection ${G}`, boosters: `Boosters ${G}`, boutique: 'Boutique', scanner: 'Scanner une carte', pokedex: 'Pokédex', equipage: 'L’équipage', reglages: 'Réglages', succes: 'Succès', admin: 'Administration', compte: 'Mon compte', souhaits: 'Ma liste de souhaits' };
+  const T = { recherche: `Recherche ${G}`, comparateur: 'Comparateur de prix', suivis: 'Mes alertes de prix', classement: `Top 100 ${G}`, marche: `Le marché ${G}`, extensions: `Extensions ${G}`, extension: `Extension ${G}`, collection: `Ma collection ${G}`, boosters: `Boosters ${G}`, boutique: 'Boutique', scanner: 'Scanner une carte', pokedex: 'Pokédex', equipage: 'L’équipage', reglages: 'Réglages', succes: 'Succès', admin: 'Administration', compte: 'Mon compte', souhaits: 'Ma liste de souhaits', collectionneurs: 'Les plus belles collections', joueur: 'Collectionneur' };
   return T[p[0]] ? `${T[p[0]]} · Kirakai` : `Kirakai · ${G} · prix, collection et boosters`;
 }
 
@@ -45,6 +47,7 @@ export default function App() {
   const watch = useStore((s) => s.watch);
   const cmp = useStore((s) => s.compare);
   const [palette, setPalette] = useState(false);
+  useProfileSync();
   const [drawer, setDrawer] = useState(false);
   const p = route.parts;
   const isChooser = p.length === 0;
@@ -55,7 +58,7 @@ export default function App() {
   useEffect(() => { document.body.classList.add('booted'); const t = setTimeout(() => document.getElementById('boot')?.remove(), 600); return () => clearTimeout(t); }, []);
   useEffect(() => { setDrawer(false); }, [route.path]);
   useEffect(() => {
-    if (['carte', 'pokedex', 'equipage', 'classeur', 'extension'].includes(p[0]) && p[1]) return;
+    if (['carte', 'pokedex', 'equipage', 'classeur', 'extension', 'joueur'].includes(p[0]) && p[1]) return;
     document.title = isChooser ? 'Kirakai · choisis ton univers' : titleFor(p, GAMES[universe].label);
   }, [route.path, universe]);
   useEffect(() => { if (d.ready) checkCollection(d); }, [d.ready, coll, watch, cmp]);
@@ -111,6 +114,8 @@ export default function App() {
     case 'reglages': page = <SettingsPage />; break;
     case 'compte': page = <AccountPage />; break;
     case 'souhaits': page = <WishPage />; break;
+    case 'collectionneurs': page = <PlayersPage />; break;
+    case 'joueur': page = <PlayerPage pseudo={p[1] || ''} key={p[1]} />; break;
     case 'admin': page = <AdminPage code={p[1] || ''} />; break;
     default: page = <div className="page"><h1 className="page-title">Page introuvable</h1><a className="btn primary" href={href('/')}>Accueil</a></div>;
   }
@@ -294,7 +299,7 @@ function Drawer({ open, onClose, universe, other, openPalette }) {
   const links = [
     [GAMES[universe].world, GAMES[universe].worldLabel, universe === 'onepiece' ? 'crew' : 'dex'],
     ['/marche', 'Le marché du jour', 'market'], ['/classement', 'Top 100', 'trophy'], ['/scanner', 'Scanner une carte', 'scan'],
-    ['/comparateur', 'Comparateur', 'compare', cmp], ['/suivis', 'Mes alertes de prix', 'bell', watchN], ['/souhaits', 'Ma liste de souhaits', 'heart', wishN || null], ['/boutique', 'Boutique', 'coin'],
+    ['/comparateur', 'Comparateur', 'compare', cmp], ['/suivis', 'Mes alertes de prix', 'bell', watchN], ['/souhaits', 'Ma liste de souhaits', 'heart', wishN || null], ['/collectionneurs', 'Les collectionneurs', 'trophy'], ['/boutique', 'Boutique', 'coin'],
     ['/succes', 'Succès', 'crown', ach || null], ['/reglages', 'Réglages et sauvegarde', 'gear'],
   ];
   return (
@@ -395,7 +400,7 @@ function Footer({ universe }) {
         <nav className="footer-cols">
           <div><b>Explorer</b><a href={href('/extensions/' + universe)}>Extensions</a><a href={href(GAMES[universe].world)}>{GAMES[universe].worldLabel}</a><a href={href('/marche')}>Marché du jour</a><a href={href('/classement')}>Top 100</a></div>
           <div><b>Mes outils</b><a href={href('/collection')}>Collection et classeur</a><a href={href('/scanner')}>Scanner</a><a href={href('/comparateur')}>Comparateur</a><a href={href('/suivis')}>Alertes de prix</a><a href={href('/souhaits')}>Liste de souhaits</a></div>
-          <div><b>Jouer</b><a href={href('/boosters')}>Boosters virtuels</a><a href={href('/boosters/collection')}>Collection virtuelle</a><a href={href('/succes')}>Succès</a><a href={href('/boutique')}>Boutique</a></div>
+          <div><b>Jouer</b><a href={href('/boosters')}>Boosters virtuels</a><a href={href('/boosters/collection')}>Collection virtuelle</a><a href={href('/succes')}>Succès</a><a href={href('/boutique')}>Boutique</a><a href={href('/collectionneurs')}>Collectionneurs</a></div>
         </nav>
       </div>
       <p className="footer-legal">Prix : TCGplayer via optcgapi.com (One Piece) et Cardmarket / TCGplayer via pokemontcg.io et tcgdex (Pokémon). Pokédex : PokéAPI. Images : optcgapi.com, pokemontcg.io, Scrydex, TCGdex, PokéAPI. Site de fan indépendant, non affilié à Bandai, Toei Animation, Shueisha, Nintendo, Creatures, GAME FREAK ou The Pokémon Company. One Piece © Eiichiro Oda / Shueisha, Toei Animation. Pokémon © Nintendo / Creatures / GAME FREAK. · <a href={href('/reglages')}>Réglages</a> · <a href="../">Ancienne version</a></p>

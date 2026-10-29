@@ -1,0 +1,1 @@
+(function(){var d=document,l=d.createElement('link');l.rel='stylesheet';l.href="assets/app.934c8172.css";d.head.appendChild(l);var s=d.createElement('script');s.type='module';s.src="assets/app.a66f5f1b.js";d.head.appendChild(s)})();

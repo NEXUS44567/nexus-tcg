@@ -52,6 +52,11 @@ export async function catalog(game) {
 }
 export const setCards = (cats, game, code) => cats[game]?.bySet.get(code) || [];
 
+// Page lisible par les moteurs de recherche (générée par seo.mjs, même règle de nom) ; pas pour les cartes japonaises
+export const pageSlug = (game, id) => game + '-' + String(id).replace(/[^A-Za-z0-9._-]+/g, '-');
+export const cardPageUrl = (c) => (c.lang === 'ja' ? null : new URL('carte/' + pageSlug(c.game, c.id) + '.html', document.baseURI).href);
+export const setPageUrl = (game, code) => (String(code).startsWith('jp-') ? null : new URL('extension/' + pageSlug(game, code) + '.html', document.baseURI).href);
+
 export async function allCatalogs() {
   const [a, b] = await Promise.all([catalog('onepiece'), catalog('pokemon')]);
   return { onepiece: a, pokemon: b };

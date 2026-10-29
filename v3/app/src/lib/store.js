@@ -10,6 +10,7 @@ const DEFAULT = {
   collection: [],          // { uid, key, qty, cond, grade, lang, addedAt, paid, scan }
   watch: {},               // key → { addedAt, below, above, baseline }
   wish: {},                // liste de souhaits : key → { addedAt, eur (prix au moment de l'ajout) }
+  profile: { public: false, showcase: [] }, // profil public (compte) : visible ou non, vitrine choisie
   compare: [],             // clés (4 au plus)
   packs: { opened: 0, virtual: {}, sel: {}, history: [] },
   recent: [],              // cartes consultées

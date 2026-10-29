@@ -77,7 +77,7 @@ const PAGES = [
   ['Extensions', '/extensions', 'sets'], ['Ouvrir un booster', '/boosters', 'pack'], ['Ma collection', '/collection', 'album'],
   ['Scanner une carte', '/scanner', 'scan'], ['Comparateur de prix', '/comparateur', 'compare'], ['Mes alertes de prix', '/suivis', 'bell'],
   ['Pokédex', '/pokedex', 'dex', 'pokemon'], ['L’équipage', '/equipage', 'crew', 'onepiece'], ['Boutique', '/boutique', 'coin'],
-  ['Succès', '/succes', 'trophy'], ['Réglages et sauvegarde', '/reglages', 'gear'], ['Mon compte', '/compte', 'user'], ['Ma liste de souhaits', '/souhaits', 'heart'],
+  ['Succès', '/succes', 'trophy'], ['Réglages et sauvegarde', '/reglages', 'gear'], ['Mon compte', '/compte', 'user'], ['Ma liste de souhaits', '/souhaits', 'heart'], ['Les plus belles collections', '/collectionneurs', 'trophy'],
 ];
 
 export function CommandPalette({ open, onClose }) {

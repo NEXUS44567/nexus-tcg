@@ -6,7 +6,8 @@ import { getState, onStore, useStore } from './store.js';
 
 // ---- Routeur par fragment (#/chemin?x=1), mêmes adresses que la V2 ----
 function parse() {
-  const h = location.hash.replace(/^#/, '') || '/';
+  // Les pages de cartes et d'extensions (…/carte/pokemon-base1-4.html) donnent leur route dans window.KIRAKAI_ROUTE
+  const h = location.hash.replace(/^#/, '') || window.KIRAKAI_ROUTE || '/';
   const [p, qs] = h.split('?');
   const parts = p.split('/').filter(Boolean).map(decodeURIComponent);
   return { path: '/' + parts.join('/'), parts, query: Object.fromEntries(new URLSearchParams(qs || '')) };

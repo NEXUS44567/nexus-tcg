@@ -31,6 +31,9 @@ for (const f of res.outputFiles) {
   console.log(name, (f.contents.length / 1024).toFixed(1) + ' Ko');
 }
 fs.writeFileSync(path.join(ROOT, 'index.html'), html);
+// Chargeur au nom fixe pour les pages de cartes et d'extensions (seo.mjs) : elles n'ont pas à être réécrites à chaque version
+const css = /href="(assets\/app\.[0-9a-f]+\.css)"/.exec(html)?.[1], js = /src="(assets\/app\.[0-9a-f]+\.js)"/.exec(html)?.[1];
+fs.writeFileSync(path.join(ROOT, 'boot.js'), `(function(){var d=document,l=d.createElement('link');l.rel='stylesheet';l.href=${JSON.stringify(css)};d.head.appendChild(l);var s=d.createElement('script');s.type='module';s.src=${JSON.stringify(js)};d.head.appendChild(s)})();\n`);
 fs.copyFileSync(path.join(APP, 'manifest.json'), path.join(ROOT, 'manifest.webmanifest'));
 
 // Service worker propre à la V3 (portée /v3/) : sa version suit celle des fichiers construits
@@ -46,6 +49,8 @@ const v2js = /assets\/(app\.[0-9a-f]+\.js)/.exec(v2)?.[1];
 if (v2js) {
   const heal = `(async()=>{const k='nexus3.heal';if(sessionStorage.getItem(k)){sessionStorage.removeItem(k);document.body.innerHTML='<p style="font:16px system-ui;color:#fff;background:#07080d;margin:0;min-height:100vh;display:grid;place-items:center">Kirakai · <a style="color:#ffd23f" href="./">recharger la page</a></p>';return}sessionStorage.setItem(k,'1');try{const r=await navigator.serviceWorker?.getRegistration();if(r)await r.unregister()}catch(e){}location.reload()})();\n`;
   fs.writeFileSync(path.join(OUT, v2js), heal);
+  // même relais pour les pages de cartes et d'extensions (leur dossier « assets » relatif)
+  for (const dir of ['carte', 'extension']) { fs.mkdirSync(path.join(ROOT, dir, 'assets'), { recursive: true }); fs.writeFileSync(path.join(ROOT, dir, 'assets', v2js), heal); }
   console.log('relais V2 :', v2js);
 }
 console.log('Kirakai construit.');

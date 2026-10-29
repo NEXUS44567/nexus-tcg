@@ -72,3 +72,27 @@ version du compte est reprise. Si deux appareils ont changé chacun de leur côt
 
 À la première connexion, ce que le visiteur avait déjà fait sur l'appareil rejoint son compte. À la déconnexion,
 l'appareil repart d'une progression vide (elle reste dans le compte).
+
+## Profils publics, classement et alertes sur le téléphone
+
+1. **La base** : dans Supabase → **SQL Editor** → **New query**, colle tout le contenu de
+   [`supabase/social.sql`](supabase/social.sql) et clique sur **Run** (« Success. No rows returned »).
+   Profils publics et classement fonctionnent dès cette étape.
+2. **La clé du robot** (pour les alertes sur le téléphone) : dans Supabase → **Project Settings → API Keys**,
+   section **Secret keys**, crée ou copie une clé `sb_secret_…`. Puis sur GitHub, dans le dépôt :
+   **Settings → Secrets and variables → Actions → New repository secret**, nom `SUPABASE_SECRET_KEY`,
+   valeur : la clé. Cette clé donne tous les droits sur la base : ne la colle nulle part ailleurs.
+3. **Premier passage du robot** : sur GitHub → **Actions** → **Kirakai (pages des cartes et alertes)** →
+   **Run workflow**. Il crée les clés de signature des notifications (gardées dans la base) ; ensuite il
+   repasse tout seul chaque matin après le relevé des prix.
+
+Les joueurs activent les alertes depuis la page « Mes alertes de prix ». Sur iPhone, il faut d'abord installer Kirakai
+sur l'écran d'accueil (Partager → Sur l'écran d'accueil), puis l'ouvrir depuis son icône.
+
+## Être trouvé sur Google
+
+Chaque carte et chaque extension a sa page (`v3/carte/…html`, `v3/extension/…html`), listée dans
+`v3/sitemap.xml`. Pour que Google les découvre vite : [Google Search Console](https://search.google.com/search-console)
+→ **Ajouter une propriété** → **Préfixe de l'URL** : `https://nexus44567.github.io/nexus-tcg/` → validation par
+**balise HTML** (donne-moi le code `content="…"`, je l'ajoute au site) → puis **Sitemaps** →
+`https://nexus44567.github.io/nexus-tcg/v3/sitemap.xml`.
