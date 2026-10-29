@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useData, useRoute, useUniverse, href, cardHref, useInfinite, reduceMotion } from '../lib/hooks.js';
-import { useStore, update, getState, claimDaily, spendCoins, refund } from '../lib/store.js';
+import { useStore, update, getState, claimDaily, spendCoins, refund, questStep } from '../lib/store.js';
 import { fmtNum, fmtEur, fmtDate, img, eurOf, GAMES } from '../lib/data.js';
 import { buildProduct, boosterSets, openPack, levelOf, LEVELS, PRICE, CURRENCY, rarLabel, pullValue } from '../lib/packs.js';
 import { seasonNow } from '../lib/league.js';
@@ -10,6 +10,8 @@ import { CardArt } from '../ui/Card.jsx';
 import { Emblem, CardBack } from '../ui/Brand.jsx';
 import { Section, Seg, Loading, Modal, Money, Ring, Stat, Count } from '../ui/Kit.jsx';
 import { League } from './League.jsx';
+import { EVLine, EVPanel, EVRanking } from './Ev.jsx';
+import Quests from './Quests.jsx';
 import Icon from '../ui/Icon.jsx';
 
 const LV_COLOR = ['#9aa3bd', '#7cc4ff', '#b48bff', '#ffd76a', '#ff6b9a', '#ffffff'];
@@ -209,6 +211,7 @@ export default function BoostersPage({ focus }) {
       const w = s.wallet[game];
       w.opened = (w.opened || 0) + packsList.length; w.openedToday = (w.openedToday || 0) + packsList.length;
       s.packs.opened = (s.packs.opened || 0) + packsList.length;
+      questStep(s, 'open', packsList.length);
       for (const pulls of packsList) for (const x of pulls) s.packs.virtual[x.card.key] = (s.packs.virtual[x.card.key] || 0) + 1;
       const sn = seasonNow();
       if (sn.started) {
@@ -335,6 +338,8 @@ export default function BoostersPage({ focus }) {
               <div className="kicker">{prod.latest ? 'Extension de la saison' : 'Extension'} · {prod.code}</div>
               <h2>{prod.name}</h2>
               <p className="muted">{prod.composition} <button className="link" onClick={() => setOdds(true)}>Voir les taux</button></p>
+              <EVLine prod={prod} />
+              <button className="link small ev-more" onClick={() => document.getElementById('rentabilite')?.scrollIntoView({ behavior: 'smooth' })}>Rentabilité de chaque extension<Icon name="down" size={15} /></button>
               <VirtualMini prod={prod} />
               {actions(false)}
               {(noFunds || locked) && <p className="notice">Solde insuffisant : il faut {PRICE.booster} {cur.name} pour un booster (tu en as {fmtNum(wallet?.coins ?? 0)}). Reviens demain pour le bonus quotidien.</p>}
@@ -379,6 +384,9 @@ export default function BoostersPage({ focus }) {
       </section>
 
       <BoosterStats game={game} wallet={wallet} />
+      <Quests compact />
+      <EVPanel prod={prod} title={false} />
+      <EVRanking game={game} current={prod.code} onPick={(c) => { choose(c); scrollTo({ top: 0, behavior: 'smooth' }); }} />
       {latest && <League prod={latest} />}
       <VirtualSet prod={prod} />
       <PullHistory game={game} />

@@ -256,7 +256,7 @@
 .w-photo img { width: 100%; height: 100%; object-fit: cover; object-position: 50% 16%; filter: sepia(.32) contrast(1.06) saturate(1.05); }
 .w-stamp { position: absolute; right: 4px; bottom: 6px; padding: 2px 8px; border: 2px solid #b3121f; color: #b3121f; font: 800 11px var(--display); letter-spacing: .1em; text-transform: uppercase; transform: rotate(-12deg); background: rgba(246, 229, 192, .7); }
 .w-doa { font: 400 11px 'IM Fell English SC', Georgia, serif; letter-spacing: .14em; color: #5a3618; }
-.w-name { font: 400 clamp(15px, 1.6vw, 18px) / 1.1 'IM Fell English SC', Georgia, serif; color: #2a1608; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.wanted .w-name { font: 400 clamp(15px, 1.6vw, 18px) / 1.1 'IM Fell English SC', Georgia, serif; color: #2a1608; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .w-bounty { display: flex; align-items: baseline; gap: 6px; font: 800 clamp(15px, 1.8vw, 19px) var(--display); color: #2a1608; letter-spacing: -.01em; }
 .w-bounty small { font: 400 12px 'IM Fell English SC', Georgia, serif; letter-spacing: .08em; color: #6b4320; }
 .w-foot { display: flex; align-items: center; gap: 8px; font-size: 11px; font-weight: 800; color: #6b4320; }

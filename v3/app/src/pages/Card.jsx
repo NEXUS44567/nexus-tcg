@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { useData, useAsync, href, cardHref, useTilt, reduceMotion } from '../lib/hooks.js';
-import { useStore, addToCollection, setAlert, pushRecent, toggleWatch, toggleCompare, CONDITIONS } from '../lib/store.js';
+import { useStore, addToCollection, setAlert, pushRecent, toggleWatch, toggleCompare, toggleWish, CONDITIONS } from '../lib/store.js';
 import { CUR, toDisp, fromDisp, priceOf, eurOf, historyOf, fmtEur, fmtUsd, fmtDate, normalize, GAMES, pokedexList, equipageData, img, fxLevel, FX_NAMES, setCards } from '../lib/data.js';
 import { toast } from '../lib/toast.js';
 import { CardArt, CardTile, Delta, GameTag, LangTag } from '../ui/Card.jsx';
@@ -136,6 +136,7 @@ export default function CardPage({ cardKey }) {
 
           <div className="card-actions">
             <AddButton card={card} />
+            <WishBtn card={card} eur={eur} />
             <WatchBtn card={card} eur={eur} />
             <CompareBtn card={card} />
             <button className="btn ghost" onClick={share}><Icon name="share" size={18} />Partager</button>
@@ -223,6 +224,11 @@ function WatchBtn({ card, eur }) {
 function CompareBtn({ card }) {
   const on = useStore((s) => s.compare.includes(card.key));
   return <button type="button" className={'btn ' + (on ? 'on' : 'ghost')} onClick={() => toggleCompare(card.key)} aria-pressed={on}><Icon name="compare" size={18} />{on ? 'Comparée' : 'Comparer'}</button>;
+}
+
+function WishBtn({ card, eur }) {
+  const on = useStore((s) => !!s.wish?.[card.key]);
+  return <button type="button" className={'btn ' + (on ? 'on wish' : 'ghost')} onClick={() => { toggleWish(card.key, eur); if (!on) toast('Ajoutée à ta liste de souhaits.', { icon: 'heart' }); }} aria-pressed={on}><Icon name="heart" size={18} />{on ? 'Dans mes souhaits' : 'Je la veux'}</button>;
 }
 
 function AddButton({ card }) {

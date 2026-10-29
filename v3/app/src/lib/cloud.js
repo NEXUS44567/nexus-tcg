@@ -150,6 +150,7 @@ export function mergeSaves(a, b) {
   const extra = (a.collection || []).filter((e) => !mine.has(e.uid));
   o.collection = extra.length ? [...(b.collection || []), ...extra].sort((x, y) => String(y.addedAt || '').localeCompare(String(x.addedAt || ''))) : b.collection || [];
   o.watch = { ...a.watch, ...b.watch };
+  o.wish = { ...a.wish, ...b.wish };
   o.notified = { ...a.notified, ...b.notified };
   o.compare = [...new Set([...(a.compare || []), ...(b.compare || [])])].slice(-4);
   o.recent = [...new Set([...(b.recent || []), ...(a.recent || [])])].slice(0, 16);

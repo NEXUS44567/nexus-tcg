@@ -1,6 +1,7 @@
 import React, { useMemo, useState } from 'react';
 import { useData, href, cardHref, useMedia } from '../lib/hooks.js';
 import { cloudOn } from '../lib/cloud.js';
+import Quests from './Quests.jsx';
 import { useStore } from '../lib/store.js';
 import { fmtEur, fmtDate, fmtNum, fmtShort, eurOf, GAMES, img, setCards, resolveKey, artwork } from '../lib/data.js';
 import { CardArt, CardTile, Delta, GameTag, Price, SetArt, setArtCards } from '../ui/Card.jsx';
@@ -145,6 +146,8 @@ export default function Home({ game }) {
           <span className="btn ghost small">Ouvrir le classeur <Icon name="arrow" size={16} /></span>
         </a>
       )}
+
+      <Quests />
 
       <Section kicker="Prix relevés chaque matin" title="Le podium des cartes les plus chères" id="podium" action={<a className="btn ghost small" href={href('/classement')}><Icon name="trophy" size={16} />Top 100</a>}>
         <Podium game={game} />

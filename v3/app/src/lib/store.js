@@ -9,6 +9,7 @@ const V2_KEY = 'nexus.v2';
 const DEFAULT = {
   collection: [],          // { uid, key, qty, cond, grade, lang, addedAt, paid, scan }
   watch: {},               // key → { addedAt, below, above, baseline }
+  wish: {},                // liste de souhaits : key → { addedAt, eur (prix au moment de l'ajout) }
   compare: [],             // clés (4 au plus)
   packs: { opened: 0, virtual: {}, sel: {}, history: [] },
   recent: [],              // cartes consultées
@@ -91,6 +92,8 @@ export function addToCollection(key, { qty = 1, cond = 'NM', grade = null, lang 
     const same = !scan && s.collection.find((e) => e.key === key && e.cond === cond && e.lang === lang && !e.grade);
     if (same) same.qty += qty;
     else s.collection.unshift({ uid: uid(), key, qty, cond, grade, lang, paid, scan, addedAt: new Date().toISOString() });
+    questStep(s, 'add');
+    if (scan) questStep(s, 'scan');
   });
 }
 export const updateEntry = (u, patch) => update((s) => { const e = s.collection.find((x) => x.uid === u); if (e) Object.assign(e, patch); });
@@ -102,16 +105,29 @@ export const removeEntry = (u) => update((s) => {
 // ---- Suivis et alertes ----
 export const toggleWatch = (key, baseline) => update((s) => {
   if (s.watch[key]) delete s.watch[key];
-  else s.watch[key] = { addedAt: new Date().toISOString(), below: null, above: null, baseline: baseline ?? null };
+  else { s.watch[key] = { addedAt: new Date().toISOString(), below: null, above: null, baseline: baseline ?? null }; questStep(s, 'watch'); }
 });
 export const setAlert = (key, patch) => update((s) => { s.watch[key] = { addedAt: new Date().toISOString(), below: null, above: null, baseline: null, ...(s.watch[key] || {}), ...patch }; });
+
+// ---- Liste de souhaits ----
+export const toggleWish = (key, eur) => update((s) => {
+  s.wish ||= {};
+  if (s.wish[key]) delete s.wish[key];
+  else { s.wish[key] = { addedAt: new Date().toISOString(), eur: eur ?? null }; questStep(s, 'wish'); }
+});
+export function addWishes(list) {
+  let n = 0;
+  update((s) => { s.wish ||= {}; for (const [key, eur] of list) if (!s.wish[key]) { s.wish[key] = { addedAt: new Date().toISOString(), eur: eur ?? null }; n++; } if (n) questStep(s, 'wish'); });
+  return n;
+}
+export const removeWish = (key) => update((s) => { if (s.wish) delete s.wish[key]; });
 
 // ---- Comparateur ----
 export const toggleCompare = (key) => update((s) => {
   if (s.compare.includes(key)) s.compare = s.compare.filter((k) => k !== key);
-  else { s.compare.push(key); if (s.compare.length > 4) s.compare.shift(); }
+  else { s.compare.push(key); if (s.compare.length > 4) s.compare.shift(); if (s.compare.length >= 2) questStep(s, 'compare'); }
 });
-export const pushRecent = (key) => update((s) => { s.recent = [key, ...s.recent.filter((k) => k !== key)].slice(0, 16); });
+export const pushRecent = (key) => update((s) => { s.recent = [key, ...s.recent.filter((k) => k !== key)].slice(0, 16); questStep(s, 'view'); });
 
 // ---- Sauvegarde ----
 export function exportData() { return JSON.stringify({ app: 'Kirakai', version: 3, exportedAt: new Date().toISOString(), ...state }, null, 1); }
@@ -151,7 +167,7 @@ export const normalizeSynced = (data) => syncedPart(merge(structuredClone(data |
 export function clearProgress() { state = merge({ ...localPart(), importedV2Told: true }); save(); emit(); }
 // La progression contient-elle quelque chose qui mérite d'être gardé ?
 export function hasProgress(s = state) {
-  return !!(s.collection?.length || Object.keys(s.watch || {}).length || s.packs?.opened || Object.keys(s.packs?.virtual || {}).length
+  return !!(s.collection?.length || Object.keys(s.watch || {}).length || Object.keys(s.wish || {}).length || s.packs?.opened || Object.keys(s.packs?.virtual || {}).length
     || Object.keys(s.achievements || {}).length || Object.values(s.wallet || {}).some((w) => w?.opened) || s.league?.id);
 }
 
@@ -191,4 +207,69 @@ export async function tryAdmin(code) {
   if (hex !== ADMIN_HASH) return 'bad';
   update((s) => { s.admin = true; });
   return 'on';
+}
+
+// ---- Quêtes du jour et série de jours de visite ----
+// Trois quêtes tirées chaque jour (les mêmes pour tout le monde ce jour-là), récompensées en Berrys et en Pokéballs.
+export const QUESTS = {
+  open: { n: 3, label: 'Ouvre 3 boosters', icon: 'pack', to: '/boosters' },
+  add: { n: 1, label: 'Ajoute une carte à ta collection', icon: 'album', to: '/recherche' },
+  view: { n: 5, label: 'Consulte 5 fiches de cartes', icon: 'eye', to: '/classement' },
+  wish: { n: 1, label: 'Ajoute une carte à ta liste de souhaits', icon: 'heart', to: '/classement' },
+  watch: { n: 1, label: 'Suis le prix d’une carte', icon: 'bell', to: '/marche' },
+  market: { n: 1, label: 'Consulte le marché du jour', icon: 'market', to: '/marche' },
+  set: { n: 2, label: 'Explore 2 extensions', icon: 'sets', to: '/extensions' },
+  compare: { n: 1, label: 'Compare deux cartes', icon: 'compare', to: '/comparateur' },
+  scan: { n: 1, label: 'Scanne une carte', icon: 'scan', to: '/scanner' },
+};
+export const QUEST_REWARD = 100, QUEST_BONUS = 250;
+export const STREAK_BONUS = { 3: 150, 7: 400, 14: 800, 30: 2000 };
+const yesterday = (t = new Date()) => { const y = new Date(t); y.setDate(y.getDate() - 1); return dayKey(y); };
+export function questsOf(day = dayKey()) {
+  // tirage déterministe : la date sert de graine
+  let h = [...day].reduce((a, c) => Math.imul(a ^ c.charCodeAt(0), 16777619) >>> 0, 2166136261);
+  const ids = Object.keys(QUESTS).filter((k) => k !== 'open');
+  const pick = ['open'];
+  while (pick.length < 3) { h = Math.imul(h ^ (h >>> 15), 2246822507) >>> 0; const k = ids[h % ids.length]; if (!pick.includes(k)) pick.push(k); }
+  return pick;
+}
+function questDay(s) {
+  const today = dayKey();
+  if (!s.quests || s.quests.day !== today) s.quests = { ...(s.quests || {}), day: today, count: {}, claimed: {}, bonus: false };
+  return s.quests;
+}
+export function questStep(s, id, k = 1) {
+  const q = questDay(s);
+  if (!questsOf(q.day).includes(id)) return;
+  q.count[id] = (q.count[id] || 0) + k;
+}
+const giveCoins = (s, n) => {
+  s.wallet ||= {};
+  for (const g of ['onepiece', 'pokemon']) {
+    if (!s.wallet[g]) s.wallet[g] = { coins: 1000, day: dayKey(), openedToday: 0, opened: 0, best: null };
+    s.wallet[g].coins += n;
+  }
+};
+export function claimQuest(id) {
+  let ok = false;
+  update((s) => {
+    const q = questDay(s);
+    if (q.claimed[id] || (q.count[id] || 0) < QUESTS[id].n) return;
+    q.claimed[id] = true; giveCoins(s, QUEST_REWARD); ok = true;
+    if (!q.bonus && questsOf(q.day).every((k) => q.claimed[k])) { q.bonus = true; giveCoins(s, QUEST_BONUS); }
+  });
+  return ok;
+}
+// Première visite du jour : la série continue si on est venu hier
+export function touchStreak() {
+  let gain = 0, streak = 0;
+  update((s) => {
+    const q = questDay(s), today = dayKey();
+    if (q.last === today) { streak = q.streak; return; }
+    q.streak = q.last === yesterday() ? (q.streak || 0) + 1 : 1;
+    q.last = today; q.best = Math.max(q.best || 0, q.streak); streak = q.streak;
+    gain = STREAK_BONUS[q.streak] || (q.streak > 30 && q.streak % 30 === 0 ? STREAK_BONUS[30] : 0);
+    if (gain) giveCoins(s, gain);
+  });
+  return { gain, streak };
 }

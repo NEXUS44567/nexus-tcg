@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { img, priceOf, eurOf, trendOf, fxLevel, CUR, fmtEur, fmtPct, GAMES } from '../lib/data.js';
 import { useData, cardHref } from '../lib/hooks.js';
-import { useStore, toggleWatch, toggleCompare } from '../lib/store.js';
+import { useStore, toggleWatch, toggleCompare, toggleWish } from '../lib/store.js';
 import Icon from './Icon.jsx';
 
 // ---- Image de carte avec reflets holographiques selon la rareté ----
@@ -88,6 +88,7 @@ export function CardTile({ card, extra, rank, compact, onClick, owned, showSet =
   const d = useData();
   const watch = useStore((s) => !!s.watch[card.key]);
   const cmp = useStore((s) => s.compare.includes(card.key));
+  const wish = useStore((s) => !!s.wish?.[card.key]);
   const mine = useStore((s) => (owned === undefined ? s.collection.reduce((n, e) => n + (e.key === card.key ? e.qty : 0), 0) : owned));
   const trend = card.game === 'pokemon' ? trendOf(card, d.P) : null;
   const set = d.cats?.[card.game]?.sets.get(card.set);
@@ -100,6 +101,7 @@ export function CardTile({ card, extra, rank, compact, onClick, owned, showSet =
         {mine > 0 && <span className="own-badge" title="Dans ta collection">{mine > 1 ? '×' + mine : <Icon name="check" size={12} stroke={3} />}</span>}
         {actions && (
           <span className="tile-actions">
+            <button type="button" className={wish ? 'on wish' : ''} onClick={stop(() => toggleWish(card.key, eurOf(card, d.P, d.fx)))} aria-label={wish ? 'Retirer de ma liste de souhaits' : 'Ajouter à ma liste de souhaits'} title={wish ? 'Dans ta liste de souhaits' : 'Je la veux'}><Icon name="heart" size={15} /></button>
             <button type="button" className={watch ? 'on' : ''} onClick={stop(() => toggleWatch(card.key, eurOf(card, d.P, d.fx)))} aria-label={watch ? 'Ne plus suivre' : 'Suivre le prix'} title={watch ? 'Suivie' : 'Suivre le prix'}><Icon name="eye" size={15} /></button>
             <button type="button" className={cmp ? 'on' : ''} onClick={stop(() => toggleCompare(card.key))} aria-label={cmp ? 'Retirer du comparateur' : 'Comparer'} title="Comparer"><Icon name="compare" size={15} /></button>
           </span>

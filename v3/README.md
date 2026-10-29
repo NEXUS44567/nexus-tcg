@@ -22,6 +22,12 @@ En plus dans Kirakai :
 - classeur 3D : couverture en cuir qui s'ouvre, feuilles qui se tournent, mode « Organiser » pour placer chaque carte, export CSV
 - Équipage en avis de recherche (la prime est la valeur de la carte la plus chère), Pokédex avec radar des statistiques et cri du Pokémon
 - succès à débloquer, réglages (effets allégés, sons, sauvegarde, reprise des données de la V2)
+- rentabilité des boosters : valeur moyenne et médiane d'un booster et d'un display pour chaque extension (taux estimés ×
+  prix du jour), chances d'obtenir les cartes phares, calcul selon le prix payé, classement « Quelle extension ouvrir ? »
+- compléter une extension : cartes manquantes, coût au prix du jour, ajout d'un coup à la liste de souhaits
+- liste de souhaits : budget total, baisses de prix depuis l'ajout, cartes que mon budget permet d'acheter
+- ce qui monte et ce qui baisse dans ma collection
+- quêtes du jour et série de jours de visite, récompensées en Berrys et en Pokéballs
 - comptes joueurs : inscription, connexion, carte de membre, progression enregistrée en ligne et synchronisée
   entre appareils (à activer avec Supabase, voir [COMPTES.md](COMPTES.md))
 
