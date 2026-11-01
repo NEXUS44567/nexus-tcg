@@ -1,59 +1,10 @@
-# Kirakai
+# Kirakai a déménagé
 
-Kirakai (« kira » キラ, l'éclat d'une carte brillante, et « kai » 海, la mer) est la nouvelle version du site,
-construite à part dans `v3/` (l'ancienne version, NEXUS V2, à la racine du dépôt, n'est pas modifiée).
-En ligne : `https://nexus44567.github.io/nexus-tcg/v3/` (une fois la branche fusionnée dans `main`).
+Kirakai, construit ici dans `v3/`, a maintenant son propre dépôt et sa propre adresse :
 
-Mêmes fonctionnalités que la V2, mêmes adresses (`#/op`, `#/carte/…`, `#/collection`…) et mêmes données (`../db/`, relevées chaque jour par les robots de la V2) :
+- site : https://nexus44567.github.io/KirakaiTCG/
+- dépôt : https://github.com/NEXUS44567/KirakaiTCG
 
-- écran de choix des deux univers, accueil One Piece et accueil Pokémon
-- fiche carte : prix du jour sourcé, moyennes, historique, valeur selon l'état, alertes, comparateur, partage
-- recherche, Top 100, extensions, Pokédex, Équipage, scanner avec note d'état
-- boosters virtuels (Berrys / Pokéballs, display, taux, collection virtuelle, saison), boutique
-- collection : valeur, courbe, classeur, grille, liste, progression par extension, export / import, lien de partage (même format que la V2)
-- langues FR / EN / JP et devise associée, application installable, consultation hors ligne
-
-En plus dans Kirakai :
-
-- recherche rapide partout (Ctrl/⌘ + K ou `/`) : cartes, extensions, Pokémon, personnages, pages
-- reflets holographiques selon la rareté, inspecteur plein écran (la carte se tourne, recto / verso)
-- page « Marché » : valeur cumulée, prix médian, extensions les plus précieuses, répartition des prix, prix moyen par rareté, indice du top 50
-- boosters : choix parmi les dernières extensions, valeur réelle du tirage carte après carte, journal des tirages
-- classeur 3D : couverture en cuir qui s'ouvre, feuilles qui se tournent, mode « Organiser » pour placer chaque carte, export CSV
-- Équipage en avis de recherche (la prime est la valeur de la carte la plus chère), Pokédex avec radar des statistiques et cri du Pokémon
-- succès à débloquer, réglages (effets allégés, sons, sauvegarde, reprise des données de la V2)
-- rentabilité des boosters : valeur moyenne et médiane d'un booster et d'un display pour chaque extension (taux estimés ×
-  prix du jour), chances d'obtenir les cartes phares, calcul selon le prix payé, classement « Quelle extension ouvrir ? »
-- compléter une extension : cartes manquantes, coût au prix du jour, ajout d'un coup à la liste de souhaits
-- liste de souhaits : budget total, baisses de prix depuis l'ajout, cartes que mon budget permet d'acheter
-- ce qui monte et ce qui baisse dans ma collection
-- quêtes du jour et série de jours de visite, récompensées en Berrys et en Pokéballs
-- profils publics avec vitrine de cartes et classement des plus belles collections (`#/collectionneurs`, `#/joueur/<pseudo>`)
-- alertes de prix sur le téléphone, même site fermé (notifications envoyées par le robot `alerts/send.mjs` après le relevé)
-- une vraie page par carte et par extension pour Google (`seo.mjs` → `carte/`, `extension/`, `sitemap.xml`), qui démarre
-  l'application sur la bonne carte ; les liens partagés affichent l'image et le nom de la carte
-- comptes joueurs : inscription, connexion, carte de membre, progression enregistrée en ligne et synchronisée
-  entre appareils (à activer avec Supabase, voir [COMPTES.md](COMPTES.md))
-
-## Données de l'utilisateur
-
-La V3 garde ses propres données (`localStorage` « nexus.v3 »). Au premier lancement, elle reprend une copie de celles de la V2
-du même navigateur, sans jamais écrire dans celles-ci. Les réglages permettent de reprendre plus tard les nouveautés de la V2.
-Avec un compte, ces données sont aussi enregistrées en ligne (table `nexus_saves`, une ligne par joueur) et reprises
-sur chaque appareil où le joueur se connecte.
-
-## Développement
-
-```
-cd v3
-npm install
-npm run build      # → index.html, assets/, sw.js, manifest.webmanifest
-```
-
-Sources dans `app/` (React 18, esbuild). Le service worker de la V3 a sa propre portée (`v3/`) et ses propres caches (`nexus3-…`).
-Le build dépose aussi dans `assets/` un petit relais au nom du script de la V2 : si un navigateur ayant déjà le service worker de la V2
-ouvre la V3 pour la première fois, ce relais retire ce service worker et recharge la page (la V2 le réinstalle à sa visite suivante).
-Après une reconstruction de la V2, relancer `npm run build` ici pour mettre ce relais à jour.
-
-Logo (vague et étincelle) et emblèmes dessinés pour Kirakai (aucun logo officiel). One Piece © Eiichiro Oda / Shueisha, Toei Animation, Bandai.
-Pokémon © Nintendo, Creatures, GAME FREAK, The Pokémon Company. Site de fan non officiel.
+Ce dossier ne garde que la redirection : `index.html` envoie vers la nouvelle adresse en gardant la page demandée
+(`#/carte/…`, `#/collection`…), et `sw.js` retire l'ancien service worker et ses caches chez ceux qui l'avaient.
+NEXUS V2, à la racine du dépôt, n'est pas concernée.
